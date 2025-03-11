@@ -1,0 +1,53 @@
+[
+  {
+    "sub_participant_id": 101,
+    "sub_participant_name": "LeBron James",
+    "participant_id": 1,
+    "participant_name": "Los Angeles Lakers",
+    "event_id": 107645,
+    "odds": [
+      {
+        "id": 48754651,
+        "market_id": 7,
+        "market_name": "Under/Over Player Points",
+        "line": "24.5",
+        "bet_type": "Over",
+        "price": "1.9802",
+        "status": "Open",
+        "last_updated_date": "2025-03-05 20:00:00",
+        "stat_value": 8
+      },
+      {
+        "id": 48754652,
+        "market_id": 8,
+        "market_name": "Under/Over Player Assists",
+        "line": "6.5",
+        "bet_type": "Over",
+        "price": "1.850",
+        "status": "Open",
+        "last_updated_date": "2025-03-05 20:00:00",
+        "stat_value": 3
+      }
+    ]
+  },
+  {
+    "sub_participant_id": 201,
+    "sub_participant_name": "Stephen Curry",
+    "participant_id": 2,
+    "participant_name": "Golden State Warriors",
+    "event_id": 107645,
+    "odds": [
+      {
+        "id": 48754644,
+        "market_id": 7,
+        "market_name": "Under/Over Player Points",
+        "line": "30.5",
+        "bet_type": "Over",
+        "price": "1.900",
+        "status": "Open",
+        "last_updated_date": "2025-03-05 20:00:00",
+        "stat_value": 15
+      }
+    ]
+  }
+]

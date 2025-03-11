@@ -1,0 +1,125 @@
+{
+  "id": 2,
+  "team_name": "Golden State Warriors",
+  "acronym": "BKN",
+  "competition": "NBA",
+  "competition_id": 1001,
+  "next_event": {
+    "event_id": 6922,
+    "event_name": "Lakers vs Warriors",
+    "event_date": "2025-03-09 12:23:13",
+    "opponent": "LAL"
+  },
+  "historical_stats": [
+    {
+      "stat_name": "Points Per Game",
+      "average": 105,
+      "count": 5,
+      "max_value": 114,
+      "min_value": 83,
+      "event_statistics": [
+        {
+          "event_id": 9363,
+          "event_name": "Mavs vs Clippers",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 122,
+          "opponent": "LAL"
+        },
+        {
+          "event_id": 2833,
+          "event_name": "Lakers vs Warriors",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 129,
+          "opponent": "BOS"
+        },
+        {
+          "event_id": 2596,
+          "event_name": "Nets vs Bucks",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 112,
+          "opponent": "MIA"
+        },
+        {
+          "event_id": 8042,
+          "event_name": "Nets vs Bucks",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 116,
+          "opponent": "LAL"
+        },
+        {
+          "event_id": 3202,
+          "event_name": "Nets vs Bucks",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 129,
+          "opponent": "MIA"
+        }
+      ]
+    },
+    {
+      "stat_name": "Rebounds Per Game",
+      "average": 42,
+      "count": 5,
+      "max_value": 56,
+      "min_value": 24,
+      "event_statistics": [
+        {
+          "event_id": 4684,
+          "event_name": "Mavs vs Clippers",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 52,
+          "opponent": "LAL"
+        },
+        {
+          "event_id": 7890,
+          "event_name": "Nets vs Bucks",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 37,
+          "opponent": "MIA"
+        },
+        {
+          "event_id": 7508,
+          "event_name": "Mavs vs Clippers",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 38,
+          "opponent": "BOS"
+        },
+        {
+          "event_id": 5469,
+          "event_name": "Mavs vs Clippers",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 28,
+          "opponent": "GSW"
+        },
+        {
+          "event_id": 5318,
+          "event_name": "Lakers vs Warriors",
+          "event_date": "2025-03-09 12:23:13",
+          "value": 56,
+          "opponent": "MIA"
+        }
+      ],
+      "odds": [
+        {
+          "id": 600075,
+          "market_id": "6",
+          "market_name": "Under/Over Fouls - Away Team",
+          "line": "11.5",
+          "bet_type": "Over",
+          "price": "1.5671205206934682",
+          "status": "Open",
+          "last_updated_date": "2025-03-09 12:23:13"
+        },
+        {
+          "id": 990536,
+          "market_id": "7",
+          "market_name": "Under/Over Fouls - Home Team",
+          "line": "21.5",
+          "bet_type": "Over",
+          "price": "1.936513918408128",
+          "status": "Open",
+          "last_updated_date": "2025-03-09 12:23:13"
+        }
+      ]
+    }
+  ]
+}

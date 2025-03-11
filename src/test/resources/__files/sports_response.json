@@ -1,0 +1,16 @@
+{
+  "count": 2,
+  "page": 1,
+  "limit": 50,
+  "total_pages": 1,
+  "sports": [
+    {
+      "id": 1,
+      "name": "Soccer"
+    },
+    {
+      "id": 2,
+      "name": "Basketball"
+    }
+  ]
+}

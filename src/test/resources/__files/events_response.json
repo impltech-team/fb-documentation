@@ -1,0 +1,55 @@
+{
+  "count": 2,
+  "page": 1,
+  "page_size": 25,
+  "total_pages": 1,
+  "events": [
+    {
+      "id": 4784,
+      "competition": "NBA",
+      "competition_id": 1001,
+      "event_name": "Los Angeles Lakers vs Golden State Warriors",
+      "event_date": "2025-02-22 20:00:00",
+      "participants": [
+        {
+          "participant_id": 1,
+          "team_name": "Los Angeles Lakers",
+          "acronym": "LAL"
+        },
+        {
+          "participant_id": 2,
+          "team_name": "Golden State Warriors",
+          "acronym": "GSW"
+        }
+      ],
+      "venue": {
+        "venue_id": 200,
+        "venue_name": "Crypto.com Arena",
+        "location": "Los Angeles, CA",
+        "capacity": 19000
+      },
+      "odds": {
+        "markets": [
+          {
+            "market_name": "Match Winner",
+            "market_id": "8",
+            "bets": [
+              {
+                "id": 4556478,
+                "team_name": "Los Angeles Lakers",
+                "bet_type": "Win",
+                "price": "2.10"
+              },
+              {
+                "id": 4556479,
+                "team_name": "Golden State Warriors",
+                "bet_type": "Win",
+                "price": "1.85"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

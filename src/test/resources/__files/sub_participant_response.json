@@ -1,0 +1,83 @@
+{
+  "id": 1,
+  "player_name": "LeBron James",
+  "competition": "NBA",
+  "competition_id": 1001,
+  "avatar_url": null,
+  "participant_id": 1,
+  "team": "Los Angeles Lakers",
+  "position": "Forward",
+  "next_event": {
+    "event_id": 4784,
+    "event_name": "Los Angeles Lakers vs Golden State Warriors",
+    "event_date": "2025-02-22 20:00:00",
+    "opponent": "GSW"
+  },
+  "shirt_nr": 23,
+  "area_id": 3,
+  "area_name": "United States",
+  "gender": "Male",
+  "weight": "113 kg",
+  "height": "206 cm",
+  "birthdate": "1984-12-30",
+  "historical_stats": [
+    {
+      "stat_name": "Points",
+      "average": 10,
+      "count": 2,
+      "max_value": 12,
+      "min_value": 0,
+      "event_statistics": [
+        {
+          "event_id": 4784,
+          "event_name": "Los Angeles Lakers vs Golden State Warriors",
+          "event_date": "2025-02-22 20:00:00",
+          "value": 8,
+          "opponent": "GSW"
+        },
+        {
+          "event_id": 4785,
+          "event_name": "Los Angeles Lakers vs Boston Celtics",
+          "event_date": "2025-02-23 20:00:00",
+          "value": 12,
+          "opponent": "BOS"
+        }
+      ]
+    },
+    {
+      "stat_name": "Assists",
+      "average": 7,
+      "count": 2,
+      "max_value": 9,
+      "min_value": 5,
+      "event_statistics": [
+        {
+          "event_id": 4784,
+          "event_name": "Los Angeles Lakers vs Golden State Warriors",
+          "event_date": "2025-02-22 20:00:00",
+          "value": 5,
+          "opponent": "GSW"
+        },
+        {
+          "event_id": 4785,
+          "event_name": "Los Angeles Lakers vs Boston Celtics",
+          "event_date": "2025-02-23 20:00:00",
+          "value": 9,
+          "opponent": "BOS"
+        }
+      ],
+      "odds": [
+        {
+          "id": 7458712,
+          "market_name": "Under/Over Player Points",
+          "market_id": 7,
+          "line": "24.5",
+          "bet_type": "Over",
+          "price": "1.9802",
+          "status": "Open",
+          "last_updated_date": "2025-03-05 20:00:00"
+        }
+      ]
+    }
+  ]
+}

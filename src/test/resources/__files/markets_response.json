@@ -1,0 +1,12 @@
+[
+  {
+    "market_name": "Under/Over Player Points",
+    "type": "participant",
+    "market_id": 7
+  },
+  {
+    "market_name": "Under/Over Player Rebounds",
+    "type": "participant",
+    "market_id": 78
+  }
+]

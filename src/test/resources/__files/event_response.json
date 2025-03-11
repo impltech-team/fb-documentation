@@ -1,0 +1,75 @@
+{
+  "id": 4784,
+  "competition": "NBA",
+  "competition_id": 1001,
+  "event_name": "Los Angeles Lakers vs Golden State Warriors",
+  "event_date": "2025-02-22 20:00:00",
+  "status": "finished",
+  "participants": [
+    {
+      "participant_id": 1,
+      "participant_name": "Los Angeles Lakers",
+      "acronym": "LAL",
+      "score": 98,
+      "lineups": [
+        {
+          "sub_participant_id": 101,
+          "sub_participant_name": "LeBron James",
+          "position": "Forward"
+        },
+        {
+          "sub_participant_id": 102,
+          "sub_participant_name": "Anthony Davis",
+          "position": "Center"
+        }
+      ],
+      "stats": [
+        {
+          "stat_name": "Points",
+          "value": 98
+        },
+        {
+          "stat_name": "Rebounds",
+          "value": 40
+        },
+        {
+          "stat_name": "Assists",
+          "value": 22
+        }
+      ]
+    }
+  ],
+  "venue": {
+    "venue_id": 200,
+    "venue_name": "Crypto.com Arena",
+    "location": "Los Angeles, CA",
+    "capacity": 19000
+  },
+  "incidents": [
+    {
+      "time": "Q3 10:23",
+      "participant_id": 2,
+      "participant_name": "Golden State Warriors",
+      "sub_participant_id": 201,
+      "sub_participant_name": "Stephen Curry",
+      "type": "3PT Made"
+    }
+  ],
+  "odds": {
+    "markets": [
+      {
+        "market_id": "8",
+        "market_name": "Match Winner",
+        "bets": [
+          {
+            "id": "4577478",
+            "participant_id": 44,
+            "participant_name": "Los Angeles Lakers",
+            "bet_type": "Win",
+            "price": "2.10"
+          }
+        ]
+      }
+    ]
+  }
+}

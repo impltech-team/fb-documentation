@@ -1,0 +1,18 @@
+{
+  "count": 2,
+  "page": 1,
+  "limit": 50,
+  "total_pages": 1,
+  "areas": [
+    {
+      "id": 10,
+      "name": "United States",
+      "country_code": "US"
+    },
+    {
+      "id": 20,
+      "name": "Europe",
+      "country_code": null
+    }
+  ]
+}

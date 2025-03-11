@@ -1,0 +1,12 @@
+server:
+  port: 9090
+spring:
+  application:
+    name: flexbets-sport
+  docker:
+    compose:
+      enabled: false
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  profiles:
+    active: mock

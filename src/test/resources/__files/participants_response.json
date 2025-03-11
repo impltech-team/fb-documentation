@@ -1,0 +1,160 @@
+{
+  "count": 1,
+  "page": 1,
+  "page_size": 25,
+  "total_pages": 1,
+  "participants": [
+    {
+      "id": "3",
+      "team_name": "Brooklyn Nets",
+      "acronym": "MIL",
+      "competition": "NBA",
+      "competition_id": 1001,
+      "next_event": {
+        "event_id": 5279,
+        "event_name": "Lakers vs Warriors",
+        "event_date": "2025-03-10 12:27:01",
+        "opponent": "MIA"
+      },
+      "historical_stats": [
+        {
+          "stat_name": "Points",
+          "average": 101,
+          "count": 5,
+          "max_value": 118,
+          "min_value": 90,
+          "event_statistics": [
+            {
+              "event_id": 5920,
+              "event_name": "Mavs vs Clippers",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 102,
+              "opponent": "LAL"
+            },
+            {
+              "event_id": 2645,
+              "event_name": "Mavs vs Clippers",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 106,
+              "opponent": "LAL"
+            },
+            {
+              "event_id": 2956,
+              "event_name": "Lakers vs Warriors",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 104,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 3193,
+              "event_name": "Mavs vs Clippers",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 93,
+              "opponent": "LAL"
+            },
+            {
+              "event_id": 8306,
+              "event_name": "Nets vs Bucks",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 84,
+              "opponent": "BOS"
+            }
+          ]
+        }
+      ],
+      "odds": [
+      {
+        "id": 921911,
+        "market_id": "6",
+        "market_name": "Under/Over Fouls - Away Team",
+        "line": "10.5",
+        "bet_type": "Over",
+        "price": "1.93735625264152",
+        "status": "Open",
+        "last_updated_date": "2025-03-10 12:27:01"
+      }
+    ]
+    },
+    {
+      "id": "4",
+      "team_name": "Milwaukee Bucks",
+      "acronym": "BKN",
+      "competition": "NBA",
+      "competition_id": 1001,
+      "next_event": {
+        "event_id": 7394,
+        "event_name": "Mavs vs Clippers",
+        "event_date": "2025-03-10 12:27:01",
+        "opponent": "LAL"
+      },
+      "historical_stats": [
+        {
+          "stat_name": "Points",
+          "average": 94,
+          "count": 5,
+          "max_value": 114,
+          "min_value": 96,
+          "event_statistics": [
+            {
+              "event_id": 7331,
+              "event_name": "Mavs vs Clippers",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 123,
+              "opponent": "BOS"
+            },
+            {
+              "event_id": 7911,
+              "event_name": "Lakers vs Warriors",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 89,
+              "opponent": "LAL"
+            },
+            {
+              "event_id": 6334,
+              "event_name": "Lakers vs Warriors",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 95,
+              "opponent": "BOS"
+            },
+            {
+              "event_id": 1135,
+              "event_name": "Mavs vs Clippers",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 118,
+              "opponent": "LAL"
+            },
+            {
+              "event_id": 5059,
+              "event_name": "Nets vs Bucks",
+              "event_date": "2025-03-10 12:27:01",
+              "value": 94,
+              "opponent": "LAL"
+            }
+          ]
+        }
+      ],
+      "odds": [
+      {
+        "id": 143862,
+        "market_id": "8",
+        "market_name": "Under/Over Home Team Assists",
+        "line": "21.5",
+        "bet_type": "Under",
+        "price": "2.2081907431508228",
+        "status": "Open",
+        "last_updated_date": "2025-03-10 12:27:01"
+      },
+      {
+        "id": 796880,
+        "market_id": "6",
+        "market_name": "Under/Over Fouls - Away Team",
+        "line": "11.5",
+        "bet_type": "Over",
+        "price": "1.5116605801328618",
+        "status": "Open",
+        "last_updated_date": "2025-03-10 12:27:01"
+      }
+    ]
+    }
+  ]
+}

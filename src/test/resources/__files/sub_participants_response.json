@@ -1,0 +1,170 @@
+{
+  "count": 2,
+  "page": 1,
+  "page_size": 25,
+  "total_pages": 1,
+  "sub_participants": [
+    {
+      "id": 1,
+      "player_name": "LeBron James",
+      "competition": "NBA",
+      "competition_id": 1001,
+      "avatar_url": null,
+      "participant_id": 3,
+      "team_name": "Los Angeles Lakers",
+      "position": "Forward",
+      "next_event": {
+        "event_id": 1588,
+        "event_name": "Los Angeles Lakers vs Bucks",
+        "event_date": "2025-03-10 10:55:49",
+        "opponent": "GSW"
+      },
+      "shirt_nr": 48,
+      "area_id": 3,
+      "area_name": "United States",
+      "gender": "Male",
+      "weight": "114 kg",
+      "height": "199 cm",
+      "birthdate": "2000-12-30",
+      "historical_stats": [
+        {
+          "stat_name": "Points",
+          "average": 22,
+          "count": 5,
+          "max_value": 23,
+          "min_value": 4,
+          "event_statistics": [
+            {
+              "event_id": 5570,
+              "event_name": "Lakers vs Warriors",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 29,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 5946,
+              "event_name": "Lakers vs Clippers",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 28,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 2356,
+              "event_name": "Lakers vs Bucks",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 5,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 1842,
+              "event_name": "Lakers vs Bucks",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 15,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 6208,
+              "event_name": "Lakers vs Warriors",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 12,
+              "opponent": "GSW"
+            }
+          ]
+        }
+      ],
+      "odds": [
+        {
+          "id": 348422,
+          "market_id": "2",
+          "market_name": "Under/Over Player Assists",
+          "line": "18.5",
+          "bet_type": "Over",
+          "price": "1.6147322064052467",
+          "status": "Open",
+          "last_updated_date": "2025-03-10 10:55:49"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "player_name": "Nic Claxton",
+      "competition": "NBA",
+      "competition_id": 1001,
+      "avatar_url": null,
+      "participant_id": 1,
+      "team_name": "Brooklyn Nets",
+      "position": "Center",
+      "next_event": {
+        "event_id": 4374,
+        "event_name": "Nets vs Bucks",
+        "event_date": "2025-03-10 10:55:49",
+        "opponent": "GSW"
+      },
+      "shirt_nr": 24,
+      "area_id": 3,
+      "area_name": "United States",
+      "gender": "Male",
+      "weight": "93 kg",
+      "height": "216 cm",
+      "birthdate": "1992-12-30",
+      "historical_stats": [
+        {
+          "stat_name": "Points",
+          "average": 24,
+          "count": 5,
+          "max_value": 45,
+          "min_value": 7,
+          "event_statistics": [
+            {
+              "event_id": 2625,
+              "event_name": "Nets vs Bucks",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 19,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 3660,
+              "event_name": "Nets vs Bucks",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 18,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 8366,
+              "event_name": "Nets vs Warriors",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 18,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 4796,
+              "event_name": "Nets vs Warriors",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 8,
+              "opponent": "GSW"
+            },
+            {
+              "event_id": 1842,
+              "event_name": "Nets vs Warriors",
+              "event_date": "2025-03-10 10:55:49",
+              "value": 11,
+              "opponent": "GSW"
+            }
+          ]
+        }
+      ],
+      "odds": [
+        {
+          "id": 873837,
+          "market_id": "3",
+          "market_name": "Under/Over Player Blocks",
+          "line": "11.5",
+          "bet_type": "Under",
+          "price": "1.5826803186238823",
+          "status": "Open",
+          "last_updated_date": "2025-03-10 10:55:49"
+        }
+      ]
+    }
+  ]
+}
