@@ -16,15 +16,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 @Profile("mock")
 @Slf4j
 @Configuration
-public class CompetitionWireMockConfig extends WireMockConfig {
+public class CompetitionWireMockBase extends WireMockBase {
 
     @Bean
     public CommandLineRunner setupCompetitionWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/competitions/list"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", "application/json")
+                    .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
                                     "2", "Basketball",

@@ -16,15 +16,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 @Profile("mock")
 @Slf4j
 @Configuration
-public class ParticipantWireMockConfig extends WireMockConfig {
+public class ParticipantWireMockBase extends WireMockBase {
 
     @Bean
     public CommandLineRunner setupParticipantWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/participants/list"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", "application/json")
+                    .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
                                     "2", "Golden State Warriors",
@@ -107,8 +106,7 @@ public class ParticipantWireMockConfig extends WireMockConfig {
 
 
             WireMock.stubFor(get(urlPathMatching("/v1/participants/\\d+"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", "application/json")
+                    .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
                                     "2", "Golden State Warriors",

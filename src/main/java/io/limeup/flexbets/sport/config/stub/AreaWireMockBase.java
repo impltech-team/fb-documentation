@@ -16,15 +16,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 @Profile("mock")
 @Slf4j
 @Configuration
-public class AreaWireMockConfig extends WireMockConfig {
+public class AreaWireMockBase extends WireMockBase {
 
     @Bean
     public CommandLineRunner setupAreaWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/areas/list"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", "application/json")
+                    .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("countryCodeMapping", Map.of(
                                     "US", "United States",
                                     "EU", "Europe",

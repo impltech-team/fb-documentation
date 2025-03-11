@@ -11,7 +11,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @Profile("mock")
 @Slf4j
 @Configuration
-public class WireMockServerConfig extends WireMockConfig {
+public class WireMockServerBase extends WireMockBase {
 
     @Bean(destroyMethod = "stop")
     public WireMockServer wireMockServer() {
@@ -20,4 +20,5 @@ public class WireMockServerConfig extends WireMockConfig {
         log.info("WireMock server started on port {} with response templating", getWireMockPort());
         return wireMockServer;
     }
+
 }

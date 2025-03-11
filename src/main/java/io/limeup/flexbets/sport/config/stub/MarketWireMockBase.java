@@ -17,15 +17,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 @Profile("mock")
 @Slf4j
 @Configuration
-public class MarketWireMockConfig extends WireMockConfig {
+public class MarketWireMockBase extends WireMockBase {
 
     @Bean
     public CommandLineRunner setupMarketWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", "application/json")
+                    .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMarkets", Map.of(
                                     "1", "Under/Over Player Points",
                                     "2", "Under/Over Player Assists",
@@ -55,8 +54,7 @@ public class MarketWireMockConfig extends WireMockConfig {
                             """)));
 
             WireMock.stubFor(post(urlPathMatching("/v1/odds/batch"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", "application/json")
+                    .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "101", "LeBron James",
                                     "102", "Anthony Davis",
