@@ -16,12 +16,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 @Profile("mock")
 @Slf4j
 @Configuration
-public class EventWireMockConfig {
+public class EventWireMockConfig extends WireMockConfig {
 
     @Bean
     public CommandLineRunner setupEventWireMock() {
         return args -> {
-            WireMock.configureFor("localhost", WireMockServerConfig.port);
+            WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
                     .willReturn(aResponse()
                             .withHeader("Content-Type", "application/json")

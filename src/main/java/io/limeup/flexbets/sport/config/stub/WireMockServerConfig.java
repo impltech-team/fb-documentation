@@ -11,15 +11,13 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @Profile("mock")
 @Slf4j
 @Configuration
-public class WireMockServerConfig {
-
-    public static final int port = 9098;
+public class WireMockServerConfig extends WireMockConfig {
 
     @Bean(destroyMethod = "stop")
     public WireMockServer wireMockServer() {
-        WireMockServer wireMockServer = new WireMockServer(options().port(port).templatingEnabled(true));
+        WireMockServer wireMockServer = new WireMockServer(options().port(getWireMockPort()).templatingEnabled(true));
         wireMockServer.start();
-        log.info("WireMock server started on port {} with response templating", port);
+        log.info("WireMock server started on port {} with response templating", getWireMockPort());
         return wireMockServer;
     }
 }

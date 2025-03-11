@@ -1,5 +1,10 @@
 server:
   port: 9090
+swagger:
+  mock-api-url: http://localhost:9098
+wiremock:
+  port: 9098
+  host: localhost
 spring:
   application:
     name: flexbets-sport
