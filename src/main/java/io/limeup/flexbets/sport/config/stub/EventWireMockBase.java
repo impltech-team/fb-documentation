@@ -26,6 +26,7 @@ public class EventWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
+                            .withStatus(200)
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
                                     "2", "Golden State Warriors",
@@ -122,6 +123,7 @@ public class EventWireMockBase extends WireMockBase {
 
             WireMock.stubFor(get(urlPathMatching("/v1/events/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
+                            .withStatus(200)
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
                                     "2", "Golden State Warriors",
