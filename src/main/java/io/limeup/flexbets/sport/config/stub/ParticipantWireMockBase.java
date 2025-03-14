@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
@@ -23,6 +24,7 @@ public class ParticipantWireMockBase extends WireMockBase {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/participants/list"))
+                    .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
@@ -53,7 +55,7 @@ public class ParticipantWireMockBase extends WireMockBase {
                                                     "team_name": "{{lookup parameters.participantMapping participantId}}",
                                                     "acronym": "{{pickRandom 'LAL' 'GSW' 'BKN' 'MIL' 'DAL'}}",
                                                     "competition": "NBA",
-                                                    "competition_id": 1001,
+                                                    "competition_id": {{request.query.competition_id}},
                                                     "next_event": {
                                                         "event_id": {{randomInt lower=1000 upper=9999}},
                                                         "event_name": "{{pickRandom 'Lakers vs Warriors' 'Nets vs Bucks' 'Mavs vs Clippers'}}",
@@ -103,7 +105,16 @@ public class ParticipantWireMockBase extends WireMockBase {
                                             ]
                                         }
                                     """)));
-
+            WireMock.stubFor(get(urlPathMatching("/v1/participants/list"))
+                    .atPriority(10)
+                    .willReturn(aResponse()
+                            .withStatus(400)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""
+                    {
+                        "error": "competition_id is required"
+                    }
+                """)));
 
             WireMock.stubFor(get(urlPathMatching("/v1/participants/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())

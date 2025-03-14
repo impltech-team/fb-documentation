@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -24,6 +25,7 @@ public class MarketWireMockBase extends WireMockBase {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
+                    .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMarkets", Map.of(
                                     "1", "Under/Over Player Points",
@@ -53,13 +55,25 @@ public class MarketWireMockBase extends WireMockBase {
                             ]
                             """)));
 
+            WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
+                    .atPriority(10)
+                    .willReturn(aResponse()
+                            .withStatus(400)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""
+                    {
+                        "error": "competition_id is required"
+                    }
+                """)));
+
             WireMock.stubFor(post(urlPathMatching("/v1/odds/batch"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMapping", Map.of(
-                                    "101", "LeBron James",
-                                    "102", "Anthony Davis",
-                                    "201", "Stephen Curry",
-                                    "202", "Draymond Green"
+                                    "1", "LeBron James",
+                                    "2", "Stephen Curry",
+                                    "3", "Kevin Durant",
+                                    "4", "Luka Doncic",
+                                    "5", "Giannis Antetokounmpo"
                             ))
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",

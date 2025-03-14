@@ -12,6 +12,7 @@ import java.util.Map;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 
 @Profile("mock")
 @Slf4j
@@ -23,13 +24,14 @@ public class SubParticipantWireMockBase extends WireMockBase {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/list"))
+                    .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMapping", Map.of(
-                                    "101", "LeBron James",
-                                    "102", "Stephen Curry",
-                                    "103", "Kevin Durant",
-                                    "104", "Luka Doncic",
-                                    "105", "Giannis Antetokounmpo"
+                                    "1", "LeBron James",
+                                    "2", "Stephen Curry",
+                                    "3", "Kevin Durant",
+                                    "4", "Luka Doncic",
+                                    "5", "Giannis Antetokounmpo"
                             ))
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
@@ -52,13 +54,13 @@ public class SubParticipantWireMockBase extends WireMockBase {
                                         "total_pages": 1,
                                         "sub_participants": [
                                             {{#each (range 1 (randomInt lower=1 upper=25))}}
-                                            {{#assign "subParticipantId"}}{{randomInt lower=101 upper=105}}{{/assign}}
+                                            {{#assign "subParticipantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                             {{#assign "participantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                             {
                                                 "id": {{subParticipantId}},
                                                 "player_name": "{{lookup parameters.subParticipantMapping subParticipantId}}",                                           
                                                 "competition": "NBA",
-                                                "competition_id": 1001,
+                                                "competition_id": {{request.query.competition_id}},
                                                 "avatar_url": null,
                                                 "participant_id": {{participantId}},
                                                 "team_name": "{{lookup parameters.participantMapping participantId}}",                                                                                                 
@@ -121,14 +123,25 @@ public class SubParticipantWireMockBase extends WireMockBase {
                                     """)
                             .withTransformers("response-template")));
 
+            WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/list"))
+                    .atPriority(10)
+                    .willReturn(aResponse()
+                            .withStatus(400)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""
+                    {
+                        "error": "competition_id is required"
+                    }
+                """)));
+
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMapping", Map.of(
-                                    "101", "LeBron James",
-                                    "102", "Stephen Curry",
-                                    "103", "Kevin Durant",
-                                    "104", "Luka Doncic",
-                                    "105", "Giannis Antetokounmpo"
+                                    "1", "LeBron James",
+                                    "2", "Stephen Curry",
+                                    "3", "Kevin Durant",
+                                    "4", "Luka Doncic",
+                                    "5", "Giannis Antetokounmpo"
                             ))
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",

@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.EventDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.EventService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +27,7 @@ public class EventController {
             @RequestParam(required = false, name = "date_to") String dateTo,
             @RequestParam(required = false, name = "venue_ids") List<Integer> venueIds,
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
-            RequestQueryDTO requestQuery) {
+            @ParameterObject RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(eventService.listEvents(
                 competitionId, dateFrom, dateTo, venueIds, participantIds, requestQuery));
     }
