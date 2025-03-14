@@ -133,7 +133,7 @@ public class EventWireMockBase extends WireMockBase {
                             .withTransformers("response-template")
                             .withBody("""
                                         {
-                                            {{#assign "eventId"}}{{request.pathSegments.[1]}}{{/assign}}
+                                            {{#assign "eventId"}}{{request.pathSegments.[2]}}{{/assign}}
                                             {{#assign "eventStatus"}}{{pickRandom 'scheduled' 'in_progress' 'finished'}}{{/assign}}
                                             {{#assign "competitionId"}}1001{{/assign}}
                                             {{#assign "venueId"}}{{randomInt lower=200 upper=203}}{{/assign}}

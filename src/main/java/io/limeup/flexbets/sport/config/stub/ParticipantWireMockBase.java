@@ -124,7 +124,7 @@ public class ParticipantWireMockBase extends WireMockBase {
                             .withTransformers("response-template")
                             .withBody("""
                 {
-                    {{#assign "participantId"}}{{request.pathSegments.[1]}}{{/assign}}
+                    {{#assign "participantId"}}{{request.pathSegments.[2]}}{{/assign}}
                     "id": {{participantId}},
                     "team_name": "{{lookup parameters.participantMapping participantId}}",
                     "acronym": "{{pickRandom 'LAL' 'GSW' 'BKN' 'MIL' 'DAL'}}",
