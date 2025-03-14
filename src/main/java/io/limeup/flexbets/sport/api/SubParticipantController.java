@@ -3,13 +3,9 @@ package io.limeup.flexbets.sport.api;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.service.SubParticipantService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +28,7 @@ public class SubParticipantController {
             @RequestParam(required = false) List<String> positions,
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "market_id") Integer marketId,
-            RequestQueryDTO requestQuery) {
+            @ParameterObject RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(subParticipantService.listSubParticipants(
                 competitionId, positions, participantIds, marketId, requestQuery));
     }

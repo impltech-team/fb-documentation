@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.CompetitionDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.CompetitionService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ public class CompetitionController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false, name = "status_type") String statusType,
-            RequestQueryDTO requestQuery) {
+            @ParameterObject RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(competitionService.listCompetitions(
                 areaIds, sportIds, dateFrom, dateTo, type, gender, statusType, requestQuery));
     }

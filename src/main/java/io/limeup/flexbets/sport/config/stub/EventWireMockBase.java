@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
@@ -23,6 +24,7 @@ public class EventWireMockBase extends WireMockBase {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
+                    .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
@@ -47,7 +49,6 @@ public class EventWireMockBase extends WireMockBase {
                                 "events": [
                                     {{#each (range 1 (randomInt lower=1 upper=3))}}
                                     {{#assign "eventId"}}{{randomInt lower=1000 upper=9999}}{{/assign}}
-                                    {{#assign "competitionId"}}1001{{/assign}}
                                     {{#assign "venueId"}}{{randomInt lower=200 upper=203}}{{/assign}}
                                     {{#assign "participant1Id"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                     {{#assign "participant2Id"}}{{randomInt lower=1 upper=5}}{{/assign}}
@@ -56,7 +57,7 @@ public class EventWireMockBase extends WireMockBase {
                                     {
                                         "id": {{eventId}},
                                         "competition": "NBA",
-                                        "competition_id": {{competitionId}},
+                                        "competition_id": {{request.query.competition_id}},
                                         "event_name": "{{participant1Name}} vs {{participant2Name}}",
                                         "event_date": "{{now offset='+3 days' format='yyyy-MM-dd HH:mm:ss'}}",
                                         "participants": [
@@ -108,6 +109,17 @@ public class EventWireMockBase extends WireMockBase {
                             }
                         """)));
 
+            WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
+                    .atPriority(10)
+                    .willReturn(aResponse()
+                            .withStatus(400)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""
+                    {
+                        "error": "competition_id is required"
+                    }
+                """)));
+
             WireMock.stubFor(get(urlPathMatching("/v1/events/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("participantMapping", Map.of(
@@ -118,11 +130,11 @@ public class EventWireMockBase extends WireMockBase {
                                     "5", "Brooklyn Nets"
                             ))
                             .withTransformerParameter("subParticipantMapping", Map.of(
-                                    "101", "LeBron James",
-                                    "102", "Anthony Davis",
-                                    "103", "Kevin Durant",
-                                    "201", "Stephen Curry",
-                                    "202", "Draymond Green"
+                                    "1", "LeBron James",
+                                    "2", "Anthony Davis",
+                                    "3", "Kevin Durant",
+                                    "4", "Stephen Curry",
+                                    "5", "Draymond Green"
                             ))
                             .withTransformerParameter("venueMapping", Map.of(
                                     "200", "Crypto.com Arena",
@@ -155,7 +167,7 @@ public class EventWireMockBase extends WireMockBase {
                                                     "score": {{#if (eq eventStatus 'scheduled')}}null{{else}}"{{randomInt lower=80 upper=120}}"{{/if}},
                                                     "lineups": {{#if (eq eventStatus 'scheduled')}}null{{else}}[
                                                         {{#each (range 1 2)}}
-                                                        {{#assign "subParticipantId"}}{{randomInt lower=101 upper=202}}{{/assign}}
+                                                        {{#assign "subParticipantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                                         {
                                                             "sub_participant_id": {{subParticipantId}},
                                                             "sub_participant_name": "{{lookup parameters.subParticipantMapping subParticipantId}}",
@@ -186,7 +198,7 @@ public class EventWireMockBase extends WireMockBase {
                                                     "score": {{#if (eq eventStatus 'scheduled')}}null{{else}}"{{randomInt lower=80 upper=120}}"{{/if}},
                                                     "lineups": {{#if (eq eventStatus 'scheduled')}}null{{else}} [
                                                         {{#each (range 1 2)}}
-                                                        {{#assign "subParticipantId"}}{{randomInt lower=101 upper=202}}{{/assign}}
+                                                        {{#assign "subParticipantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                                         {
                                                             "sub_participant_id": {{subParticipantId}},
                                                             "sub_participant_name": "{{lookup parameters.subParticipantMapping subParticipantId}}",
@@ -222,7 +234,7 @@ public class EventWireMockBase extends WireMockBase {
                                                      "time": "Q3 {{randomInt lower=0 upper=12}}:{{randomInt lower=0 upper=59}}",
                                                      "participant_id": {{participant1Id}},
                                                      "participant_name": "{{participant1Name}}",
-                                                     "sub_participant_id": "{{pickRandom '101' '102'}}",
+                                                     "sub_participant_id": "{{pickRandom '1' '2'}}",
                                                      "sub_participant_name": "{{pickRandom 'LeBron James' 'Anthony Davis'}}",
                                                      "type": "{{pickRandom '3PT Made' 'Dunk' 'Steal' 'Foul'}}"
                                                  },
@@ -230,7 +242,7 @@ public class EventWireMockBase extends WireMockBase {
                                                      "time": "Q4 {{randomInt lower=0 upper=12}}:{{randomInt lower=0 upper=59}}",
                                                      "participant_id": {{participant2Id}},
                                                      "participant_name": "{{participant2Name}}",
-                                                     "sub_participant_id": {{pickRandom '201' '202'}},
+                                                     "sub_participant_id": {{pickRandom '4' '5'}},
                                                      "sub_participant_name": "{{pickRandom 'Stephen Curry' 'Draymond Green'}}",
                                                      "type": "{{pickRandom '3PT Made' 'Dunk' 'Steal' 'Foul'}}"
                                                  }
