@@ -24,6 +24,7 @@ public class CompetitionWireMockBase extends WireMockBase {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/competitions/list"))
                     .willReturn(withCommonHeaders(aResponse())
+                            .withStatus(200)
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
                                     "2", "Basketball",

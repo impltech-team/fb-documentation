@@ -24,6 +24,7 @@ public class AreaWireMockBase extends WireMockBase {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/areas/list"))
                     .willReturn(withCommonHeaders(aResponse())
+                            .withStatus(200)
                             .withTransformerParameter("countryCodeMapping", Map.of(
                                     "US", "United States",
                                     "EU", "Europe",
