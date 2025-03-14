@@ -108,9 +108,6 @@ public class MarketWireMockBase extends WireMockBase {
                 ]
                 """)));
 
-
-
-
             log.info("WireMock Stub Markets with Randomized Data Initialized!");
 
         };

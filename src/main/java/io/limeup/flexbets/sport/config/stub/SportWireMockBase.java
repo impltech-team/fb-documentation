@@ -71,7 +71,7 @@ public class SportWireMockBase extends WireMockBase {
                             .withTransformers("response-template")
                             .withBody("""
                             {
-                              {{#assign "sportId"}}{{request.pathSegments.[1]}}{{/assign}}
+                              {{#assign "sportId"}}{{request.pathSegments.[2]}}{{/assign}}
                               "id": "{{sportId}}",
                               "name": "{{lookup parameters.sportMapping sportId}}",
                               "statuses": [
