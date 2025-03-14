@@ -26,7 +26,6 @@ public class SubParticipantWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",
                                     "2", "Stephen Curry",
@@ -137,7 +136,6 @@ public class SubParticipantWireMockBase extends WireMockBase {
 
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",
                                     "2", "Stephen Curry",

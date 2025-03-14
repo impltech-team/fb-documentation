@@ -27,7 +27,6 @@ public class MarketWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("subParticipantMarkets", Map.of(
                                     "1", "Under/Over Player Points",
                                     "2", "Under/Over Player Assists",
@@ -69,7 +68,6 @@ public class MarketWireMockBase extends WireMockBase {
 
             WireMock.stubFor(post(urlPathMatching("/v1/odds/batch"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",
                                     "2", "Stephen Curry",

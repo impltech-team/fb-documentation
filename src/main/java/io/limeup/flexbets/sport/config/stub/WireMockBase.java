@@ -20,6 +20,7 @@ public class WireMockBase {
                 .withHeader("Content-Type", "application/json")
                 .withHeader("Access-Control-Allow-Origin", "*")
                 .withHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-                .withHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                .withHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+                .withStatus(200);
     }
 }
