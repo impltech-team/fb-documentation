@@ -13,14 +13,14 @@ env:
   ecs_task: mock-api
 
 jobs:
-  build-and-push:
+  docker-image:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
     outputs:
-      image_tag_result: ${{ steps.set-image-tag.outputs.image_tag_result }}
+      image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +40,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and Push Docker image
+        id: build-and-push
         env:
           image_tag: ${{ env.commit_short_sha }}
           image_tag_result: ${{ steps.login-ecr.outputs.registry }}/$ecr_repository:$image_tag
@@ -77,7 +78,7 @@ jobs:
             task-raw.json > task-clear.json
           jq '
           .taskDefinition.containerDefinitions[0].image =
-          "${{ needs.build-and-push.outputs.image_tag_result }}"
+          "${{ needs.docker-image.outputs.image_tag_result }}"
           ' task-clear.json > task-definition.json
 
       - name: Deploy to ECS
