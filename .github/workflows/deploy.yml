@@ -1,0 +1,90 @@
+name: Deploy to ECS
+
+on:
+  push:
+    # branches:
+    #   - main
+  workflow_dispatch:
+
+env:
+  ecr_repository: flexbets-dev
+  ecs_cluster: dev-cluster
+  ecs_service: dev-service
+  ecs_task: mock-api
+
+jobs:
+  docker-image:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=${GITHUB_SHA::7}
+          echo "commit_short_sha=$calculatedSha" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: ./.github/workflows/oidc
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker image
+        id: build-and-push
+        env:
+          image_tag: ${{ env.commit_short_sha }}
+          image_tag_result: ${{ steps.login-ecr.outputs.registry }}/$ecr_repository:$image_tag
+        run: |
+          docker build . -t ${{ steps.login-ecr.outputs.registry }}/$ecr_repository:$image_tag
+          docker image list
+          docker push ${{ env.image_tag_result }}
+          echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_OUTPUT
+
+  update-task-definition:
+    needs: [docker-image]
+    name: Update ECS task definition
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: ./.github/workflows/oidc
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+
+      - name: Update ECS task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
+            --query taskDefinition --output json > task-raw.json
+          jq 'del(.compatibilities,
+            .taskDefinitionArn,
+            .requiresAttributes,
+            .revision, .status,
+            .registeredAt,
+            .registeredBy)' \
+            task-raw.json > task-clear.json
+          jq '
+          .containerDefinitions[0].image =
+          "${{ needs.docker-image.outputs.image_tag_result }}"
+          ' task-clear.json > task-definition.json
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          cluster: ${{ env.ecs_cluster }}
+          service: ${{ env.ecs_service }}
+          wait-for-service-stability: true
