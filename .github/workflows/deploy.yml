@@ -61,17 +61,15 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE }}
 
       - name: Update ECS task definition
-        id: get-task-def
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK }}-task \
-            --query taskDefinition > task-definition.json
+            --output json > task-definition.json
           jq '.containerDefinitions[0].image = "${{ env.IMAGE_TAG_RESULT }}"' task-definition.json | tee task-definition.json
-          echo $(jq '.containerDefinitions[0].image' task-definition.json)
 
-      # - name: Deploy to ECS
-      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      #   with:
-      #     task-definition: ${{ steps.update-task.outputs.task-definition }}
-      #     cluster: ${{ env.ECS_CLUSTER }}
-      #     service: ${{ env.ECS_SERVICE }}
-      #     wait-for-service-stability: true
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.ECS_SERVICE }}
+          wait-for-service-stability: true
