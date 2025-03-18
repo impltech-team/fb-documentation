@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock;
 
 import com.atlassian.ta.wiremockpactgenerator.WireMockPactGenerator;
 import com.github.tomakehurst.wiremock.client.WireMock;

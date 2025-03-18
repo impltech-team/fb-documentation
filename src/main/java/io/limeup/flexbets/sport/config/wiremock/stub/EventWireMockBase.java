@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
@@ -39,79 +39,80 @@ public class EventWireMockBase extends WireMockBase {
                                     "202", "Chase Center",
                                     "203", "United Center"
                             ))
-                            .withTransformers("response-template")
+                            .withTransformers("response-template", "custom-pagination-transformer")
                             .withBody("""
-                            {
-                                "count": {{randomInt lower=1 upper=5}},
-                                "page": 1,
-                                "page_size": 25,
-                                "total_pages": 1,
-                                "events": [
-                                    {{#each (range 1 (randomInt lower=1 upper=3))}}
-                                    {{#assign "eventId"}}{{randomInt lower=1000 upper=9999}}{{/assign}}
-                                    {{#assign "venueId"}}{{randomInt lower=200 upper=203}}{{/assign}}
-                                    {{#assign "participant1Id"}}{{randomInt lower=1 upper=5}}{{/assign}}
-                                    {{#assign "participant2Id"}}{{randomInt lower=1 upper=5}}{{/assign}}
-                                    {{#assign "participant1Name"}}{{lookup parameters.participantMapping participant1Id}}{{/assign}}
-                                    {{#assign "participant2Name"}}{{lookup parameters.participantMapping participant2Id}}{{/assign}}
-                                    {
-                                        "id": {{eventId}},
-                                        "competition": "NBA",
-                                        "competition_id": {{request.query.competition_id}},
-                                        "event_name": "{{participant1Name}} vs {{participant2Name}}",
-                                        "event_date": "{{now offset='+3 days' format='yyyy-MM-dd HH:mm:ss'}}",
-                                        "participants": [
-                                            {
-                                                "participant_id": {{participant1Id}},
-                                                "team_name": "{{participant1Name}}",
-                                                "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}"
-                                            },
-                                            {
-                                                "participant_id": {{participant2Id}},
-                                                "team_name": "{{participant2Name}}",
-                                                "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}"
-                                            }
-                                        ],
-                                        "venue": {
-                                            "venue_id": {{venueId}},
-                                            "venue_name": "{{lookup parameters.venueMapping venueId}}",
-                                            "location": "{{pickRandom 'Los Angeles, CA' 'Boston, MA' 'San Francisco, CA' 'Chicago, IL'}}",
-                                            "capacity": "{{randomInt lower=18000 upper=22000}}"
-                                        },
-                                        "odds": {
-                                            "markets": [
+                                        {
+                                            "count": {{parameters.count}},
+                                            "page": {{parameters.page}},
+                                            "page_size": {{parameters.page_size}},
+                                            "total_pages": {{parameters.total_pages}},
+                                            "events": [
+                                                {{#each (range 1 parameters.current_page_count)}}
+                                                {{#assign "eventId"}}{{randomInt lower=1000 upper=9999}}{{/assign}}
+                                                {{#assign "venueId"}}{{randomInt lower=200 upper=203}}{{/assign}}
+                                                {{#assign "eventStatus"}}{{pickRandom 'scheduled' 'in_progress' 'finished'}}{{/assign}}
+                                                {{#assign "participant1Id"}}{{randomInt lower=1 upper=5}}{{/assign}}
+                                                {{#assign "participant2Id"}}{{randomInt lower=1 upper=5}}{{/assign}}
+                                                {{#assign "participant1Name"}}{{lookup parameters.participantMapping participant1Id}}{{/assign}}
+                                                {{#assign "participant2Name"}}{{lookup parameters.participantMapping participant2Id}}{{/assign}}
                                                 {
-                                                    "market_id": 8,
-                                                    "market_name": "Match Winner",
-                                                    "bets": [
+                                                    "id": {{eventId}},
+                                                    "competition": "NBA",
+                                                    "competition_id": {{request.query.competition_id}},
+                                                    "event_name": "{{participant1Name}} vs {{participant2Name}}",
+                                                    "event_date": "{{now offset='+3 days' format='yyyy-MM-dd HH:mm:ss'}}",
+                                                    "status": "{{eventStatus}}",
+                                                    "participants": [
                                                         {
-                                                            "id": {{randomInt lower=100000 upper=999999}},
                                                             "participant_id": {{participant1Id}},
-                                                            "participant_name": "{{participant1Name}}",
-                                                            "bet_type": "Win",
-                                                            "price": "{{randomDecimal lower=1.50 upper=2.50}}"
+                                                            "team_name": "{{participant1Name}}",
+                                                            "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}"
                                                         },
                                                         {
-                                                            "id": {{randomInt lower=100000 upper=999999}},
                                                             "participant_id": {{participant2Id}},
-                                                            "participant_name": "{{participant2Name}}",
-                                                            "bet_type": "Win",
-                                                            "price": "{{randomDecimal lower=1.50 upper=2.50}}"
+                                                            "team_name": "{{participant2Name}}",
+                                                            "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}"
+                                                        }
+                                                    ],
+                                                    "venue": {
+                                                        "venue_id": {{venueId}},
+                                                        "venue_name": "{{lookup parameters.venueMapping venueId}}",
+                                                        "location": "{{pickRandom 'Los Angeles, CA' 'Boston, MA' 'San Francisco, CA' 'Chicago, IL'}}",
+                                                        "capacity": "{{randomInt lower=18000 upper=22000}}"
+                                                    },
+                                                    "markets": [
+                                                        {
+                                                            "market_id": 8,
+                                                            "market_name": "Match Winner",
+                                                            "bets": [
+                                                                {
+                                                                    "id": {{randomInt lower=100000 upper=999999}},
+                                                                    "participant_id": {{participant1Id}},
+                                                                    "participant_name": "{{participant1Name}}",
+                                                                    "bet_type": "Win",
+                                                                    "price": "{{randomDecimal lower=1.50 upper=2.50}}"
+                                                                },
+                                                                {
+                                                                    "id": {{randomInt lower=100000 upper=999999}},
+                                                                    "participant_id": {{participant2Id}},
+                                                                    "participant_name": "{{participant2Name}}",
+                                                                    "bet_type": "Win",
+                                                                    "price": "{{randomDecimal lower=1.50 upper=2.50}}"
+                                                                }
+                                                            ]
                                                         }
                                                     ]
                                                 }
+                                                {{#unless @last}},{{/unless}}
+                                                {{/each}}
                                             ]
                                         }
-                                    }
-                                    {{#unless @last}},{{/unless}}
-                                    {{/each}}
-                                ]
-                            }
-                        """)));
+                                    """)));
 
             WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
                     .atPriority(10)
                     .willReturn(aResponse()
+                            .withTransformers("logging-transformer")
                             .withStatus(400)
                             .withHeader("Content-Type", "application/json")
                             .withBody("""
@@ -248,31 +249,29 @@ public class EventWireMockBase extends WireMockBase {
                                                      "type": "{{pickRandom '3PT Made' 'Dunk' 'Steal' 'Foul'}}"
                                                  }
                                             ]{{/if}},
-                                            "odds": {
-                                                "markets": [
-                                                {
-                                                    "market_id": 8,
-                                                    "market_name": "Match Winner",
-                                                    "bets": [
-                                                        {
-                                                            "id": {{randomInt lower=100000 upper=999999}},
-                                                            "participant_id": {{participant1Id}},
-                                                            "participant_name": "{{participant1Name}}",
-                                                            "bet_type": "Win",
-                                                            "price": "{{randomDecimal lower=1.50 upper=2.50}}"
-                                                        },
-                                                        {
-                                                            "id": {{randomInt lower=100000 upper=999999}},
-                                                            "participant_id": {{participant2Id}},
-                                                            "participant_name": "{{participant2Name}}",
-                                                            "bet_type": "Win",
-                                                            "price": "{{randomDecimal lower=1.50 upper=2.50}}"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    """)));
+                                            "markets": [
+                                            {
+                                                "market_id": 8,
+                                                "market_name": "Match Winner",
+                                                "bets": [
+                                                    {
+                                                        "id": {{randomInt lower=100000 upper=999999}},
+                                                        "participant_id": {{participant1Id}},
+                                                        "participant_name": "{{participant1Name}}",
+                                                        "bet_type": "Win",
+                                                        "price": "{{randomDecimal lower=1.50 upper=2.50}}"
+                                                    },
+                                                    {
+                                                        "id": {{randomInt lower=100000 upper=999999}},
+                                                        "participant_id": {{participant2Id}},
+                                                        "participant_name": "{{participant2Name}}",
+                                                        "bet_type": "Win",
+                                                        "price": "{{randomDecimal lower=1.50 upper=2.50}}"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }""")));
             log.info("WireMock Stub Events with Randomized Data Initialized!");
         };
     }

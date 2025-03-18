@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +58,7 @@ public class MarketWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
                     .atPriority(10)
                     .willReturn(aResponse()
+                            .withTransformers("logging-transformer")
                             .withStatus(400)
                             .withHeader("Content-Type", "application/json")
                             .withBody("""

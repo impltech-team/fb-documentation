@@ -17,5 +17,5 @@ public class EventDTO {
     private String eventDate;
     private List<ParticipantSummaryDTO> participants;
     private VenueDTO venue;
-    private OddsMarketDTO odds;
+    private List<MarketDTO> markets;
 }
