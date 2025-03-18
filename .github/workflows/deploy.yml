@@ -14,8 +14,8 @@ env:
   ECS_TASK: mock-api
 
 jobs:
-  deploy:
-    name: Build, Push, and Deploy
+  build-and-push:
+    name: Build and push Docker image
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -48,22 +48,22 @@ jobs:
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG .
           docker image list
           docker push ${{ env.IMAGE_TAG_RESULT }}
-
-      - name: Retrieve latest ECS task definition
+  update-task-definition:
+    needs: [build-and-push]
+    name: Update ECS task definition
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Update ECS task definition
         id: get-task-def
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK }}-task \
             --query taskDefinition > task-definition.json
-
-      - name: Update ECS Task Definition with jq
-        run: |
           jq '.containerDefinitions[0].image = "${{ env.IMAGE_TAG_RESULT }}"' task-definition.json | tee task-definition.json
-
-
-      - name: Check updated ECS Task Definition
-        id: get-task-def-updated
-        run: |
           cat task.definition.json
+
       # - name: Deploy to ECS
       #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       #   with:
