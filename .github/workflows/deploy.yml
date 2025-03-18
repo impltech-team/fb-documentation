@@ -68,11 +68,11 @@ jobs:
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
             --query taskDefinition --output json > task-raw.json
-          jq 'del(.compatibilities, \
-            .taskDefinitionArn, \
-            .requiresAttributes, \
-            .revision, .status, \
-            .registeredAt, \
+          jq 'del(.compatibilities,
+            .taskDefinitionArn,
+            .requiresAttributes,
+            .revision, .status,
+            .registeredAt,
             .registeredBy)' \
             task-raw.json > task-clear.json
           jq '.taskDefinition.containerDefinitions[0].image = \
