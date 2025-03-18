@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
 
 env:
-  ECR_REPOSITORY: flexbets-dev
-  ECS_CLUSTER: dev-cluster
-  ECS_SERVICE: dev-service
-  ECS_TASK: mock-api
+  ecr_repository: flexbets-dev
+  ecs_cluster: dev-cluster
+  ecs_service: dev-service
+  ecs_task: mock-api
 
 jobs:
   build-and-push:
@@ -19,6 +19,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    outputs:
+      image_tag_result: ${{ steps.set-image-tag.outputs.image_tag_result }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,7 +28,7 @@ jobs:
         id: vars
         run: |
           calculatedSha=${GITHUB_SHA::7}
-          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+          echo "commit_short_sha=$calculatedSha" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: ./.github/workflows/oidc
@@ -39,12 +41,15 @@ jobs:
 
       - name: Build and Push Docker image
         env:
-          IMAGE_TAG: ${{ env.COMMIT_SHORT_SHA }}
-          IMAGE_TAG_RESULT: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+          image_tag: ${{ env.commit_short_sha }}
+          image_tag_result: ${{ steps.login-ecr.outputs.registry }}/$ecr_repository:$image_tag
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build . -t ${{ steps.login-ecr.outputs.registry }}/$ecr_repository:$image_tag
           docker image list
-          docker push ${{ env.IMAGE_TAG_RESULT }}
+          docker push ${{ env.image_tag_result }}
+      - name: Set image tag result
+        run: |
+          echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_ENV
   update-task-definition:
     needs: [build-and-push]
     name: Update ECS task definition
@@ -64,8 +69,16 @@ jobs:
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK }}-task \
             --query taskDefinition --output json > task-raw.json
-          jq 'del(.compatibilities, .taskDefinitionArn, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy)' task-raw.json > task-clear.json
-          jq '.taskDefinition.containerDefinitions[0].image = "${{ env.IMAGE_TAG_RESULT }}"' task-clear.json > task-definition.json
+          jq 'del(.compatibilities, \
+            .taskDefinitionArn, \
+            .requiresAttributes, \
+            .revision, .status, \
+            .registeredAt, \
+            .registeredBy)' \
+            task-raw.json > task-clear.json
+          jq '.taskDefinition.containerDefinitions[0].image = \
+            "${{ needs.build-and-push.outputs.image_tag_result }}"' \
+            task-clear.json > task-definition.json
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
