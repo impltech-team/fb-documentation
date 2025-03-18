@@ -51,7 +51,7 @@ jobs:
           echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_OUTPUT
 
   update-task-definition:
-    needs: [build-and-push]
+    needs: [docker-image]
     name: Update ECS task definition
     runs-on: ubuntu-latest
     permissions:
