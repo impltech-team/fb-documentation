@@ -1,6 +1,5 @@
 name: "AWS Assume Role"
 description: "Configures AWS credentials using OIDC and assumes a role"
-author: "Your Name or Org"
 
 inputs:
   role-to-assume:
