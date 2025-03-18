@@ -10,7 +10,8 @@ import java.util.List;
 @Service
 public class EventServiceImpl implements EventService {
     @Override
-    public List<EventDTO> listEvents(Integer competitionId, String dateFrom, String dateTo, List<Integer> venueIds, List<Integer> participantIds, RequestQueryDTO requestQuery) {
+    public List<EventDTO> listEvents(Integer competitionId, String dateFrom, String dateTo, List<Integer> venueIds
+            , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
         return null;
     }
 

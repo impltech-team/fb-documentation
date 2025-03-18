@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import lombok.Getter;
@@ -20,6 +20,8 @@ public class WireMockBase {
                 .withHeader("Content-Type", "application/json")
                 .withHeader("Access-Control-Allow-Origin", "*")
                 .withHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-                .withHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                .withHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+                .withTransformers("logging-transformer")
+                .withStatus(200);
     }
 }

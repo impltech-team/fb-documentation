@@ -1,6 +1,7 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import io.limeup.flexbets.sport.config.wiremock.stub.WireMockBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +27,6 @@ public class SubParticipantWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",
                                     "2", "Stephen Curry",
@@ -46,15 +46,15 @@ public class SubParticipantWireMockBase extends WireMockBase {
                                     "3", "Under/Over Player Blocks",
                                     "4", "Under/Over Player Rebounds"
                             ))
-                            .withTransformers("response-template")
+                            .withTransformers("response-template", "custom-pagination-transformer")
                             .withBody("""
                                     {
-                                        "count": {{randomInt lower=1 upper=5}},
-                                        "page": 1,
-                                        "page_size": 25,
-                                        "total_pages": 1,
+                                        "count": {{parameters.count}},
+                                        "page": {{parameters.page}},
+                                        "page_size": {{parameters.page_size}},
+                                        "total_pages": {{parameters.total_pages}},
                                         "sub_participants": [
-                                            {{#each (range 1 (randomInt lower=1 upper=25))}}
+                                            {{#each (range 1 parameters.current_page_count)}}
                                             {{#assign "subParticipantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                             {{#assign "participantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                             {
@@ -121,12 +121,12 @@ public class SubParticipantWireMockBase extends WireMockBase {
                                             {{/each}}
                                         ]
                                     }
-                                    """)
-                            .withTransformers("response-template")));
+                                    """)));
 
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/list"))
                     .atPriority(10)
                     .willReturn(aResponse()
+                            .withTransformers("logging-transformer")
                             .withStatus(400)
                             .withHeader("Content-Type", "application/json")
                             .withBody("""
@@ -137,7 +137,6 @@ public class SubParticipantWireMockBase extends WireMockBase {
 
             WireMock.stubFor(get(urlPathMatching("/v1/sub-participants/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",
                                     "2", "Stephen Curry",
@@ -221,8 +220,7 @@ public class SubParticipantWireMockBase extends WireMockBase {
                                                     {{/each}}
                                                 ]
                                     }
-                                    """)
-                            .withTransformers("response-template")));
+                                    """)));
             log.info("WireMock Stub Sub-Participants with Randomized Data Initialized!");
         };
     }

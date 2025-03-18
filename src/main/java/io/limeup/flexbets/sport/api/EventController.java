@@ -27,9 +27,10 @@ public class EventController {
             @RequestParam(required = false, name = "date_to") String dateTo,
             @RequestParam(required = false, name = "venue_ids") List<Integer> venueIds,
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
+            @RequestParam(required = false, name = "status") String status,
             @ParameterObject RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(eventService.listEvents(
-                competitionId, dateFrom, dateTo, venueIds, participantIds, requestQuery));
+                competitionId, dateFrom, dateTo, venueIds, participantIds, status, requestQuery));
     }
 
     @GetMapping("/{event_id}")

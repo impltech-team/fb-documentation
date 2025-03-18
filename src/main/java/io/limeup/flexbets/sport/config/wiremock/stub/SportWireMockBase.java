@@ -1,6 +1,7 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import io.limeup.flexbets.sport.config.wiremock.stub.WireMockBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,6 @@ public class SportWireMockBase extends WireMockBase {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/sports/list"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
                                     "2", "Basketball",
@@ -36,29 +36,28 @@ public class SportWireMockBase extends WireMockBase {
                                     "8", "Rugby",
                                     "9", "Golf"
                             ))
-                            .withTransformers("response-template")
+                            .withTransformers("response-template", "custom-pagination-transformer")
                             .withBody("""
-                            {
-                              "count": {{randomInt lower=1 upper=5}},
-                              "page": 1,
-                              "limit": 50,
-                              "total_pages": 1,
-                              "sports": [
-                                {{#each (range 1 (randomInt lower=1 upper=3))}}
-                                {{#assign "sportId"}}{{randomInt lower=1 upper=9}}{{/assign}}
-                                {
-                                  "id": "{{sportId}}",
-                                  "name": "{{lookup parameters.sportMapping sportId}}"
-                                }
-                                {{#unless @last}},{{/unless}}
-                                {{/each}}
-                              ]
-                            }
-                            """)));
+                                    {
+                                      "count": {{parameters.count}},
+                                      "page": {{parameters.page}},
+                                      "page_size": {{parameters.page_size}},
+                                      "total_pages": {{parameters.total_pages}},
+                                      "sports": [
+                                        {{#each (range 1 parameters.current_page_count)}}
+                                        {{#assign "sportId"}}{{randomInt lower=1 upper=9}}{{/assign}}
+                                        {
+                                          "id": "{{sportId}}",
+                                          "name": "{{lookup parameters.sportMapping sportId}}"
+                                        }
+                                        {{#unless @last}},{{/unless}}
+                                        {{/each}}
+                                      ]
+                                    }
+                                    """)));
 
             WireMock.stubFor(get(urlPathMatching("/v1/sports/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
                                     "2", "Basketball",

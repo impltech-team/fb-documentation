@@ -6,7 +6,8 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import java.util.List;
 
 public interface EventService {
-    List<EventDTO> listEvents(Integer competitionId, String dateFrom, String dateTo, List<Integer> venueIds, List<Integer> participantIds, RequestQueryDTO requestQuery);
+    List<EventDTO> listEvents(Integer competitionId, String dateFrom, String dateTo, List<Integer> venueIds
+            , List<Integer> participantIds, String status, RequestQueryDTO requestQuery);
 
     EventDTO getEventById(Long eventId);
 }

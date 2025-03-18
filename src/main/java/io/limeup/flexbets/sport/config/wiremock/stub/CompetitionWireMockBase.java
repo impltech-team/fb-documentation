@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,6 @@ public class CompetitionWireMockBase extends WireMockBase {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/v1/competitions/list"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
                                     "2", "Basketball",
@@ -39,15 +38,15 @@ public class CompetitionWireMockBase extends WireMockBase {
                                     "40", "Asia",
                                     "50", "Africa"
                             ))
-                            .withTransformers("response-template")
+                            .withTransformers("response-template", "custom-pagination-transformer")
                             .withBody("""
                             {
-                                "count": {{randomInt lower=1 upper=5}},
-                                "page": 1,
-                                "limit": 50,
-                                "total_pages": 1,
+                                "count": {{parameters.count}},
+                                "page": {{parameters.page}},
+                                "page_size": {{parameters.page_size}},
+                                "total_pages": {{parameters.total_pages}},
                                 "competitions": [
-                                    {{#each (range 1 (randomInt lower=1 upper=3))}}
+                                    {{#each (range 1 parameters.current_page_count)}}
                                     {{#assign "competitionId"}}{{randomInt lower=1000 upper=9999}}{{/assign}}
                                     {{#assign "sportId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                     {{#assign "areaId"}}{{randomInt lower=10 upper=50 step=10}}{{/assign}}

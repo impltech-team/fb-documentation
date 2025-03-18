@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.config.stub;
+package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,6 @@ public class ParticipantWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/participants/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
                                     "2", "Golden State Warriors",
@@ -41,15 +40,15 @@ public class ParticipantWireMockBase extends WireMockBase {
                                     "8", "Under/Over Home Team Assists",
                                     "9", "Under/Over Away Team Assists"
                             ))
-                            .withTransformers("response-template")
+                            .withTransformers("response-template", "custom-pagination-transformer")
                             .withBody("""
                                         {
-                                            "count": {{randomInt lower=1 upper=5}},
-                                            "page": 1,
-                                            "page_size": 25,
-                                            "total_pages": 1,
+                                            "count": {{parameters.count}},
+                                            "page": {{parameters.page}},
+                                            "page_size": {{parameters.page_size}},
+                                            "total_pages": {{parameters.total_pages}},
                                             "participants": [
-                                                {{#each (range 1 (randomInt lower=1 upper=5))}}
+                                                {{#each (range 1 parameters.current_page_count)}}
                                                 {{#assign "participantId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                                 {
                                                     "id": {{participantId}},
@@ -109,6 +108,7 @@ public class ParticipantWireMockBase extends WireMockBase {
             WireMock.stubFor(get(urlPathMatching("/v1/participants/list"))
                     .atPriority(10)
                     .willReturn(aResponse()
+                            .withTransformers("logging-transformer")
                             .withStatus(400)
                             .withHeader("Content-Type", "application/json")
                             .withBody("""
@@ -119,7 +119,6 @@ public class ParticipantWireMockBase extends WireMockBase {
 
             WireMock.stubFor(get(urlPathMatching("/v1/participants/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withStatus(200)
                             .withTransformerParameter("participantMapping", Map.of(
                                     "1", "Los Angeles Lakers",
                                     "2", "Golden State Warriors",
