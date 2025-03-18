@@ -47,9 +47,8 @@ jobs:
           docker build . -t ${{ steps.login-ecr.outputs.registry }}/$ecr_repository:$image_tag
           docker image list
           docker push ${{ env.image_tag_result }}
-      - name: Set image tag result
-        run: |
           echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_ENV
+
   update-task-definition:
     needs: [build-and-push]
     name: Update ECS task definition
@@ -67,7 +66,7 @@ jobs:
 
       - name: Update ECS task definition
         run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK }}-task \
+          aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
             --query taskDefinition --output json > task-raw.json
           jq 'del(.compatibilities, \
             .taskDefinitionArn, \
@@ -84,6 +83,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: task-definition.json
-          cluster: ${{ env.ECS_CLUSTER }}
-          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ecs_cluster }}
+          service: ${{ env.ecs_service }}
           wait-for-service-stability: true
