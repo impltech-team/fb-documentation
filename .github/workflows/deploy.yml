@@ -20,8 +20,7 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set short git commit SHA
         id: vars
@@ -54,6 +53,8 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: ./.github/workflows/oidc
         with:
