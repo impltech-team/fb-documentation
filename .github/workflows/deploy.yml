@@ -11,7 +11,7 @@ env:
   ECR_REPOSITORY: flexbets-dev
   ECS_CLUSTER: dev-cluster
   ECS_SERVICE: dev-service
-  ECS_TASK_FAMILY: mock-api-task
+  ECS_TASK: mock-api
 
 jobs:
   deploy:
@@ -36,13 +36,6 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Retrieve latest ECS task definition
-        id: get-task-def
-        run: |
-          aws ecs describe-task-definition --task-definition $ECS_TASK_FAMILY \
-            --query taskDefinition > task-definition.json
-          cat task-definition.json
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -50,19 +43,27 @@ jobs:
       - name: Build and Push Docker image
         env:
           IMAGE_TAG: ${{ env.COMMIT_SHORT_SHA }}
+          IMAGE_TAG_RESULT: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
         run: |
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG .
           docker image list
-      #     docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push ${{ env.IMAGE_TAG_RESULT }}
 
-      # - name: Update ECS Task Definition
-      #   id: update-task
-      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-      #   with:
-      #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
-      #     container-name: flexbets:${{ env.COMMIT_SHORT_SHA }}
-      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.COMMIT_SHORT_SHA }}
+      - name: Retrieve latest ECS task definition
+        id: get-task-def
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK }}-task \
+            --query taskDefinition > task-definition.json
 
+      - name: Update ECS Task Definition with jq
+        run: |
+          jq '.containerDefinitions[0].image = "${{ env.IMAGE_TAG_RESULT }}"' task-definition.json | tee task-definition.json
+
+
+      - name: Check updated ECS Task Definition
+        id: get-task-def-updated
+        run: |
+          cat task.definition.json
       # - name: Deploy to ECS
       #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       #   with:
