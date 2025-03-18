@@ -30,7 +30,9 @@ jobs:
           echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
-        uses: ./.github/workflows/oidc.yml
+        uses: ./.github/workflows/oidc
+        with:
+          iam-role: ${{ secrets.IAM_ROLE }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -53,7 +55,9 @@ jobs:
       contents: read
     steps:
       - name: Configure AWS credentials
-        uses: ./.github/workflows/oidc.yml
+        uses: ./.github/workflows/oidc
+        with:
+          iam-role: ${{ secrets.IAM_ROLE }}
 
       - name: Update ECS task definition
         id: get-task-def
