@@ -1,0 +1,72 @@
+name: Deploy to AWS ECS
+
+on:
+  push:
+    # branches:
+    #   - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY: flexbets-dev
+  ECS_CLUSTER: dev-cluster
+  ECS_SERVICE: dev-service
+
+jobs:
+  deploy:
+    name: Build, Push, and Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ env.COMMIT_SHORT_SHA }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Retrieve latest ECS task definition
+        id: get-task-def
+        run: |
+          aws ecs describe-task-definition --task-definition $ECS_TASK_FAMILY \
+            --query taskDefinition > task-definition.json
+          cat task-definition.json
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker image
+        env:
+          IMAGE_TAG: flexbets-dev:${{ env.COMMIT_SHORT_SHA }}
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+          docker image list
+      #     docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # - name: Update ECS Task Definition
+      #   id: update-task
+      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   with:
+      #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
+      #     container-name: flexbets:${{ env.COMMIT_SHORT_SHA }}
+      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.COMMIT_SHORT_SHA }}
+
+      # - name: Deploy to ECS
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.update-task.outputs.task-definition }}
+      #     cluster: ${{ env.ECS_CLUSTER }}
+      #     service: ${{ env.ECS_SERVICE }}
+      #     wait-for-service-stability: true
