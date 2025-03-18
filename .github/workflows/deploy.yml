@@ -75,9 +75,10 @@ jobs:
             .registeredAt,
             .registeredBy)' \
             task-raw.json > task-clear.json
-          jq '.taskDefinition.containerDefinitions[0].image = \
-            "${{ needs.build-and-push.outputs.image_tag_result }}"' \
-            task-clear.json > task-definition.json
+          jq '
+          .taskDefinition.containerDefinitions[0].image =
+          "${{ needs.build-and-push.outputs.image_tag_result }}"
+          ' task-clear.json > task-definition.json
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
