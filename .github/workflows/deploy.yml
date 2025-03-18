@@ -77,7 +77,7 @@ jobs:
             .registeredBy)' \
             task-raw.json > task-clear.json
           jq '
-          .taskDefinition.containerDefinitions[0].image =
+          .containerDefinitions[0].image =
           "${{ needs.docker-image.outputs.image_tag_result }}"
           ' task-clear.json > task-definition.json
 
