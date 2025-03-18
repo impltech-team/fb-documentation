@@ -63,7 +63,7 @@ jobs:
       - name: Update ECS task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK }}-task \
-            --output json > task-tmp.json
+            --query taskDefinition --output json > task-tmp.json
           jq '.taskDefinition.containerDefinitions[0].image = "${{ env.IMAGE_TAG_RESULT }}"' task-tmp.json > task-definition.json
 
       - name: Deploy to ECS
