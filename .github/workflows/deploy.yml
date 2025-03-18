@@ -11,6 +11,7 @@ env:
   ECR_REPOSITORY: flexbets-dev
   ECS_CLUSTER: dev-cluster
   ECS_SERVICE: dev-service
+  ECS_TASK_FAMILY: mock-api-task
 
 jobs:
   deploy:
