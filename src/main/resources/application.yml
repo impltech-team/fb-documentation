@@ -4,7 +4,7 @@ swagger:
   mock-api-url: http://${WIRE_MOCK_HOST}:9098
 wiremock:
   port: 9098
-  host: ${WIRE_MOCK_HOST}
+  host: localhost
 statscore:
   client: 2286
   secret: sbeIyhmdUGiiBIUZvr2EiobwBXOVhXGLr4k
