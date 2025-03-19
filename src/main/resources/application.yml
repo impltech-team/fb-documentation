@@ -5,6 +5,9 @@ swagger:
 wiremock:
   port: 9098
   host: ${WIRE_MOCK_HOST}
+statscore:
+  client: 2286
+  secret: sbeIyhmdUGiiBIUZvr2EiobwBXOVhXGLr4k
 spring:
   application:
     name: flexbets-sport

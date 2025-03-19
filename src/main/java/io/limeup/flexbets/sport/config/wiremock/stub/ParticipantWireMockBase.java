@@ -85,7 +85,13 @@ public class ParticipantWireMockBase extends WireMockBase {
                                                     ],
                                                     "odds": [
                                                         {{#each (range 1 (randomInt lower=1 upper=3))}}
-                                                        {{#assign "marketId"}}{{randomInt lower=5 upper=9}}{{/assign}}
+                                                        {{#assign "marketId"}}
+                                                            {{#if request.query.market_id}}
+                                                                {{request.query.market_id}}
+                                                            {{else}}
+                                                                {{randomInt lower=1 upper=4}}
+                                                            {{/if}}
+                                                        {{/assign}}
                                                         {
                                                             "id": {{randomInt lower=100000 upper=999999}},
                                                             "market_id": {{marketId}},

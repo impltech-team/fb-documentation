@@ -102,7 +102,6 @@ public class MarketWireMockBase extends WireMockBase {
                         "participant_name": "{{lookup parameters.participantMapping participantId}}",
                         "event_id": {{query.event_id}},
                         "odds": [
-                            {{#each (range 1 (randomInt lower=1 upper=3))}}
                             {
                                 "id": {{randomInt lower=100000 upper=999999}},
                                 "market_id": {{marketId}},
@@ -114,8 +113,6 @@ public class MarketWireMockBase extends WireMockBase {
                                 "last_updated_date": "{{now offset='+3 days' format='yyyy-MM-dd HH:mm:ss'}}",
                                 "stat_value": "{{randomInt lower=5 upper=40}}"
                             }
-                            {{#unless @last}},{{/unless}}
-                            {{/each}}
                         ]
                     }
                     {{#unless @last}},{{/unless}}
