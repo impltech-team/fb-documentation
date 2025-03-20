@@ -36,7 +36,7 @@ public class SportWireMockBase extends WireMockBase {
                                     "8", "Rugby",
                                     "9", "Golf"
                             ))
-                            .withTransformers("response-template", "custom-pagination-transformer")
+                            .withTransformers("response-template", "custom-pagination-transformer", "sports-filtering-transformer")
                             .withBody("""
                                     {
                                       "count": {{parameters.count}},

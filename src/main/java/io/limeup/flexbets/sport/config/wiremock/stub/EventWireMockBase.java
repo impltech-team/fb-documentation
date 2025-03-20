@@ -39,7 +39,7 @@ public class EventWireMockBase extends WireMockBase {
                                     "202", "Chase Center",
                                     "203", "United Center"
                             ))
-                            .withTransformers("response-template", "custom-pagination-transformer")
+                            .withTransformers("response-template", "custom-pagination-transformer", "events-filtering-transformer")
                             .withBody("""
                                         {
                                             "count": {{parameters.count}},

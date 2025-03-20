@@ -31,7 +31,7 @@ public class AreaWireMockBase extends WireMockBase {
                                     "SA", "South America",
                                     "AF", "Africa"
                             ))
-                            .withTransformers("response-template", "custom-pagination-transformer")
+                            .withTransformers("response-template", "custom-pagination-transformer", "areas-filtering-transformer")
                             .withBody("""
                                     {
                                       "count": {{parameters.count}},

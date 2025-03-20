@@ -32,13 +32,13 @@ public class CompetitionWireMockBase extends WireMockBase {
                                     "5", "Rugby"
                             ))
                             .withTransformerParameter("areaMapping", Map.of(
-                                    "10", "United States",
-                                    "20", "Europe",
-                                    "30", "South America",
-                                    "40", "Asia",
-                                    "50", "Africa"
+                                    "1", "United States",
+                                    "2", "Europe",
+                                    "3", "South America",
+                                    "4", "Asia",
+                                    "5", "Africa"
                             ))
-                            .withTransformers("response-template", "custom-pagination-transformer")
+                            .withTransformers("response-template", "custom-pagination-transformer", "competitions-filtering-transformer")
                             .withBody("""
                             {
                                 "count": {{parameters.count}},
@@ -49,7 +49,7 @@ public class CompetitionWireMockBase extends WireMockBase {
                                     {{#each (range 1 parameters.current_page_count)}}
                                     {{#assign "competitionId"}}{{randomInt lower=1000 upper=9999}}{{/assign}}
                                     {{#assign "sportId"}}{{randomInt lower=1 upper=5}}{{/assign}}
-                                    {{#assign "areaId"}}{{randomInt lower=10 upper=50 step=10}}{{/assign}}
+                                    {{#assign "areaId"}}{{randomInt lower=1 upper=5}}{{/assign}}
                                     {
                                         "id": {{competitionId}},
                                         "name": "{{pickRandom 'NBA' 'UEFA Champions League' 'Premier League' 'FIFA World Cup' 'Grand Slam'}}",

@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OddsBatchRequestDTO {
+public class StatsBatchRequestDTO {
     private List<OddsQuery> queries;
 
     @Data

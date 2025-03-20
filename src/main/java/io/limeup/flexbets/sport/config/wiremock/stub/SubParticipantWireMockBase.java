@@ -1,7 +1,6 @@
 package io.limeup.flexbets.sport.config.wiremock.stub;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import io.limeup.flexbets.sport.config.wiremock.stub.WireMockBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +45,7 @@ public class SubParticipantWireMockBase extends WireMockBase {
                                     "3", "Under/Over Player Blocks",
                                     "4", "Under/Over Player Rebounds"
                             ))
-                            .withTransformers("response-template", "custom-pagination-transformer")
+                            .withTransformers("response-template", "custom-pagination-transformer", "sub-participants-filtering-transformer")
                             .withBody("""
                                     {
                                         "count": {{parameters.count}},

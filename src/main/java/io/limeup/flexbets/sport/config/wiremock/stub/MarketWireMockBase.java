@@ -67,7 +67,7 @@ public class MarketWireMockBase extends WireMockBase {
                     }
                 """)));
 
-            WireMock.stubFor(post(urlPathMatching("/v1/odds/batch"))
+            WireMock.stubFor(post(urlPathMatching("/v1/stats/batch"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",
@@ -101,19 +101,9 @@ public class MarketWireMockBase extends WireMockBase {
                         "participant_id": {{participantId}},
                         "participant_name": "{{lookup parameters.participantMapping participantId}}",
                         "event_id": {{query.event_id}},
-                        "odds": [
-                            {
-                                "id": {{randomInt lower=100000 upper=999999}},
-                                "market_id": {{marketId}},
-                                "market_name": "{{lookup parameters.marketMapping marketId}}",
-                                "line": "{{randomInt lower=10 upper=30}}.5",
-                                "bet_type": "{{pickRandom 'Over' 'Under'}}",
-                                "price": "{{randomDecimal lower=1.50 upper=2.50}}",
-                                "status": "Open",
-                                "last_updated_date": "{{now offset='+3 days' format='yyyy-MM-dd HH:mm:ss'}}",
-                                "stat_value": "{{randomInt lower=5 upper=40}}"
-                            }
-                        ]
+                        "stat_id": {{randomInt lower=100000 upper=999999}},
+                        "last_updated_date": "{{now offset='+3 days' format='yyyy-MM-dd HH:mm:ss'}}",
+                        "stat_value": "{{randomInt lower=5 upper=40}}"
                     }
                     {{#unless @last}},{{/unless}}
                     {{/each}}

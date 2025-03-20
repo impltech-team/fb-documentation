@@ -1,8 +1,8 @@
 package io.limeup.flexbets.sport.api;
 
-import io.limeup.flexbets.sport.dto.OddsBatchRequestDTO;
-import io.limeup.flexbets.sport.dto.OddsResponseDTO;
-import io.limeup.flexbets.sport.service.OddsService;
+import io.limeup.flexbets.sport.dto.StatsBatchRequestDTO;
+import io.limeup.flexbets.sport.dto.StatsResponseDTO;
+import io.limeup.flexbets.sport.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/odds")
+@RequestMapping("/v1/stats")
 @RequiredArgsConstructor
-public class OddsController {
-    private final OddsService oddsService;
+public class StatsController {
+    private final StatsService oddsService;
 
     @PostMapping("/batch")
-    public ResponseEntity<List<OddsResponseDTO>> listBatchOdds(@RequestBody OddsBatchRequestDTO request) {
-        return ResponseEntity.ok(oddsService.listBatchOdds(request));
+    public ResponseEntity<List<StatsResponseDTO>> listBatchStats(@RequestBody StatsBatchRequestDTO request) {
+        return ResponseEntity.ok(oddsService.listBatchStats(request));
     }
 }
