@@ -18,3 +18,5 @@ spring:
     property-naming-strategy: SNAKE_CASE
   profiles:
     active: mock
+scheduler:
+  mock-live-update-interval: 30000

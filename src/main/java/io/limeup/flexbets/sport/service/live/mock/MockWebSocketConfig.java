@@ -7,11 +7,11 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 @Configuration
 @EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
+public class MockWebSocketConfig implements WebSocketConfigurer {
 
-    private final LiveWebSocketController webSocketController;
+    private final MockWebSocketController webSocketController;
 
-    public WebSocketConfig(LiveWebSocketController webSocketController) {
+    public MockWebSocketConfig(MockWebSocketController webSocketController) {
         this.webSocketController = webSocketController;
     }
 
