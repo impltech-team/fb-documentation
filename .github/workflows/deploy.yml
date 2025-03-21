@@ -10,7 +10,7 @@ env:
   ecr_repository: flexbets-dev
   ecs_cluster: dev-cluster
   ecs_service: dev-service
-  ecs_task: mock-api
+  ecs_task: dev-api
 
 jobs:
   docker-image:
