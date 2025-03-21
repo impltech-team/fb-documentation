@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/test/statscore")
+@Hidden
 public class StatScoreTestController {
 
     private final StatScoreClient statScoreClient;
