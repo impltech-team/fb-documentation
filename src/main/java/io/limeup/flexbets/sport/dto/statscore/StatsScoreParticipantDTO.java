@@ -1,26 +1,31 @@
-package io.limeup.flexbets.sport.dto;
+package io.limeup.flexbets.sport.dto.statscore;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ParticipantDTO {
-    private Integer id;
-    private String teamName;
+public class StatsScoreParticipantDTO {
+    private int id;
+    private String type;
+    private String name;
+    private String shortName;
     private String acronym;
-    private String competition;
-    private Integer competitionId;
-    private EventLiteDTO nextEvent;
-    private List<HistoricalStatDTO> historicalStats;
-    private List<OddsDTO> odds;
+    private String gender;
+    private Integer areaId;
+    private String areaName;
+    private String areaCode;
+    private Integer sportId;
+    private String sportName;
+    private String national;
+    private String website;
+    private Long ut;
+    private String slug;
+    private String virtual;
+    private Integer shirtNr;
+
     private Details details;
+    private List<StatScoreVenueDTO> venues;
 
     @Data
     public static class Details {

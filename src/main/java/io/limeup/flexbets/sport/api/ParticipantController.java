@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.api;
 
+import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.ParticipantService;
@@ -21,12 +22,14 @@ public class ParticipantController {
     private final ParticipantService participantService;
 
     @GetMapping("/list")
-    public ResponseEntity<List<ParticipantDTO>> listParticipants(
+    public ResponseEntity<PaginatedResponse<ParticipantDTO>> listParticipants(
             @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @ParameterObject RequestQueryDTO requestQuery) {
-        return ResponseEntity.ok(participantService.listParticipants(
-                competitionId, participantIds, requestQuery));
+        PaginatedResponse<ParticipantDTO> response = participantService.listParticipants(
+                competitionId, participantIds, requestQuery);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{participant_id}")
