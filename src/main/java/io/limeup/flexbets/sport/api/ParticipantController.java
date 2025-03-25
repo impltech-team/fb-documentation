@@ -26,14 +26,12 @@ public class ParticipantController {
             @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @ParameterObject RequestQueryDTO requestQuery) {
-        PaginatedResponse<ParticipantDTO> response = participantService.listParticipants(
-                competitionId, participantIds, requestQuery);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(participantService.listParticipants(
+                competitionId, participantIds, requestQuery));
     }
 
     @GetMapping("/{participant_id}")
-    public ResponseEntity<ParticipantDTO> getParticipantById(@PathVariable("participant_id") Long participantId) {
+    public ResponseEntity<ParticipantDTO> getParticipantById(@PathVariable("participant_id") Integer participantId) {
         return ResponseEntity.ok(participantService.getParticipantById(participantId));
     }
 }

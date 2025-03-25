@@ -1,23 +1,23 @@
 package io.limeup.flexbets.sport.dto.statscore.prams;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ParticipantQueryParams {
+
     private Integer sportId;
-    @Builder.Default
     private Integer limit = 50;
-    @Builder.Default
     private Integer page = 1;
     private Integer seasonId;
     private Integer areaId;
-
-    @Builder.Default
-    private Subtype subtype = Subtype.ATHLETE;
-
+    private Subtype subtype;
+    private Type type;
     private String multiIds;
+    private String virtual;
 
     public enum Subtype {
         ATHLETE("athlete"),
@@ -28,6 +28,21 @@ public class ParticipantQueryParams {
         private final String value;
 
         Subtype(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    public enum Type {
+        TEAM("team"),
+        PERSON("person");
+
+        private final String value;
+
+        Type(String value) {
             this.value = value;
         }
 

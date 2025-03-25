@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class StatsScoreParticipantDTO {
+public class StatScoreParticipantDTO {
     private int id;
     private String type;
     private String name;

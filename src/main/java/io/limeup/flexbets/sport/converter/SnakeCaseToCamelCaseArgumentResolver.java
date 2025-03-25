@@ -1,6 +1,8 @@
 package io.limeup.flexbets.sport.converter;
 
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
+import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.WebDataBinder;
@@ -10,14 +12,21 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class SnakeCaseToCamelCaseArgumentResolver implements HandlerMethodArgumentResolver {
 
+    private static final Set<Class<?>> SUPPORTED_DTOS = Set.of(
+            RequestQueryDTO.class,
+            EventQueryParams.class,
+            ParticipantQueryParams.class
+    );
+
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterType().equals(RequestQueryDTO.class);
+        return SUPPORTED_DTOS.contains(parameter.getParameterType());
     }
 
     @Override
@@ -32,7 +41,7 @@ public class SnakeCaseToCamelCaseArgumentResolver implements HandlerMethodArgume
                         Map.Entry::getValue
                 ));
 
-        RequestQueryDTO dto = new RequestQueryDTO();
+        Object dto = parameter.getParameterType().getDeclaredConstructor().newInstance();
 
         // Bind modified parameters to DTO
         WebDataBinder binder = binderFactory.createBinder(webRequest, dto, parameter.getParameterName());

@@ -1,13 +1,13 @@
 package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatsScoreParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StatScoreMapper {
 
-    public ParticipantDTO mapToParticipantDTO(StatsScoreParticipantDTO source) {
+    public ParticipantDTO mapToParticipantDTO(StatScoreParticipantDTO source) {
         if (source == null) return null;
 
         ParticipantDTO.Details details = null;

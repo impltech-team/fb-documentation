@@ -6,7 +6,9 @@ import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import java.util.List;
 
 public interface SubParticipantService {
+
     List<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions, List<Integer> participantIds, Integer marketId, RequestQueryDTO requestQuery);
 
-    SubParticipantDTO getSubParticipantById(Long subParticipantId);
+    SubParticipantDTO getSubParticipantById(Integer subParticipantId);
+
 }

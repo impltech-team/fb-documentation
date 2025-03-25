@@ -35,7 +35,7 @@ public class SubParticipantController {
 
     @GetMapping("/{sub-participant_id}")
     public ResponseEntity<SubParticipantDTO> getSubParticipantById(
-            @PathVariable("sub-participant_id") Long subParticipantId) {
+            @PathVariable("sub-participant_id") Integer subParticipantId) {
         return ResponseEntity.ok(subParticipantService.getSubParticipantById(subParticipantId));
     }
 }

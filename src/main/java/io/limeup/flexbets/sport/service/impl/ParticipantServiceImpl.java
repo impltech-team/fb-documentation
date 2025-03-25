@@ -5,7 +5,7 @@ import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.ListWrapper;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
-import io.limeup.flexbets.sport.dto.statscore.StatsScoreParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.mapper.StatScoreMapper;
 import io.limeup.flexbets.sport.service.ParticipantService;
@@ -26,16 +26,19 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds, RequestQueryDTO requestQuery) {
-        StatScoreResponse<ListWrapper<StatsScoreParticipantDTO>> result = statScoreClient.getParticipants(ParticipantQueryParams.builder()
-                .multiIds(!CollectionUtils.isEmpty(participantIds) ? participantIds.stream()
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(",")) : null)
-                //after data prefetching we gonna map competition_id to a season_id and sport_id, so this val won't be static
-                .sportId(1)
-                .seasonId(62587)
-                .page(requestQuery.getPage())
-                .limit(requestQuery.getPageSize())
-                .build()).block();
+        //after data prefetching we gonna map competition_id to a season_id and sport_id, so this val won't be static
+        ParticipantQueryParams queryParams = new ParticipantQueryParams(
+                1,
+                requestQuery.getPageSize(),
+                requestQuery.getPage(),
+                62587,
+                null,
+                ParticipantQueryParams.Subtype.ATHLETE, null,
+                CollectionUtils.isEmpty(participantIds) ? null :
+                        participantIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
+                null
+        );
+        StatScoreResponse<ListWrapper<StatScoreParticipantDTO>> result = statScoreClient.getParticipants(queryParams).block();
         return PaginatedResponse.<ParticipantDTO>builder()
                 .count(result.getApi().getMethod().getTotal_items())
                 .page(requestQuery.getPage())
@@ -48,7 +51,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public ParticipantDTO getParticipantById(Long participantId) {
-        return statScoreMapper.mapToParticipantDTO(statScoreClient.getParticipantById(participantId.toString()).block());
+    public ParticipantDTO getParticipantById(Integer participantId) {
+        return statScoreMapper.mapToParticipantDTO(statScoreClient.getParticipantById(participantId).block());
     }
 }
