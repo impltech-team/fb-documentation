@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class StatScoreVenueDTO {
-    private String id;
+    private Integer id;
     private String name;
     private String shortName;
     private String country;

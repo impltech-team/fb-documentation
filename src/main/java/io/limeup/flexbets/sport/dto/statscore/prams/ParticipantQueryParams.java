@@ -1,5 +1,8 @@
 package io.limeup.flexbets.sport.dto.statscore.prams;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParticipantQueryParams {
-
+    @NotNull(message = "sport_id is required")
     private Integer sportId;
-    private Integer limit = 50;
+    @Max(500)
+    @Min(1)
+    private Integer limit = 500;
+    @Min(1)
     private Integer page = 1;
     private Integer seasonId;
     private Integer areaId;

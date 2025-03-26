@@ -1,8 +1,11 @@
 package io.limeup.flexbets.sport.converter;
 
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
+import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.WebDataBinder;
@@ -21,7 +24,10 @@ public class SnakeCaseToCamelCaseArgumentResolver implements HandlerMethodArgume
     private static final Set<Class<?>> SUPPORTED_DTOS = Set.of(
             RequestQueryDTO.class,
             EventQueryParams.class,
-            ParticipantQueryParams.class
+            ParticipantQueryParams.class,
+            AreaQueryParams.class,
+            SportQueryParams.class,
+            VenueQueryParams.class
     );
 
     @Override

@@ -1,0 +1,17 @@
+{
+  "api": {
+    "method": {
+      "name": "getEventSubParticipants"
+    },
+    "data": {
+      "sub_participants": [
+        {
+          "id": 464938,
+          "name": "Stephen Curry",
+          "type": "person",
+          "position": "starting lineup"
+        }
+      ]
+    }
+  }
+}

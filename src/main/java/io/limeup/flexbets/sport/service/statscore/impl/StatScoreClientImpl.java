@@ -4,12 +4,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.dto.statscore.ListWrapper;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreAreaDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreBracketDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreSportDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreSportLiteDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
+import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +55,6 @@ public class StatScoreClientImpl implements StatScoreClient {
         );
     }
 
-
     @Override
     public Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getParticipants(ParticipantQueryParams params) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
@@ -73,14 +80,11 @@ public class StatScoreClientImpl implements StatScoreClient {
 
     @Override
     public Mono<StatScoreParticipantDTO> getParticipantById(Integer participantId) {
-        return webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path("/participants/" + participantId);
-                    return builder.build();
-                })
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<StatScoreResponse<Map<String, StatScoreParticipantDTO>>>() {})
-                .map(resp -> resp.getApi().getData().get("participant"));
+        return fetchSingleNode(
+                "/participants/" + participantId,
+                "participant",
+                new ParameterizedTypeReference<>() {}
+        );
     }
 
     @Override
@@ -129,14 +133,11 @@ public class StatScoreClientImpl implements StatScoreClient {
 
     @Override
     public Mono<StatScoreCompetitionDTO> getEventById(Integer eventId) {
-        return webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path("/events/" + eventId);
-                    return builder.build();
-                })
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<StatScoreResponse<Map<String, StatScoreCompetitionDTO>>>() {})
-                .map(resp -> resp.getApi().getData().get("competition"));
+        return fetchSingleNode(
+                "/events/" + eventId,
+                "competition",
+                new ParameterizedTypeReference<>() {}
+        );
     }
 
     @Override
@@ -153,7 +154,103 @@ public class StatScoreClientImpl implements StatScoreClient {
         );
     }
 
-    private <T> Mono<StatScoreResponse<ListWrapper<T>>> fetchListWrapper(
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreAreaDTO>>> getAreas(AreaQueryParams query) {
+        Map<String, Object> queryParams = new LinkedHashMap<>();
+
+        queryParams.put("lang", query.getLang());
+        queryParams.put("page", query.getPage());
+        queryParams.put("limit", query.getLimit());
+        queryParams.put("parent_area_id", query.getParentAreaId());
+        queryParams.put("timestamp", query.getTimestamp());
+
+        return fetchListWrapper(
+                "/areas",
+                Map.of(),
+                queryParams,
+                "areas",
+                new TypeReference<>() {}
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreSportLiteDTO>>> getSports(SportQueryParams query) {
+        Map<String, Object> queryParams = new LinkedHashMap<>();
+
+        queryParams.put("page", query.getPage());
+        queryParams.put("limit", query.getLimit());
+        queryParams.put("timestamp", query.getTimestamp());
+
+        return fetchListWrapper(
+                "/sports",
+                Map.of(),
+                queryParams,
+                "sports",
+                new TypeReference<>() {}
+        );
+    }
+
+    @Override
+    public Mono<StatScoreSportDTO> getSportById(Integer sportId) {
+        return fetchSingleNode(
+                "/sports/" + sportId,
+                "sport",
+                new ParameterizedTypeReference<>() {}
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreVenueDTO>>> getVenues(VenueQueryParams query) {
+        Map<String, Object> queryParams = new LinkedHashMap<>();
+
+        queryParams.put("sport_id", query.getSportId());
+        queryParams.put("participant_id", query.getParticipantId());
+        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put("page", query.getPage());
+        queryParams.put("limit", query.getLimit());
+
+        return fetchListWrapper(
+                "/venues",
+                Map.of(),
+                queryParams,
+                "venues",
+                new TypeReference<>() {}
+        );
+    }
+
+    @Override
+    public Mono<StatScoreVenueDTO> getVenueById(Integer venueId) {
+        return fetchSingleNode(
+                "/venues/" + venueId,
+                "venue",
+                new ParameterizedTypeReference<>() {}
+        );
+    }
+
+    private <T> Mono<T> fetchSingleNode(
+            String path,
+            String nodeName,
+            ParameterizedTypeReference<StatScoreResponse<Map<String, T>>> typeReference
+    ) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path(path).build())
+                .retrieve()
+                .bodyToMono(typeReference)
+                .map(resp -> resp.getApi().getData().get(nodeName));
+    }
+
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreBracketDTO>>> getBrackets(Integer stageId) {
+        return fetchListWrapper(
+                "/brackets/{stage_id}",
+                Map.of("stage_id", stageId),
+                Map.of(),
+                "nodes",
+                new TypeReference<>() {}
+        );
+    }
+
+    <T> Mono<StatScoreResponse<ListWrapper<T>>> fetchListWrapper(
             String url,
             Map<String, Object> uriVariables,
             Map<String, Object> queryParams,

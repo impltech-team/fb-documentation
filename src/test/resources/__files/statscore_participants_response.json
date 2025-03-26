@@ -1,0 +1,29 @@
+{
+  "api": {
+    "method": {
+      "name": "getParticipants"
+    },
+    "data": {
+      "participants": [
+        {
+          "id": 1036,
+          "name": "Memphis Grizzlies",
+          "type": "team",
+          "acronym": "MEM",
+          "sport_id": 1,
+          "sport_name": "Basketball",
+          "area_name": "USA"
+        },
+        {
+          "id": 1040,
+          "name": "Philadelphia 76ers",
+          "type": "team",
+          "acronym": "PHI",
+          "sport_id": 1,
+          "sport_name": "Basketball",
+          "area_name": "USA"
+        }
+      ]
+    }
+  }
+}

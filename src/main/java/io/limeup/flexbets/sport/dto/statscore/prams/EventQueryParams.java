@@ -6,21 +6,16 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.bind.annotation.BindParam;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventQueryParams {
 
-    @BindParam("date_from")
     @NotNull(message = "date_from is required")
     private String dateFrom;
-
-    @BindParam("date_to")
     @NotNull(message = "date_to is required")
     private String dateTo;
-
     private Integer sportId;
     private Integer areaId;
     private Integer competitionId;
@@ -31,10 +26,8 @@ public class EventQueryParams {
     private String multiIds;
     private String venueType;
     private String venueId;
-
     private String sortType;
     private String sortOrder;
-
     private String relationStatus;
     private String statusId;
     private String statusType;
@@ -46,14 +39,11 @@ public class EventQueryParams {
     private String verifiedResult;
     private String product;
     private String booked;
-
     @Min(1)
     private Integer page = 1;
-
     @Min(1)
-    @Max(100)
+    @Max(150)
     private Integer limit = 50;
-
     private String tz;
     private Long timestamp;
 }

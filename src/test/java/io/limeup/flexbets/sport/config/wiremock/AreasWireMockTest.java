@@ -14,7 +14,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AreasWireMockTest extends BaseWireMockTest{
+public class AreasWireMockTest extends BaseWireMockTest {
 
     private static final String AREAS_LIST_ENDPOINT = "/areas/list";
 

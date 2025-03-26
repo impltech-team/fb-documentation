@@ -1,11 +1,19 @@
 package io.limeup.flexbets.sport.service;
 
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreAreaDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreBracketDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreSportDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreSportLiteDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
+import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 
 public interface StatScoreProxyService {
 
@@ -20,4 +28,16 @@ public interface StatScoreProxyService {
     PaginatedResponse<StatScoreCompetitionDTO> listEvents(EventQueryParams query);
 
     StatScoreCompetitionDTO getEventById(Integer eventId);
+
+    PaginatedResponse<StatScoreAreaDTO> listAreas(AreaQueryParams query);
+
+    PaginatedResponse<StatScoreSportLiteDTO> listSports(SportQueryParams query);
+
+    StatScoreSportDTO getSportById(Integer sportId);
+
+    PaginatedResponse<StatScoreVenueDTO> listVenues(VenueQueryParams query);
+
+    StatScoreVenueDTO getVenueById(Integer venueId);
+
+    PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId);
 }
