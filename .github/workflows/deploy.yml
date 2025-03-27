@@ -32,10 +32,10 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
-      - name: Cache Dependency-Check NVD Database
+      - name: Cache Dependency-Check NVD database
         uses: actions/cache@v4
         with:
-          path: ~/.nvd-db/
+          path: ~/.nvd-db
           key: dependency-check-nvd-${{ runner.os }}-${{ github.run_number }}
           restore-keys: |
             dependency-check-nvd-${{ runner.os }}-
