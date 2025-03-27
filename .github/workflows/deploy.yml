@@ -35,7 +35,7 @@ jobs:
       - name: Cache Dependency-Check NVD database
         uses: actions/cache@v4
         with:
-          path: ~/.nvd-db
+          path: ~/dependency-check/.nvd-db
           key: dependency-check-nvd-${{ runner.os }}-${{ github.run_number }}
           restore-keys: |
             dependency-check-nvd-${{ runner.os }}-
@@ -50,18 +50,24 @@ jobs:
         run: |
           VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
-          unzip dependency-check.zip && dependency-check/bin/dependency-check.sh --out . --scan build/libs/*.jar --format JSON --data .nvd-db/ --prettyPrint
+          unzip dependency-check.zip && \
+          dependency-check/bin/dependency-check.sh \
+            --out . \
+            --scan $(find ~/.gradle/caches/modules-2/files-2.1 -type f -name "*.jar") \
+            --data ~/.nvd-db \
+            --format JSON
+            --prettyPrint
 
       - name: Upload dependency check report
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-check-report.json
+          name: dependency-check-report
           path: ./*.json
 
       - name: Upload .jar
         uses: actions/upload-artifact@v4
         with:
-          name: app.jar
+          name: app
           path: build/libs/*.jar
 
   # docker-image:
