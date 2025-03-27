@@ -23,6 +23,6 @@ FROM openjdk:21-slim
 WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
-COPY --from=build /app/odc-reports/* odc-reports/
+COPY --from=build /app/dependency-check-report.html /tmp/dependency-check-report.html
 
 CMD ["java", "-jar", "app.jar"]
