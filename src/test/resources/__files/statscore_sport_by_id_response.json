@@ -1,0 +1,141 @@
+{
+  "api": {
+    "method": {
+      "name": "sports.show",
+      "details": "sports.show"
+    },
+    "data": {
+      "sport": {
+        "id": 1,
+        "lsId": 101,
+        "name": "Basketball",
+        "url": "https://example.com/basketball",
+        "active": "yes",
+        "hasTimer": "yes",
+        "participantQuantity": "10",
+        "template": "default",
+        "incidentsPositions": "standard",
+        "ut": 1743060000,
+        "statuses": [
+          {
+            "id": 11,
+            "name": "Finished",
+            "shortName": "Fin",
+            "type": "end",
+            "ut": 1743000000
+          }
+        ],
+        "results": [
+          {
+            "id": 2,
+            "name": "Score",
+            "shortName": "Pts",
+            "code": "score",
+            "type": "total",
+            "dataType": "int"
+          }
+        ],
+        "stats": {
+          "team": [
+            {
+              "id": 1,
+              "name": "Points",
+              "shortName": "Pts",
+              "code": "pts",
+              "dataType": "int"
+            }
+          ],
+          "person": [
+            {
+              "id": 2,
+              "name": "Assists",
+              "shortName": "Ast",
+              "code": "ast",
+              "dataType": "int"
+            }
+          ]
+        },
+        "details": [
+          {
+            "id": 1,
+            "name": "Has overtime",
+            "code": "has_ot",
+            "dataType": "boolean",
+            "isSeasonDetail": true,
+            "description": "Indicates if overtime is allowed",
+            "input": "checkbox",
+            "type": "flag",
+            "format": "bool",
+            "nullable": "false",
+            "defaultValue": "false",
+            "relatedStatuses": [
+              "active",
+              "finished"
+            ],
+            "possibleValues": [
+              {
+                "key": "yes",
+                "value": "Yes"
+              },
+              {
+                "key": "no",
+                "value": "No"
+              }
+            ]
+          }
+        ],
+        "incidents": [
+          {
+            "id": 5,
+            "name": "Foul",
+            "important": "yes",
+            "importantForTrader": "no",
+            "sportId": 1,
+            "type": "violation",
+            "group": "standard",
+            "category": "disciplinary",
+            "ut": 1743055555,
+            "code": "foul",
+            "forValue": "team",
+            "gameBreak": false,
+            "attributes": [
+              {
+                "ids": 1,
+                "name": "Technical",
+                "shortName": "Tech",
+                "sortOrder": 1
+              }
+            ]
+          }
+        ],
+        "standingsTypes": [
+          {
+            "id": 1,
+            "name": "League Table",
+            "ut": 1743050000,
+            "columns": [
+              {
+                "id": 1,
+                "name": "Wins",
+                "shortName": "W",
+                "code": "wins"
+              }
+            ]
+          }
+        ],
+        "venuesDetails": [
+          {
+            "id": 101,
+            "name": "Staples Center",
+            "description": "Main arena in LA"
+          }
+        ],
+        "formations": [
+          {
+            "formation": "5-5"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "api": {
+    "method": {
+      "name": "events.index",
+      "parameters": {
+        "dateFrom": "2025-03-27 00:00:00",
+        "dateTo": "2025-03-29 23:59:59",
+        "sportId": 1,
+        "areaId": 191,
+        "competitionId": 101,
+        "seasonId": 62587,
+        "stageId": 135822,
+        "groupId": 1,
+        "participantId": 1040,
+        "multiIds": "1040,1412",
+        "venueType": "indoor",
+        "venueId": 810,
+        "sortType": "start_date",
+        "sortOrder": "desc",
+        "relationStatus": "finished",
+        "statusId": 11,
+        "statusType": "finished",
+        "coverageType": "from_tv",
+        "scoutsfeed": "yes",
+        "eventsDetails": "yes",
+        "competitionsDetails": "yes",
+        "itemStatus": "active",
+        "verifiedResult": "yes",
+        "product": "basketball_stats",
+        "booked": "no",
+        "tz": "Europe/Kyiv",
+        "timestamp": 1743066649,
+        "page": 1,
+        "limit": 20
+      },
+      "total_items": 2
+    },
+    "data": {
+      "competitions": [
+        {
+          "id": 101,
+          "name": "NBA",
+          "shortName": "NBA",
+          "miniName": "NBA",
+          "gender": "male",
+          "type": "country_league",
+          "areaId": 191,
+          "areaName": "USA",
+          "areaCode": "USA",
+          "sportId": 1,
+          "sportName": "Basketball",
+          "status": "active",
+          "seasons": [
+            {
+              "id": 62587,
+              "name": "NBA 2024/25",
+              "year": "2024/25",
+              "actual": "yes",
+              "statsLvl": "vip",
+              "stages": [
+                {
+                  "id": 135822,
+                  "name": "Regular Season",
+                  "startDate": "2024-10-22",
+                  "endDate": "",
+                  "showStandings": "yes",
+                  "groupsNr": 8,
+                  "sort": 1,
+                  "isCurrent": "yes",
+                  "hasBrackets": "no",
+                  "groups": [
+                    {
+                      "id": 1,
+                      "name": "Group A",
+                      "events": [
+                        {
+                          "id": 1,
+                          "name": "Philadelphia 76ers vs New Orleans Pelicans",
+                          "startDate": "2025-03-28 20:00",
+                          "relationStatus": "finished",
+                          "coverageType": "from_tv",
+                          "scoutsfeed": "yes",
+                          "statusName": "Finished",
+                          "statusType": "finished",
+                          "sportId": 1,
+                          "sportName": "Basketball",
+                          "clockStatus": "stopped",
+                          "clockTime": 725,
+                          "betStatus": "suspended",
+                          "betCards": "suspended",
+                          "betCorners": "suspended",
+                          "itemStatus": "active",
+                          "verifiedResult": "yes",
+                          "roundName": "",
+                          "competitionId": 101,
+                          "competitionShortName": "NBA",
+                          "participants": [
+                            {
+                              "id": 1040,
+                              "name": "Philadelphia 76ers",
+                              "shortName": "76ers",
+                              "acronym": "PHI",
+                              "gender": "male",
+                              "areaId": 191,
+                              "areaName": "USA",
+                              "areaCode": "USA",
+                              "sportId": 1,
+                              "sportName": "Basketball",
+                              "type": "team",
+                              "counter": 1
+                            },
+                            {
+                              "id": 1412,
+                              "name": "New Orleans Pelicans",
+                              "shortName": "NOP",
+                              "acronym": "NOP",
+                              "gender": "male",
+                              "areaId": 191,
+                              "areaName": "USA",
+                              "areaCode": "USA",
+                              "sportId": 1,
+                              "sportName": "Basketball",
+                              "type": "team",
+                              "counter": 2
+                            }
+                          ]
+                        },
+                        {
+                          "id": 2,
+                          "name": "Los Angeles Lakers vs Miami Heat",
+                          "startDate": "2025-03-27 20:00",
+                          "relationStatus": "finished",
+                          "coverageType": "from_tv",
+                          "scoutsfeed": "yes",
+                          "statusId": 11,
+                          "statusName": "Finished",
+                          "statusType": "finished",
+                          "sportId": 1,
+                          "sportName": "Basketball",
+                          "clockStatus": "stopped",
+                          "clockTime": 700,
+                          "betStatus": "suspended",
+                          "betCards": "suspended",
+                          "betCorners": "suspended",
+                          "itemStatus": "active",
+                          "verifiedResult": "yes",
+                          "roundName": "",
+                          "competitionId": 101,
+                          "competitionShortName": "NBA",
+                          "participants": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

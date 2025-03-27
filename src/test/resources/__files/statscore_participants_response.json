@@ -1,27 +1,30 @@
 {
   "api": {
     "method": {
-      "name": "getParticipants"
+      "name": "getParticipants",
+      "total_items": 2
     },
     "data": {
       "participants": [
         {
-          "id": 1036,
+          "id": 1,
           "name": "Memphis Grizzlies",
+          "areaId": 191,
+          "virtual": "no",
           "type": "team",
-          "acronym": "MEM",
-          "sport_id": 1,
-          "sport_name": "Basketball",
-          "area_name": "USA"
+          "details": {
+            "subtype": "athlete"
+          }
         },
         {
-          "id": 1040,
+          "id": 2,
           "name": "Philadelphia 76ers",
+          "areaId": 191,
+          "virtual": "no",
           "type": "team",
-          "acronym": "PHI",
-          "sport_id": 1,
-          "sport_name": "Basketball",
-          "area_name": "USA"
+          "details": {
+            "subtype": "athlete"
+          }
         }
       ]
     }

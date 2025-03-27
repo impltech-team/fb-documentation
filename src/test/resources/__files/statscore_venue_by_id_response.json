@@ -1,0 +1,17 @@
+{
+  "api": {
+    "method": {
+      "name": "events.show",
+      "details": "events.show"
+    },
+    "data": {
+      "venue": {
+        "id": 810,
+        "name": "Staples Center",
+        "city": "Los Angeles",
+        "country": "USA",
+        "ut": 1742300000
+      }
+    }
+  }
+}

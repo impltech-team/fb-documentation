@@ -227,6 +227,17 @@ public class StatScoreClientImpl implements StatScoreClient {
         );
     }
 
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreBracketDTO>>> getBrackets(Integer stageId) {
+        return fetchListWrapper(
+                "/brackets/{stage_id}",
+                Map.of("stage_id", stageId),
+                Map.of(),
+                "nodes",
+                new TypeReference<>() {}
+        );
+    }
+
     private <T> Mono<T> fetchSingleNode(
             String path,
             String nodeName,
@@ -239,18 +250,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 .map(resp -> resp.getApi().getData().get(nodeName));
     }
 
-    @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreBracketDTO>>> getBrackets(Integer stageId) {
-        return fetchListWrapper(
-                "/brackets/{stage_id}",
-                Map.of("stage_id", stageId),
-                Map.of(),
-                "nodes",
-                new TypeReference<>() {}
-        );
-    }
-
-    <T> Mono<StatScoreResponse<ListWrapper<T>>> fetchListWrapper(
+    private <T> Mono<StatScoreResponse<ListWrapper<T>>> fetchListWrapper(
             String url,
             Map<String, Object> uriVariables,
             Map<String, Object> queryParams,
