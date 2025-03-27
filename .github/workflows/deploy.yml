@@ -41,7 +41,7 @@ jobs:
       - name: Upload .jar as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-jar
+          name: app.jar
           path: build/libs/*.jar
 
   # docker-image:
@@ -80,7 +80,10 @@ jobs:
   #         docker image list
   #         docker push ${{ env.image_tag_result }}
   #         echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_OUTPUT
-
+  #     - name: Delete .jar artifact
+  #       uses: geekyeggo/delete-artifact@v2
+  #       with:
+  #         name: app.jar
   # update-ecs-dev:
   #   env:
   #     ecs_cluster: dev-cluster
