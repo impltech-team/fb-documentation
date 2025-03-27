@@ -14,10 +14,9 @@ COPY src src
 
 RUN ./gradlew build -x test --no-daemon
 
-RUN VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt)
-RUN curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip
-
-RUN unzip dependency-check.zip && dependency-check/bin/dependency-check.sh --out . --scan build/libs/*.jar
+RUN VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
+  curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
+  unzip dependency-check.zip && dependency-check/bin/dependency-check.sh --out . --scan build/libs/*.jar
 
 FROM openjdk:21-slim
 
