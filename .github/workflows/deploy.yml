@@ -34,6 +34,7 @@ jobs:
 
       - name: Build .jar
         run: |
+          chmod +x gradlew
           ./gradlew dependencies --no-daemon
           ./gradlew build -x test --no-daemon
 
