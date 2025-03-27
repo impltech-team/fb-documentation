@@ -16,13 +16,13 @@ RUN ./gradlew build -x test --no-daemon
 
 RUN VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
   curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
-  unzip dependency-check.zip && dependency-check/bin/dependency-check.sh --out . --scan build/libs/*.jar
+  unzip dependency-check.zip && dependency-check/bin/dependency-check.sh --out . --scan build/libs/*.jar --format JSON
 
 FROM openjdk:21-slim
 
 WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
-COPY --from=build /app/dependency-check-report.html /tmp/dependency-check-report.html
+COPY --from=build /app/*.json /tmp/dependency-check-report.json
 
 CMD ["java", "-jar", "app.jar"]
