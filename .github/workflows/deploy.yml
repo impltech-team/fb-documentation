@@ -53,7 +53,7 @@ jobs:
           unzip dependency-check.zip && \
           dependency-check/bin/dependency-check.sh \
             --out . \
-            --scan /src \
+            --scan ./src \
             --data ~/.nvd-db \
             --format JSON
             --prettyPrint
