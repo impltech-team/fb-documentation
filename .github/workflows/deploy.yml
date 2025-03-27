@@ -26,11 +26,19 @@ jobs:
           java-version: '21'
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
+
+      - name: Cache Dependency-Check NVD Database
+        uses: actions/cache@v4
+        with:
+          path: ~/.nvd-db/
+          key: dependency-check-nvd-${{ runner.os }}-${{ github.run_number }}
+          restore-keys: |
+            dependency-check-nvd-${{ runner.os }}-
 
       - name: Build .jar
         run: |
@@ -38,7 +46,19 @@ jobs:
           ./gradlew dependencies --no-daemon
           ./gradlew build -x test --no-daemon
 
-      - name: Upload .jar as artifact
+      - name: Dependency check
+        run: |
+          VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
+          curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
+          unzip dependency-check.zip && dependency-check/bin/dependency-check.sh --out . --scan build/libs/*.jar --format JSON --data .nvd-db/ --prettyPrint
+
+      - name: Upload dependency check report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report.json
+          path: ./*.json
+
+      - name: Upload .jar
         uses: actions/upload-artifact@v4
         with:
           name: app.jar
