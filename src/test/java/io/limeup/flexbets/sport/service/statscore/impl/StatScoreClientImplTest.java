@@ -190,7 +190,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     void testGetParticipantById() {
 
         StepVerifier.create(statScoreClient.getParticipantById(123))
-                .assertNext(participant -> {
+                .assertNext(participantResponse -> {
+                    var participant = participantResponse.getApi().getData();
                     Assertions.assertEquals(123, participant.getId());
                     Assertions.assertEquals("Golden State Warriors", participant.getName());
                     Assertions.assertEquals("team", participant.getType());
@@ -289,7 +290,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @DisplayName("Verify getEventById returns competition details")
     void testGetEventById() {
         StepVerifier.create(statScoreClient.getEventById(123))
-                .assertNext(comp -> {
+                .assertNext(compResponse -> {
+                    var comp = compResponse.getApi().getData();
                     Assertions.assertEquals(101, comp.getId());
                     Assertions.assertEquals("NBA", comp.getName());
                     Assertions.assertEquals("NBA", comp.getShortName());
@@ -362,7 +364,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @DisplayName("Verify getSportById returns Basketball")
     void testGetSportById() {
         StepVerifier.create(statScoreClient.getSportById(1))
-                .assertNext(sport -> {
+                .assertNext(sportResponse -> {
+                    var sport = sportResponse.getApi().getData();
                     Assertions.assertEquals(1, sport.getId());
                     Assertions.assertEquals("Basketball", sport.getName());
                     Assertions.assertNotNull(sport.getStatuses());
@@ -385,7 +388,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @DisplayName("Verify getVenueById returns expected venue")
     void testGetVenueById() {
         StepVerifier.create(statScoreClient.getVenueById(810))
-                .assertNext(venue -> {
+                .assertNext(venueResponse -> {
+                    var venue = venueResponse.getApi().getData();
                     Assertions.assertEquals(810, venue.getId());
                     Assertions.assertEquals("Staples Center", venue.getName());
                     Assertions.assertEquals("USA", venue.getCountry());
