@@ -96,8 +96,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - run: ls -lah *.jar
-
       - name: Download .jar artifact
         uses: actions/download-artifact@v4
         with:
