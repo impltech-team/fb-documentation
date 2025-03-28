@@ -10,7 +10,67 @@ env:
   ecr_repository: flexbets-dev
 
 jobs:
+  build-app:
+    name: Build application
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Cache Dependency-Check NVD database
+        uses: actions/cache@v4
+        with:
+          path: dependency-check/data
+          key: dependency-check-nvd-${{ runner.os }}-${{ github.run_number }}
+          restore-keys: |
+            dependency-check-nvd-${{ runner.os }}-
+
+      - name: Build .jar
+        run: |
+          chmod +x gradlew
+          ./gradlew dependencies --no-daemon
+          ./gradlew build -x test --no-daemon
+
+      - name: Dependency check
+        run: |
+          VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
+          curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
+          unzip dependency-check.zip && \
+          dependency-check/bin/dependency-check.sh \
+            --out . \
+            --scan ~/.gradle/caches \
+            --format JSON \
+            --prettyPrint
+
+      - name: Upload dependency check report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: ./*.json
+
+      - name: Upload .jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: build/libs/*.jar
+
   docker-image:
+    needs: [build-app]
     name: Build and push Docker image
     runs-on: ubuntu-latest
     permissions:
@@ -36,6 +96,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Download .jar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app
+          path: .
+
       - name: Build and Push Docker image
         id: build-and-push
         env:
@@ -46,6 +112,11 @@ jobs:
           docker image list
           docker push ${{ env.image_tag_result }}
           echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_OUTPUT
+
+      - name: Delete .jar artifact
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: app
 
   update-ecs-dev:
     env:
