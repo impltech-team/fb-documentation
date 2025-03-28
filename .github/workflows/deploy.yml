@@ -55,7 +55,7 @@ jobs:
             --out . \
             --scan ./src \
             --data ~/.nvd-db \
-            --format JSON
+            --format JSON \
             --prettyPrint
 
       - name: Upload dependency check report
