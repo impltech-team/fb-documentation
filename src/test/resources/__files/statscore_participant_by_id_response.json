@@ -8,8 +8,8 @@
         "id": 123,
         "name": "Golden State Warriors",
         "type": "team",
-        "sport_id": 1,
-        "area_id": 191,
+        "sportId": 1,
+        "areaId": 191,
         "virtual": "no",
         "details": {
           "subtype": "athlete"

@@ -1,0 +1,40 @@
+{
+  "api": {
+    "method": {
+      "name": "groups.index"
+    },
+    "data": {
+      "competition": {
+        "id": 101,
+        "name": "NBA",
+        "status": "active",
+        "sportId": 1,
+        "sportName": "Basketball",
+        "areaId": 191,
+        "areaName": "USA",
+        "season": {
+          "id": 62587,
+          "name": "NBA 2024/25",
+          "year": "2024/25",
+          "actual": "yes",
+          "stages": [
+            {
+              "id": 135822,
+              "name": "Regular Season",
+              "groups": [
+                {
+                  "id": 1,
+                  "name": "Group A"
+                },
+                {
+                  "id": 2,
+                  "name": "Group B"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

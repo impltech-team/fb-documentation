@@ -1,0 +1,27 @@
+{
+  "api": {
+    "method": {
+      "name": "standings.index"
+    },
+    "data": {
+      "standings_list": [
+        {
+          "id": 182996,
+          "name": "Streaks - USA, NBA 2024/25",
+          "sportId": 1,
+          "sportName": "Basketball",
+          "typeId": 34,
+          "typeName": "Streaks",
+          "subtype": "standings",
+          "objectId": 62587,
+          "objectType": "season",
+          "objectName": "NBA 2024/25",
+          "itemStatus": "active",
+          "resetGroupRank": "yes",
+          "ut": 1743151980,
+          "groups": null
+        }
+      ]
+    }
+  }
+}

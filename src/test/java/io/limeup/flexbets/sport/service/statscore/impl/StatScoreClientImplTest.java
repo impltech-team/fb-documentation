@@ -9,8 +9,13 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,7 +42,14 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     private static final String SPORT_BY_ID_ENDPOINT = "/sports/1";
     private static final String VENUE_BY_ID_ENDPOINT = "/venues/810";
     private static final String VENUES_LIST_ENDPOINT = "/venues";
-
+    private static final String BRACKETS_ENDPOINT = "/brackets/135822";
+    private static final String GROUPS_ENDPOINT = "/groups";
+    private static final String SEASONS_LIST_ENDPOINT = "/seasons";
+    private static final String SEASON_BY_ID_ENDPOINT = "/seasons/62587";
+    private static final String STAGES_LIST_ENDPOINT = "/stages";
+    private static final String STAGE_BY_ID_ENDPOINT = "/stages/135822";
+    private static final String STANDINGS_LIST_ENDPOINT = "/standings";
+    private static final String STANDING_BY_ID_ENDPOINT = "/standings/182996";
 
     private StatScoreClientImpl statScoreClient;
 
@@ -116,6 +128,54 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBodyFile("statscore_venues_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(BRACKETS_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_brackets_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(GROUPS_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_groups_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SEASONS_LIST_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_seasons_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SEASON_BY_ID_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_season_by_id_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STAGES_LIST_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_stages_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STAGE_BY_ID_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_stage_by_id_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STANDINGS_LIST_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_standings_response.json")
+                        .withStatus(200)));
+
+        getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STANDING_BY_ID_ENDPOINT))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("statscore_standing_by_id_response.json")
                         .withStatus(200)));
 
     }
@@ -417,6 +477,231 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                 .verifyComplete();
     }
 
+    @Test
+    @DisplayName("Verify getBrackets returns expected nodes")
+    void testGetBrackets() {
+        int stageId = 135822;
+        StepVerifier.create(statScoreClient.getBrackets(stageId))
+                .assertNext(resp -> {
+                    var brackets = resp.getApi().getData().getItems();
+                    Assertions.assertFalse(brackets.isEmpty());
+                    Assertions.assertNotNull(brackets.get(0).getId());
+                    Assertions.assertEquals(brackets.get(0).getRoundName(), "Quarterfinals");
+                    Assertions.assertEquals(brackets.get(1).getRoundName(), "Semifinals");
+                    Assertions.assertEquals(brackets.get(0).getStageId(), stageId);
+                    Assertions.assertEquals(brackets.get(1).getStageId(), stageId);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getGroups returns expected competition groups")
+    void testGetGroups() {
+        int stageId = 135822;
+        GroupQueryParams query = new GroupQueryParams();
+        query.setStageId(stageId);
+        query.setPage(1);
+        query.setLimit(10);
+
+        StepVerifier.create(statScoreClient.getGroups(query))
+                .assertNext(resp -> {
+                    var comp = resp.getApi().getData();
+                    Assertions.assertEquals(101, comp.getId());
+                    Assertions.assertEquals("NBA", comp.getName());
+                    Assertions.assertNotNull(comp.getSeason());
+                    Assertions.assertFalse(comp.getSeason().getStages().isEmpty());
+                    Assertions.assertNotNull(comp.getSeason().getStages().get(0).getGroups());
+                    Assertions.assertEquals(comp.getSeason().getStages().get(0).getId(), stageId);
+                    Assertions.assertEquals(comp.getSeason().getStages().get(0).getGroups().get(0).getName(), "Group A");
+                    Assertions.assertEquals(comp.getSeason().getStages().get(0).getGroups().get(1).getName(), "Group B");
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getSeasons returns seasons list for a competition")
+    void testGetSeasons() {
+        StatScoreSeasonQueryParams query = new StatScoreSeasonQueryParams();
+        query.setLang("en");
+        query.setPage(1);
+        query.setLimit(2);
+        query.setSportId(1);
+        query.setCompetitionId("101");
+        query.setParticipantId(1040);
+        query.setMultiIds("62587,62588");
+        query.setSortType("year");
+        query.setSortOrder("asc");
+        query.setAreaId(191);
+        query.setTimestamp(1743060000L);
+
+        StepVerifier.create(statScoreClient.getSeasons(query))
+                .assertNext(resp -> {
+                    var competitions = resp.getApi().getData().getItems();
+                    Assertions.assertEquals(1, competitions.size());
+
+                    var comp = competitions.get(0);
+                    Assertions.assertEquals(101, comp.getId());
+                    Assertions.assertEquals("NBA", comp.getName());
+                    Assertions.assertEquals("active", comp.getStatus());
+                    Assertions.assertEquals(191, comp.getAreaId());
+                    Assertions.assertEquals(1, comp.getSportId());
+
+                    var seasons = comp.getSeasons();
+                    Assertions.assertNotNull(seasons);
+                    Assertions.assertEquals(2, seasons.size());
+
+                    Assertions.assertEquals(62587, seasons.get(0).getId());
+                    Assertions.assertEquals("NBA 2024/25", seasons.get(0).getName());
+                    Assertions.assertEquals("2024/25", seasons.get(0).getYear());
+                    Assertions.assertEquals("yes", seasons.get(0).getActual());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getSeasonById returns competition with single season details")
+    void testGetSeasonById() {
+        StepVerifier.create(statScoreClient.getSeasonById(62587))
+                .assertNext(resp -> {
+                    var competition = resp.getApi().getData();
+                    Assertions.assertEquals(101, competition.getId());
+                    Assertions.assertEquals("NBA", competition.getName());
+                    Assertions.assertEquals("Basketball", competition.getSportName());
+                    Assertions.assertEquals("USA", competition.getAreaName());
+
+                    var season = competition.getSeason();
+                    Assertions.assertNotNull(season);
+                    Assertions.assertEquals(62587, season.getId());
+                    Assertions.assertEquals("NBA 2024/25", season.getName());
+                    Assertions.assertEquals("2024/25", season.getYear());
+
+                    Assertions.assertNotNull(season.getStages());
+                    Assertions.assertEquals(2, season.getStages().size());
+                    Assertions.assertEquals("Regular Season", season.getStages().get(0).getName());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getStages returns expected stages with all params")
+    void testGetStages() {
+        StatScoreStageQueryParams query = new StatScoreStageQueryParams();
+        query.setSeasonId(62587);
+        query.setTimestamp(1743060000L);
+        query.setPage(1);
+        query.setLimit(50);
+
+        StepVerifier.create(statScoreClient.getStages(query))
+                .assertNext(resp -> {
+                    var comp = resp.getApi().getData();
+                    Assertions.assertEquals(101, comp.getId());
+                    Assertions.assertEquals("NBA", comp.getName());
+                    Assertions.assertEquals(1, comp.getSportId());
+                    Assertions.assertEquals(191, comp.getAreaId());
+
+                    var season = comp.getSeason();
+                    Assertions.assertEquals(62587, season.getId());
+                    Assertions.assertEquals("NBA 2024/25", season.getName());
+                    Assertions.assertEquals("yes", season.getActual());
+
+                    Assertions.assertEquals(2, season.getStages().size());
+                    Assertions.assertEquals("NBA Cup - Championship", season.getStages().get(0).getName());
+                    Assertions.assertEquals("Regular Season", season.getStages().get(1).getName());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getStageById returns expected stage details")
+    void testGetStageById() {
+        StepVerifier.create(statScoreClient.getStageById(135822))
+                .assertNext(resp -> {
+                    var comp = resp.getApi().getData();
+                    Assertions.assertEquals(101, comp.getId());
+                    Assertions.assertEquals("NBA", comp.getName());
+                    Assertions.assertEquals(1, comp.getSportId());
+
+                    var season = comp.getSeason();
+                    Assertions.assertEquals(62587, season.getId());
+                    Assertions.assertNotNull(season.getStage());
+                    Assertions.assertEquals(135822, season.getStage().getId());
+                    Assertions.assertEquals("Regular Season", season.getStage().getName());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getStandings returns standings with all query params")
+    void testGetStandingsWithAllParams() {
+        StandingQueryParams query = new StandingQueryParams();
+        query.setLang("en");
+        query.setPage(1);
+        query.setLimit(50);
+        query.setObjectType("season");
+        query.setObjectId(62587);
+        query.setTypeId(34);
+        query.setSubtype("standings");
+        query.setSportId(1);
+        query.setCompetitionId(101);
+        query.setSeasonId(62587);
+        query.setStageId(135822);
+        query.setTimestamp(1743061234L);
+        query.setItemStatus("active");
+
+        StepVerifier.create(statScoreClient.getStandings(query))
+                .assertNext(resp -> {
+                    var method = resp.getApi().getMethod();
+                    Assertions.assertEquals("standings.index", method.getName());
+
+                    var standings = resp.getApi().getData().getItems();
+                    Assertions.assertEquals(1, standings.size());
+                    var s = standings.get(0);
+                    Assertions.assertEquals(182996, s.getId());
+                    Assertions.assertEquals("Streaks - USA, NBA 2024/25", s.getName());
+                    Assertions.assertEquals(1, s.getSportId());
+                    Assertions.assertEquals("Basketball", s.getSportName());
+                    Assertions.assertEquals("active", s.getItemStatus());
+                    Assertions.assertEquals("yes", s.getResetGroupRank());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Verify getStandingById returns full group/participant data")
+    void testGetStandingById() {
+        StandingByIdQueryParams params = new StandingByIdQueryParams();
+        params.setLang("en");
+        params.setParticipantId("123");
+        params.setSubParticipantId(12);
+
+        StepVerifier.create(statScoreClient.getStandingById(182996, params))
+                .assertNext(resp -> {
+                    var s = resp.getApi().getData();
+                    Assertions.assertEquals(182996, s.getId());
+                    Assertions.assertEquals("Streaks - NBA", s.getName());
+                    Assertions.assertEquals("season", s.getObjectType());
+                    Assertions.assertEquals("NBA 2024/25", s.getObjectName());
+
+                    var group = s.getGroups().get(0);
+                    Assertions.assertEquals(1, group.getId());
+                    Assertions.assertEquals("East", group.getName());
+
+                    var p = group.getParticipants().get(0);
+                    Assertions.assertEquals(1040, p.getId());
+                    Assertions.assertEquals("team", p.getType());
+                    Assertions.assertEquals("Philadelphia 76ers", p.getName());
+                    Assertions.assertEquals("Basketball", p.getSportName());
+                    Assertions.assertEquals("no", p.getVirtual());
+                    Assertions.assertEquals("PHI", p.getAcronym());
+
+                    Assertions.assertEquals(1, group.getCorrections().size());
+                    Assertions.assertEquals("+1", group.getCorrections().get(0).getValue());
+
+                    Assertions.assertEquals(1, group.getZones().size());
+                    Assertions.assertEquals("Playoff", group.getZones().get(0).getName());
+                })
+                .verifyComplete();
+    }
 
 }
 
