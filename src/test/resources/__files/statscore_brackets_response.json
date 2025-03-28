@@ -1,0 +1,21 @@
+{
+  "api": {
+    "method": {
+      "name": "brackets.index"
+    },
+    "data": {
+      "nodes": [
+        {
+          "id": 1,
+          "roundName": "Quarterfinals",
+          "stageId": 135822
+        },
+        {
+          "id": 2,
+          "roundName": "Semifinals",
+          "stageId": 135822
+        }
+      ]
+    }
+  }
+}

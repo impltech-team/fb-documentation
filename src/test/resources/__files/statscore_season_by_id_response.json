@@ -1,0 +1,34 @@
+{
+  "api": {
+    "method": {
+      "name": "seasons.show"
+    },
+    "data": {
+      "competition": {
+        "id": 101,
+        "name": "NBA",
+        "status": "active",
+        "sportId": 1,
+        "sportName": "Basketball",
+        "areaId": 191,
+        "areaName": "USA",
+        "season": {
+          "id": 62587,
+          "name": "NBA 2024/25",
+          "year": "2024/25",
+          "actual": "yes",
+          "stages": [
+            {
+              "id": 135822,
+              "name": "Regular Season"
+            },
+            {
+              "id": 137550,
+              "name": "NBA Cup - Championship"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

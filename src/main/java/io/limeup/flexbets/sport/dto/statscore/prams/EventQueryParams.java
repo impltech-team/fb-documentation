@@ -25,11 +25,11 @@ public class EventQueryParams {
     private Integer participantId;
     private String multiIds;
     private String venueType;
-    private String venueId;
+    private Integer venueId;
     private String sortType;
     private String sortOrder;
     private String relationStatus;
-    private String statusId;
+    private Integer statusId;
     private String statusType;
     private String coverageType;
     private String scoutsfeed;

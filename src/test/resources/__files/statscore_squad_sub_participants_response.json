@@ -1,0 +1,18 @@
+{
+  "api": {
+    "method": {
+      "name": "participants.squad"
+    },
+    "data": {
+      "participants": [
+        {
+          "id": 464938,
+          "name": "Stephen Curry",
+          "shirtNr": 30,
+          "position": "Point guard"
+        }
+      ]
+    }
+  }
+}
+

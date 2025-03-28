@@ -1,18 +1,25 @@
 package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
+import io.limeup.flexbets.sport.dto.SingleRootItemPaginatedResponse;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreAreaDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreBracketDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSportDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSportLiteDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.StatScoreProxyService;
 import jakarta.validation.Valid;
@@ -95,4 +102,40 @@ public class StatScoreProxyController {
     public ResponseEntity<PaginatedResponse<StatScoreBracketDTO>> listBracketsById(@PathVariable Integer stageId) {
         return ResponseEntity.ok(statScoreProxyService.listBracketsByStageId(stageId));
     }
+
+    @GetMapping("/group/list")
+    public ResponseEntity<SingleRootItemPaginatedResponse<StatScoreCompetitionDTO>> listGroups(@Valid GroupQueryParams query) {
+        return ResponseEntity.ok(statScoreProxyService.listGroups(query));
+    }
+
+    @GetMapping("/season/list")
+    public ResponseEntity<PaginatedResponse<StatScoreCompetitionDTO>> listSeasons(StatScoreSeasonQueryParams query) {
+        return ResponseEntity.ok(statScoreProxyService.listSeasons(query));
+    }
+
+    @GetMapping("/season/{seasonId}")
+    public ResponseEntity<StatScoreCompetitionDTO> getSeason(@PathVariable Integer seasonId) {
+        return ResponseEntity.ok(statScoreProxyService.getSeasonById(seasonId));
+    }
+
+    @GetMapping("/stage/list")
+    public ResponseEntity<SingleRootItemPaginatedResponse<StatScoreCompetitionDTO>> listStages(StatScoreStageQueryParams query) {
+        return ResponseEntity.ok(statScoreProxyService.listStages(query));
+    }
+
+    @GetMapping("/stage/{stageId}")
+    public ResponseEntity<StatScoreCompetitionDTO> getStage(@PathVariable Integer stageId) {
+        return ResponseEntity.ok(statScoreProxyService.getStageById(stageId));
+    }
+
+    @GetMapping("/standing/list")
+    public ResponseEntity<PaginatedResponse<StatScoreStandingDTO>> listStandings(StandingQueryParams query) {
+        return ResponseEntity.ok(statScoreProxyService.listStandings(query));
+    }
+
+    @GetMapping("/standing/{standingId}")
+    public ResponseEntity<StatScoreStandingDTO> getStanding(@PathVariable Integer standingId, StandingByIdQueryParams query) {
+        return ResponseEntity.ok(statScoreProxyService.getStanding(standingId, query));
+    }
+
 }

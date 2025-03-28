@@ -1,0 +1,68 @@
+{
+  "api": {
+    "method": {
+      "name": "events.show",
+      "details": "events.show"
+    },
+    "data": {
+      "competition": {
+        "id": 101,
+        "name": "NBA",
+        "shortName": "NBA",
+        "miniName": "NBA",
+        "gender": "male",
+        "type": "country_league",
+        "areaId": 191,
+        "areaName": "USA",
+        "areaCode": "USA",
+        "sportId": 1,
+        "sportName": "Basketball",
+        "status": "active",
+        "season": {
+          "id": 62587,
+          "name": "NBA 2024/25",
+          "year": "2024/25",
+          "actual": "yes",
+          "statsLvl": "vip",
+          "stage": {
+            "id": 135822,
+            "name": "Regular Season",
+            "startDate": "2024-10-22",
+            "endDate": "",
+            "showStandings": "yes",
+            "groupsNr": 8,
+            "sort": 1,
+            "isCurrent": "yes",
+            "hasBrackets": "no",
+            "group": {
+              "id": 1,
+              "name": "Group A",
+              "event": {
+                "id": 1,
+                "name": "Philadelphia 76ers vs New Orleans Pelicans",
+                "startDate": "2025-03-28 20:00",
+                "relationStatus": "finished",
+                "coverageType": "from_tv",
+                "scoutsfeed": "yes",
+                "statusName": "Finished",
+                "statusType": "finished",
+                "sportId": 1,
+                "sportName": "Basketball",
+                "clockStatus": "stopped",
+                "clockTime": 725,
+                "betStatus": "suspended",
+                "betCards": "suspended",
+                "betCorners": "suspended",
+                "itemStatus": "active",
+                "verifiedResult": "yes",
+                "roundName": "",
+                "competitionId": 101,
+                "competitionShortName": "NBA"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

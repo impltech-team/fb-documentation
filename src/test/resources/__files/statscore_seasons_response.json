@@ -1,0 +1,32 @@
+{
+  "api": {
+    "method": {
+      "name": "seasons.index"
+    },
+    "data": {
+      "competitions": [
+        {
+          "id": 101,
+          "name": "NBA",
+          "status": "active",
+          "areaId": 191,
+          "sportId": 1,
+          "seasons": [
+            {
+              "id": 62587,
+              "name": "NBA 2024/25",
+              "year": "2024/25",
+              "actual": "yes"
+            },
+            {
+              "id": 62588,
+              "name": "NBA 2023/24",
+              "year": "2023/24",
+              "actual": "no"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

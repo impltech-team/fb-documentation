@@ -1,0 +1,20 @@
+{
+  "api": {
+    "method": {
+      "name": "getParticipantById"
+    },
+    "data": {
+      "participant": {
+        "id": 123,
+        "name": "Golden State Warriors",
+        "type": "team",
+        "sportId": 1,
+        "areaId": 191,
+        "virtual": "no",
+        "details": {
+          "subtype": "athlete"
+        }
+      }
+    }
+  }
+}

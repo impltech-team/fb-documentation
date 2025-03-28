@@ -1,0 +1,26 @@
+{
+  "api": {
+    "method": {
+      "name": "stages.show"
+    },
+    "data": {
+      "competition": {
+        "id": 101,
+        "name": "NBA",
+        "sportId": 1,
+        "areaId": 191,
+        "status": "active",
+        "season": {
+          "id": 62587,
+          "name": "NBA 2024/25",
+          "year": "2024/25",
+          "actual": "yes",
+          "stage": {
+            "id": 135822,
+            "name": "Regular Season"
+          }
+        }
+      }
+    }
+  }
+}

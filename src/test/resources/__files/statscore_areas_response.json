@@ -1,0 +1,21 @@
+{
+  "api": {
+    "method": {
+      "name": "areas.index"
+    },
+    "data": {
+      "areas": [
+        {
+          "id": 191,
+          "name": "USA",
+          "areaCode": "USA"
+        },
+        {
+          "id": 44,
+          "name": "England",
+          "areaCode": "ENG"
+        }
+      ]
+    }
+  }
+}

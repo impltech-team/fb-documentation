@@ -1,0 +1,19 @@
+{
+  "api": {
+    "method": {
+      "name": "sports.index"
+    },
+    "data": {
+      "sports": [
+        {
+          "id": 1,
+          "name": "Basketball"
+        },
+        {
+          "id": 2,
+          "name": "Football"
+        }
+      ]
+    }
+  }
+}

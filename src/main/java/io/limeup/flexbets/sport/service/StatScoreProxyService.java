@@ -1,18 +1,25 @@
 package io.limeup.flexbets.sport.service;
 
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
+import io.limeup.flexbets.sport.dto.SingleRootItemPaginatedResponse;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreAreaDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreBracketDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSportDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSportLiteDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 
 public interface StatScoreProxyService {
@@ -40,4 +47,18 @@ public interface StatScoreProxyService {
     StatScoreVenueDTO getVenueById(Integer venueId);
 
     PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId);
+
+    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query);
+
+    PaginatedResponse<StatScoreCompetitionDTO> listSeasons(StatScoreSeasonQueryParams query);
+
+    StatScoreCompetitionDTO getSeasonById(Integer seasonId);
+
+    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StatScoreStageQueryParams query);
+
+    StatScoreCompetitionDTO getStageById(Integer stageId);
+
+    PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query);
+
+    StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query);
 }

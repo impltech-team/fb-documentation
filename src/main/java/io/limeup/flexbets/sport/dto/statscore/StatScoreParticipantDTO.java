@@ -1,10 +1,12 @@
 package io.limeup.flexbets.sport.dto.statscore;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties
 public class StatScoreParticipantDTO {
     private int id;
     private String type;

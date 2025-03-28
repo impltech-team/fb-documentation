@@ -1,0 +1,28 @@
+{
+  "api": {
+    "ver": "2.270.2",
+    "timestamp": 1742913248,
+    "method": {
+      "parameters": {
+        "sportId": 1,
+        "participantId": 1040,
+        "page": 1,
+        "limit": 20,
+        "timestamp": 1743066649
+      },
+      "name": "venues.index",
+      "total_items": 1
+    },
+    "data": {
+      "venues": [
+        {
+          "id": 810,
+          "name": "Staples Center",
+          "city": "Los Angeles",
+          "country": "USA",
+          "ut": 1742300000
+        }
+      ]
+    }
+  }
+}
