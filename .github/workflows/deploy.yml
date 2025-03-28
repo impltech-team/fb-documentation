@@ -99,8 +99,8 @@ jobs:
       - name: Download .jar artifact
         uses: actions/download-artifact@v4
         with:
-          path: .
-          pattern: *.jar
+          name: app
+          path: build/libs
 
       - name: Build and Push Docker image
         id: build-and-push
