@@ -102,8 +102,6 @@ jobs:
           name: app
           path: .
 
-      - run: ls -lah *.jar
-
       - name: Build and Push Docker image
         id: build-and-push
         env:
