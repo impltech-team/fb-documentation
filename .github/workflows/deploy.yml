@@ -116,7 +116,7 @@ jobs:
       - name: Delete .jar artifact
         uses: geekyeggo/delete-artifact@v2
         with:
-          name: app.jar
+          name: app
   update-ecs-dev:
     env:
       ecs_cluster: dev-cluster
