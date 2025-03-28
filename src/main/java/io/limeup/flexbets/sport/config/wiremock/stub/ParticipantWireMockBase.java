@@ -34,11 +34,11 @@ public class ParticipantWireMockBase extends WireMockBase {
                                     "5", "Dallas Mavericks"
                             ))
                             .withTransformerParameter("marketMapping", Map.of(
-                                    "1", "Match Winner",
-                                    "2", "Under/Over Fouls - Away Team",
-                                    "3", "Under/Over Fouls - Home Team",
-                                    "4", "Under/Over Home Team Assists",
-                                    "5", "Under/Over Away Team Assists"
+                                    "5", "Match Winner",
+                                    "6", "Under/Over Fouls - Away Team",
+                                    "7", "Under/Over Fouls - Home Team",
+                                    "8", "Under/Over Home Team Assists",
+                                    "9", "Under/Over Away Team Assists"
                             ))
                             .withTransformers("response-template", "custom-pagination-transformer", "participants-filtering-transformer")
                             .withBody("""
