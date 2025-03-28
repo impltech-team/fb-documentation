@@ -120,88 +120,88 @@ jobs:
         with:
           name: app
 
-  # update-ecs-dev:
-  #   env:
-  #     ecs_cluster: dev-cluster
-  #     ecs_service: dev-service
-  #     ecs_task: dev-api
-  #   needs: [docker-image]
-  #   name: Update ECS task (dev)
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #   steps:
-  #     - uses: actions/checkout@v4
+  update-ecs-dev:
+    env:
+      ecs_cluster: dev-cluster
+      ecs_service: dev-service
+      ecs_task: dev-api
+    needs: [docker-image]
+    name: Update ECS task (dev)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: ./.github/workflows/oidc
-  #       with:
-  #         role-to-assume: ${{ secrets.IAM_ROLE }}
+      - name: Configure AWS credentials
+        uses: ./.github/workflows/oidc
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
 
-  #     - name: Update ECS task definition
-  #       run: |
-  #         aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
-  #           --query taskDefinition --output json > task-raw.json
-  #         jq 'del(.compatibilities,
-  #           .taskDefinitionArn,
-  #           .requiresAttributes,
-  #           .revision, .status,
-  #           .registeredAt,
-  #           .registeredBy)' \
-  #           task-raw.json > task-clear.json
-  #         jq '
-  #         .containerDefinitions[0].image =
-  #         "${{ needs.docker-image.outputs.image_tag_result }}"
-  #         ' task-clear.json > task-definition.json
+      - name: Update ECS task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
+            --query taskDefinition --output json > task-raw.json
+          jq 'del(.compatibilities,
+            .taskDefinitionArn,
+            .requiresAttributes,
+            .revision, .status,
+            .registeredAt,
+            .registeredBy)' \
+            task-raw.json > task-clear.json
+          jq '
+          .containerDefinitions[0].image =
+          "${{ needs.docker-image.outputs.image_tag_result }}"
+          ' task-clear.json > task-definition.json
 
-  #     - name: Deploy to ECS
-  #       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-  #       with:
-  #         task-definition: task-definition.json
-  #         cluster: ${{ env.ecs_cluster }}
-  #         service: ${{ env.ecs_service }}
-  #         wait-for-service-stability: true
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          cluster: ${{ env.ecs_cluster }}
+          service: ${{ env.ecs_service }}
+          wait-for-service-stability: true
 
-  # update-ecs-stage:
-  #   env:
-  #     ecs_cluster: stage-cluster
-  #     ecs_service: stage-service
-  #     ecs_task: stage-api
-  #   needs: [docker-image]
-  #   name: Update ECS task (stage)
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #   steps:
-  #     - uses: actions/checkout@v4
+  update-ecs-stage:
+    env:
+      ecs_cluster: stage-cluster
+      ecs_service: stage-service
+      ecs_task: stage-api
+    needs: [docker-image]
+    name: Update ECS task (stage)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: ./.github/workflows/oidc
-  #       with:
-  #         role-to-assume: ${{ secrets.IAM_ROLE }}
+      - name: Configure AWS credentials
+        uses: ./.github/workflows/oidc
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
 
-  #     - name: Update ECS task definition
-  #       run: |
-  #         aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
-  #           --query taskDefinition --output json > task-raw.json
-  #         jq 'del(.compatibilities,
-  #           .taskDefinitionArn,
-  #           .requiresAttributes,
-  #           .revision, .status,
-  #           .registeredAt,
-  #           .registeredBy)' \
-  #           task-raw.json > task-clear.json
-  #         jq '
-  #         .containerDefinitions[0].image =
-  #         "${{ needs.docker-image.outputs.image_tag_result }}"
-  #         ' task-clear.json > task-definition.json
+      - name: Update ECS task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ecs_task }}-task \
+            --query taskDefinition --output json > task-raw.json
+          jq 'del(.compatibilities,
+            .taskDefinitionArn,
+            .requiresAttributes,
+            .revision, .status,
+            .registeredAt,
+            .registeredBy)' \
+            task-raw.json > task-clear.json
+          jq '
+          .containerDefinitions[0].image =
+          "${{ needs.docker-image.outputs.image_tag_result }}"
+          ' task-clear.json > task-definition.json
 
-  #     - name: Deploy to ECS
-  #       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-  #       with:
-  #         task-definition: task-definition.json
-  #         cluster: ${{ env.ecs_cluster }}
-  #         service: ${{ env.ecs_service }}
-  #         wait-for-service-stability: true
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          cluster: ${{ env.ecs_cluster }}
+          service: ${{ env.ecs_service }}
+          wait-for-service-stability: true
