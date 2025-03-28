@@ -65,12 +65,12 @@ public class EventWireMockBase extends WireMockBase {
                                                     "participants": [
                                                         {
                                                             "participant_id": {{participant1Id}},
-                                                            "team_name": "{{participant1Name}}",
+                                                            "participant_name": "{{participant1Name}}",
                                                             "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}"
                                                         },
                                                         {
                                                             "participant_id": {{participant2Id}},
-                                                            "team_name": "{{participant2Name}}",
+                                                            "participant_name": "{{participant2Name}}",
                                                             "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}"
                                                         }
                                                     ],
@@ -164,7 +164,7 @@ public class EventWireMockBase extends WireMockBase {
                                             "participants":  [
                                                 {
                                                     "participant_id": {{participant1Id}},
-                                                    "team_name": "{{participant1Name}}",
+                                                    "participant_name": "{{participant1Name}}",
                                                     "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}",
                                                     "score": {{#if (eq eventStatus 'scheduled')}}null{{else}}"{{randomInt lower=80 upper=120}}"{{/if}},
                                                     "lineups": {{#if (eq eventStatus 'scheduled')}}null{{else}}[
@@ -195,7 +195,7 @@ public class EventWireMockBase extends WireMockBase {
                                                 },
                                                 {
                                                     "participant_id": {{participant2Id}},
-                                                    "team_name": "{{participant2Name}}",
+                                                    "participant_name": "{{participant2Name}}",
                                                     "acronym": "{{pickRandom 'LAL' 'GSW' 'BOS' 'MIA' 'BKN'}}",
                                                     "score": {{#if (eq eventStatus 'scheduled')}}null{{else}}"{{randomInt lower=80 upper=120}}"{{/if}},
                                                     "lineups": {{#if (eq eventStatus 'scheduled')}}null{{else}} [

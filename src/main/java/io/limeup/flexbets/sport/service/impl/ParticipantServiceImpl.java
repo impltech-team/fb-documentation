@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,6 +53,8 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public ParticipantDTO getParticipantById(Integer participantId) {
-        return statScoreMapper.mapToParticipantDTO(statScoreClient.getParticipantById(participantId).block());
+        return statScoreMapper.mapToParticipantDTO(
+                Objects.requireNonNull(
+                        statScoreClient.getParticipantById(participantId).block()).getApi().getData());
     }
 }

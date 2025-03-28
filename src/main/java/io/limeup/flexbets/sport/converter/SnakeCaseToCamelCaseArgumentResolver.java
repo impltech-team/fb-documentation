@@ -3,8 +3,13 @@ package io.limeup.flexbets.sport.converter;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -27,7 +32,12 @@ public class SnakeCaseToCamelCaseArgumentResolver implements HandlerMethodArgume
             ParticipantQueryParams.class,
             AreaQueryParams.class,
             SportQueryParams.class,
-            VenueQueryParams.class
+            VenueQueryParams.class,
+            GroupQueryParams.class,
+            StatScoreSeasonQueryParams.class,
+            StatScoreStageQueryParams.class,
+            StandingQueryParams.class,
+            StandingByIdQueryParams.class
     );
 
     @Override
