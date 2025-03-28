@@ -35,7 +35,7 @@ jobs:
       - name: Cache Dependency-Check NVD database
         uses: actions/cache@v4
         with:
-          path: ~/dependency-check/.nvd-db
+          path: dependency-check/data
           key: dependency-check-nvd-${{ runner.os }}-${{ github.run_number }}
           restore-keys: |
             dependency-check-nvd-${{ runner.os }}-
@@ -54,7 +54,6 @@ jobs:
           dependency-check/bin/dependency-check.sh \
             --out . \
             --scan ./src \
-            --data ~/.nvd-db \
             --format JSON \
             --prettyPrint
 
