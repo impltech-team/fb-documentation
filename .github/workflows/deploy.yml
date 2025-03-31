@@ -6,9 +6,6 @@ on:
     #   - main
   workflow_dispatch:
 
-env:
-  ecr_repository: flexbets-dev
-
 jobs:
   build-app:
     name: Build application
@@ -77,6 +74,8 @@ jobs:
       contents: read
     outputs:
       image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
+    env:
+      ecr_repository: flexbets-dev
     steps:
       - uses: actions/checkout@v4
 
