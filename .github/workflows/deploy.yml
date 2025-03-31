@@ -74,7 +74,7 @@ jobs:
     outputs:
       image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
     env:
-      ecr_repository: flexbets-dev
+      ecr_repository: flexbets
     steps:
       - uses: actions/checkout@v4
 
