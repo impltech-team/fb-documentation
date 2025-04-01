@@ -25,6 +25,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
+import io.limeup.flexbets.sport.utils.StatScoreDateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -99,8 +100,8 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getEvents(EventQueryParams query) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("date_from", query.getDateFrom());
-        queryParams.put("date_to", query.getDateTo());
+        queryParams.put("date_from", StatScoreDateTimeUtils.formatDateTime(query.getDateFrom()));
+        queryParams.put("date_to", StatScoreDateTimeUtils.formatDateTime(query.getDateTo()));
         queryParams.put("sport_id", query.getSportId());
         queryParams.put("area_id", query.getAreaId());
         queryParams.put("competition_id", query.getCompetitionId());

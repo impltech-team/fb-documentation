@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -19,31 +18,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class SubParticipant extends BaseIdentifiableEntity {
+public class Participant extends BaseIdentifiableEntity {
 
-    private String playerName;
-    private String position;
-    private Integer shirtNumber;
-    private String avatarUrl;
-
-    private String gender;
-    private String weight;
-    private String height;
-    private LocalDate birthDate;
+    private String teamName;
+    private String acronym;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competition_id", referencedColumnName = "id")
     private Competition competition;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "area_id", referencedColumnName = "id")
-    private Area area;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "participant_id", referencedColumnName = "id")
-    private Participant participant;
-
-    @OneToMany(mappedBy = "targetId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "targetId", cascade = CascadeType.ALL)
     private List<EventStat> historicalStats;
 
     @ManyToOne

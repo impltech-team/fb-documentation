@@ -11,28 +11,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class EventStat extends BaseIdentifiableEntity {
+public class Competition extends BaseIdentifiableEntity {
+
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private StatTargetType targetType;
-
-    private Long targetId;
-
-    private String statName;
-
-    private Integer value;
-
-    private LocalDateTime createdAt;
+    private CompetitionType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Event event;
+    @JoinColumn(name = "sport_id", referencedColumnName = "id")
+    private Sport sport;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "area_id", referencedColumnName = "id")
+    private Area area;
+
+    @Enumerated(EnumType.STRING)
+    private StatusType statusType;
+
+    private String gender;
 }
