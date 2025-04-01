@@ -4,18 +4,22 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventQueryParams {
 
     @NotNull(message = "date_from is required")
-    private String dateFrom;
+    private LocalDateTime dateFrom;
     @NotNull(message = "date_to is required")
-    private String dateTo;
+    private LocalDateTime dateTo;
     private Integer sportId;
     private Integer areaId;
     private Integer competitionId;

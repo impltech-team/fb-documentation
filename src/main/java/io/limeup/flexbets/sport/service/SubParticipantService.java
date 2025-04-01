@@ -11,4 +11,6 @@ public interface SubParticipantService {
 
     SubParticipantDTO getSubParticipantById(Integer subParticipantId);
 
+    void fetchStatData(int durationDays);
+
 }

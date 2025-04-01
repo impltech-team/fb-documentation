@@ -21,7 +21,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
-import io.limeup.flexbets.sport.service.StatScoreProxyService;
+import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

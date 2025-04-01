@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service.impl;
+package io.limeup.flexbets.sport.service.statscore.impl;
 
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.SingleRootItemPaginatedResponse;
@@ -21,7 +21,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
-import io.limeup.flexbets.sport.service.StatScoreProxyService;
+import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
 import lombok.RequiredArgsConstructor;

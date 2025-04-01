@@ -1,11 +1,14 @@
 package io.limeup.flexbets.sport.dto.statscore;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Data
 public class StatScoreSubParticipantDTO {
+    @EqualsAndHashCode.Include
     private Integer id;
     private String type;
     private String name;
