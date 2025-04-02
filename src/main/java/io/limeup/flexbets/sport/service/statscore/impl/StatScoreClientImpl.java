@@ -15,20 +15,20 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import io.limeup.flexbets.sport.utils.StatScoreDateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
@@ -272,7 +272,7 @@ public class StatScoreClientImpl implements StatScoreClient {
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getSeasons(StatScoreSeasonQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getSeasons(SeasonQueryParams query) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("lang", query.getLang());
@@ -309,7 +309,7 @@ public class StatScoreClientImpl implements StatScoreClient {
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStages(StatScoreStageQueryParams query) {
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStages(StageQueryParams query) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("season_id", query.getSeasonId());
@@ -377,6 +377,49 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "standings",
+                new TypeReference<>() {}
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getCompetitions(CompetitionQueryParams query) {
+        Map<String, Object> queryParams = new LinkedHashMap<>();
+
+        queryParams.put("lang", query.getLang());
+        queryParams.put("date_from", StatScoreDateTimeUtils.formatDateTime(query.getDateFrom()));
+        queryParams.put("date_to", StatScoreDateTimeUtils.formatDateTime(query.getDateTo()));
+        queryParams.put("page", query.getPage());
+        queryParams.put("limit", query.getLimit());
+        queryParams.put("area_type", query.getAreaType());
+        queryParams.put("type", query.getType());
+        queryParams.put("area_id", query.getAreaId());
+        queryParams.put("sport_id", query.getSportId());
+        queryParams.put("tour_id", query.getTourId());
+        queryParams.put("multi_ids", query.getMultiIds());
+        queryParams.put("gender", query.getGender());
+        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put("short_name", query.getShortName());
+        queryParams.put("sort_type", query.getSortType());
+        queryParams.put("participant_id", query.getParticipantId());
+        queryParams.put("status_type", query.getStatusType());
+        queryParams.put("tz", query.getTz());
+
+        return fetchListWrapper(
+                "/competitions",
+                Map.of(),
+                queryParams,
+                "competitions",
+                new TypeReference<>() {}
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getCompetitionById(Integer competitionId) {
+        return fetchSingleNodeWrapped(
+                "/competitions/" + competitionId,
+                Map.of(),
+                Map.of(),
+                "competitions",
                 new TypeReference<>() {}
         );
     }

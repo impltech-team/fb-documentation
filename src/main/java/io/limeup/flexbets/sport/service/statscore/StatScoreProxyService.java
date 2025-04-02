@@ -12,14 +12,15 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 
 public interface StatScoreProxyService {
@@ -50,15 +51,19 @@ public interface StatScoreProxyService {
 
     SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query);
 
-    PaginatedResponse<StatScoreCompetitionDTO> listSeasons(StatScoreSeasonQueryParams query);
+    PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query);
 
     StatScoreCompetitionDTO getSeasonById(Integer seasonId);
 
-    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StatScoreStageQueryParams query);
+    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query);
 
     StatScoreCompetitionDTO getStageById(Integer stageId);
 
     PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query);
 
     StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query);
+
+    PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query);
+
+    StatScoreCompetitionDTO getCompetition(Integer competitionId);
 }

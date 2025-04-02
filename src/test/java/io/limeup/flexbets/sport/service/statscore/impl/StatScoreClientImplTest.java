@@ -14,8 +14,8 @@ import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -521,7 +521,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getSeasons returns seasons list for a competition")
     void testGetSeasons() {
-        StatScoreSeasonQueryParams query = new StatScoreSeasonQueryParams();
+        SeasonQueryParams query = new SeasonQueryParams();
         query.setLang("en");
         query.setPage(1);
         query.setLimit(2);
@@ -585,7 +585,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getStages returns expected stages with all params")
     void testGetStages() {
-        StatScoreStageQueryParams query = new StatScoreStageQueryParams();
+        StageQueryParams query = new StageQueryParams();
         query.setSeasonId(62587);
         query.setTimestamp(1743060000L);
         query.setPage(1);

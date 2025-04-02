@@ -7,10 +7,11 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.model.SubParticipant;
+import io.limeup.flexbets.sport.repository.SubParticipantRepository;
+import io.limeup.flexbets.sport.service.AbstractReadService;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,12 +22,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Service
-public class SubParticipantServiceImpl implements SubParticipantService {
+public class SubParticipantServiceImpl extends AbstractReadService<SubParticipant, SubParticipantDTO, Long> implements SubParticipantService {
 
     private final StatScoreDataService statScoreDataService;
     private final StatScoreProxyService statScoreService;
+
+    protected SubParticipantServiceImpl(SubParticipantRepository repository, StatScoreDataService statScoreDataService, StatScoreProxyService statScoreService) {
+        super(repository);
+        this.statScoreDataService = statScoreDataService;
+        this.statScoreService = statScoreService;
+    }
 
     @Override
     public List<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions, List<Integer> participantIds, Integer marketId, RequestQueryDTO requestQuery) {

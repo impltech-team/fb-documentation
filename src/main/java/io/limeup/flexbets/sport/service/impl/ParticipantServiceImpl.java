@@ -8,9 +8,11 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.mapper.StatScoreMapper;
+import io.limeup.flexbets.sport.model.Participant;
+import io.limeup.flexbets.sport.repository.ParticipantRepository;
+import io.limeup.flexbets.sport.service.AbstractReadService;
 import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -19,11 +21,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-public class ParticipantServiceImpl implements ParticipantService {
+public class ParticipantServiceImpl extends AbstractReadService<Participant, ParticipantDTO, Long> implements ParticipantService {
 
     private final StatScoreClient statScoreClient;
     private final StatScoreMapper statScoreMapper;
+
+    protected ParticipantServiceImpl(ParticipantRepository repository, StatScoreClient statScoreClient, StatScoreMapper statScoreMapper) {
+        super(repository);
+        this.statScoreClient = statScoreClient;
+        this.statScoreMapper = statScoreMapper;
+    }
 
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds, RequestQueryDTO requestQuery) {

@@ -16,4 +16,6 @@ public class Area extends BaseIdentifiableEntity {
     private String name;
 
     private String countryCode;
+
+    private Integer parentAreaId;
 }

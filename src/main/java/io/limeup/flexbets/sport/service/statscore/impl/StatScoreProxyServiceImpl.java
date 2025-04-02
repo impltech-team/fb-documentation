@@ -12,14 +12,15 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
@@ -111,7 +112,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
     }
 
     @Override
-    public PaginatedResponse<StatScoreCompetitionDTO> listSeasons(StatScoreSeasonQueryParams query) {
+    public PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query) {
         return StatScorePaginationUtils.buildPaginatedResponse(
                 statScoreClient.getSeasons(query).block(), query.getPage(), query.getLimit());
     }
@@ -122,7 +123,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
     }
 
     @Override
-    public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StatScoreStageQueryParams query) {
+    public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query) {
         return StatScorePaginationUtils.buildPaginatedResponseForSingleRoot(
                 statScoreClient.getStages(query).block(), query.getPage(), query.getLimit(), "competition");
     }
@@ -141,5 +142,16 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
     @Override
     public StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query) {
         return Objects.requireNonNull(statScoreClient.getStandingById(standingId, query).block()).getApi().getData();
+    }
+
+    @Override
+    public PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query) {
+        return StatScorePaginationUtils.buildPaginatedResponse(
+                statScoreClient.getCompetitions(query).block(), query.getPage(), query.getLimit());
+    }
+
+    @Override
+    public StatScoreCompetitionDTO getCompetition(Integer competitionId) {
+        return Objects.requireNonNull(statScoreClient.getCompetitionById(competitionId).block()).getApi().getData();
     }
 }

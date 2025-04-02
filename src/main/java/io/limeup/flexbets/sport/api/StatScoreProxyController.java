@@ -12,14 +12,15 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import jakarta.validation.Valid;
@@ -109,7 +110,7 @@ public class StatScoreProxyController {
     }
 
     @GetMapping("/season/list")
-    public ResponseEntity<PaginatedResponse<StatScoreCompetitionDTO>> listSeasons(StatScoreSeasonQueryParams query) {
+    public ResponseEntity<PaginatedResponse<StatScoreCompetitionDTO>> listSeasons(SeasonQueryParams query) {
         return ResponseEntity.ok(statScoreProxyService.listSeasons(query));
     }
 
@@ -119,7 +120,7 @@ public class StatScoreProxyController {
     }
 
     @GetMapping("/stage/list")
-    public ResponseEntity<SingleRootItemPaginatedResponse<StatScoreCompetitionDTO>> listStages(StatScoreStageQueryParams query) {
+    public ResponseEntity<SingleRootItemPaginatedResponse<StatScoreCompetitionDTO>> listStages(StageQueryParams query) {
         return ResponseEntity.ok(statScoreProxyService.listStages(query));
     }
 
@@ -138,4 +139,13 @@ public class StatScoreProxyController {
         return ResponseEntity.ok(statScoreProxyService.getStanding(standingId, query));
     }
 
+    @GetMapping("/competition/list")
+    public ResponseEntity<PaginatedResponse<StatScoreCompetitionDTO>> listCompetitions(CompetitionQueryParams query) {
+        return ResponseEntity.ok(statScoreProxyService.listCompetitions(query));
+    }
+
+    @GetMapping("/competition/{competitionId}")
+    public ResponseEntity<StatScoreCompetitionDTO> getStanding(@PathVariable Integer competitionId) {
+        return ResponseEntity.ok(statScoreProxyService.getCompetition(competitionId));
+    }
 }

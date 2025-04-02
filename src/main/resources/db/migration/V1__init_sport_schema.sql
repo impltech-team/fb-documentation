@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS sport.venue (
 CREATE TABLE IF NOT EXISTS sport.area (
     id BIGINT PRIMARY KEY,
     name VARCHAR(255),
-    country_code VARCHAR(10)
+    country_code VARCHAR(10),
+    parent_area_id BIGINT
 );
 
 -- Sport table
