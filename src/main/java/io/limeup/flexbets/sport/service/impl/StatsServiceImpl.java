@@ -151,7 +151,7 @@ public class StatsServiceImpl extends AbstractReadService<EventStat, StatsRespon
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList()));
         }
-        eventRepository.saveAll(eventsToSave);
+        eventRepository.saveOrUpdateBatch(eventsToSave);
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
             List<StatScoreSubParticipantDTO> statScoreSubParticipants =
@@ -168,7 +168,7 @@ public class StatsServiceImpl extends AbstractReadService<EventStat, StatsRespon
                 subParticipantsToSave.add(sub);
             }
 
-            subParticipantRepository.saveAll(subParticipantsToSave);
+            subParticipantRepository.saveOrUpdateBatch(subParticipantsToSave);
             //fetchHistoricalStats(subParticipantsToSave, pesc.participantId());
         }
     }

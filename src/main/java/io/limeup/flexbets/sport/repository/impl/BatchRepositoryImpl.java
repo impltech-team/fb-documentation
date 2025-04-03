@@ -1,5 +1,6 @@
-package io.limeup.flexbets.sport.repository;
+package io.limeup.flexbets.sport.repository.impl;
 
+import io.limeup.flexbets.sport.repository.BatchRepositoryCustom;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
