@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.dto.statscore;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

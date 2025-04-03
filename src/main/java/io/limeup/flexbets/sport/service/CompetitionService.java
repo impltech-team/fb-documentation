@@ -2,6 +2,7 @@ package io.limeup.flexbets.sport.service;
 
 import io.limeup.flexbets.sport.dto.CompetitionDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.model.Competition;
 
 import java.util.List;
@@ -12,4 +13,5 @@ public interface CompetitionService extends ReadService<Competition, Competition
 
     void fetchCompetitionData();
 
+    Competition create(StatScoreCompetitionDTO competition);
 }

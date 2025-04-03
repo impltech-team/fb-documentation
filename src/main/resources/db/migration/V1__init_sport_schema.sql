@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS sport.venue (
 CREATE TABLE IF NOT EXISTS sport.area (
     id BIGINT PRIMARY KEY,
     name VARCHAR(255),
-    country_code VARCHAR(10),
+    area_code VARCHAR(10),
     parent_area_id BIGINT
 );
 
@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS sport.competition (
     area_id BIGINT,
     status_type VARCHAR(50),
     gender VARCHAR(50),
+    active BOOLEAN DEFAULT true,
     CONSTRAINT fk_sport FOREIGN KEY (sport_id) REFERENCES sport.sport (id),
     CONSTRAINT fk_area FOREIGN KEY (area_id) REFERENCES sport.area (id)
 );
@@ -51,10 +52,6 @@ CREATE TABLE IF NOT EXISTS sport.event (
     name VARCHAR(255),
     start_date TIMESTAMP,
     competition_id BIGINT,
-    home_team_name VARCHAR(255),
-    home_team_short_code VARCHAR(50),
-    away_team_name VARCHAR(255),
-    away_team_short_code VARCHAR(50),
     venue_id BIGINT,
     CONSTRAINT fk_event_competition FOREIGN KEY (competition_id) REFERENCES sport.competition (id),
     CONSTRAINT fk_event_venue FOREIGN KEY (venue_id) REFERENCES sport.venue (id)
@@ -66,9 +63,17 @@ CREATE TABLE IF NOT EXISTS sport.participant (
     team_name VARCHAR(255),
     acronym VARCHAR(10),
     competition_id BIGINT,
-    next_event_id BIGINT,
-    CONSTRAINT fk_participant_competition FOREIGN KEY (competition_id) REFERENCES sport.competition (id),
-    CONSTRAINT fk_participant_next_event FOREIGN KEY (next_event_id) REFERENCES sport.event (id)
+    type VARCHAR(255),
+    CONSTRAINT fk_participant_competition FOREIGN KEY (competition_id) REFERENCES sport.competition (id)
+);
+
+-- Join table: event_participant
+CREATE TABLE IF NOT EXISTS sport.event_participant (
+    event_id BIGINT NOT NULL,
+    participant_id BIGINT NOT NULL,
+    PRIMARY KEY (event_id, participant_id),
+    CONSTRAINT fk_event FOREIGN KEY (event_id) REFERENCES sport.event (id),
+    CONSTRAINT fk_participant FOREIGN KEY (participant_id) REFERENCES sport.participant (id)
 );
 
 -- SubParticipant table
@@ -85,11 +90,9 @@ CREATE TABLE IF NOT EXISTS sport.sub_participant (
     competition_id BIGINT,
     area_id BIGINT,
     participant_id BIGINT,
-    next_event_id BIGINT,
     CONSTRAINT fk_sub_participant_competition FOREIGN KEY (competition_id) REFERENCES sport.competition (id),
     CONSTRAINT fk_sub_participant_area FOREIGN KEY (area_id) REFERENCES sport.area (id),
-    CONSTRAINT fk_sub_participant_participant FOREIGN KEY (participant_id) REFERENCES sport.participant (id),
-    CONSTRAINT fk_sub_participant_next_event FOREIGN KEY (next_event_id) REFERENCES sport.event (id)
+    CONSTRAINT fk_sub_participant_participant FOREIGN KEY (participant_id) REFERENCES sport.participant (id)
 );
 
 -- EventStat table

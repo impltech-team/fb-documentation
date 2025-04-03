@@ -13,7 +13,7 @@ public class AreaMapper {
         Area entity = new Area();
         entity.setId(dto.getId().longValue());
         entity.setName(dto.getName());
-        entity.setCountryCode(dto.getAreaCode());
+        entity.setAreaCode(dto.getAreaCode());
         entity.setParentAreaId(dto.getParentAreaId());
         return entity;
     }
@@ -24,7 +24,7 @@ public class AreaMapper {
         StatScoreAreaDTO dto = new StatScoreAreaDTO();
         dto.setId(entity.getId().intValue());
         dto.setName(entity.getName());
-        dto.setAreaCode(entity.getCountryCode());
+        dto.setAreaCode(entity.getAreaCode());
         dto.setParentAreaId(entity.getParentAreaId());
         return dto;
     }

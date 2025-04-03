@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class AbstractReadService<T, D, ID> implements ReadService<T, D, ID> {
@@ -15,9 +16,8 @@ public class AbstractReadService<T, D, ID> implements ReadService<T, D, ID> {
     }
 
     @Override
-    public T readById(ID id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Entity not found: " + id));
+    public Optional<T> readById(ID id) {
+        return repository.findById(id);
     }
 
     @Override
@@ -26,15 +26,21 @@ public class AbstractReadService<T, D, ID> implements ReadService<T, D, ID> {
     }
 
     @Override
-    public D readDTOById(ID id, Function<T, D> toDto) {
-        return toDto.apply(repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Entity not found: " + id)));
-    }
-
-    @Override
     public List<D> readDTOByIds(List<ID> ids, Function<T, D> toDto) {
         return repository.findAllById(ids).stream()
                 .map(toDto)
                 .toList();
+    }
+
+    @Override
+    public T readByIdSafe(ID id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found: " + id));
+    }
+
+    @Override
+    public D readDTOByIdSafe(ID id, Function<T, D> toDto) {
+        return toDto.apply(repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found: " + id)));
     }
 }

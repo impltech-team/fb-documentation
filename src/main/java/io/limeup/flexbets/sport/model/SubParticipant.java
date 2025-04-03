@@ -46,6 +46,4 @@ public class SubParticipant extends BaseIdentifiableEntity {
     @OneToMany(mappedBy = "targetId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EventStat> historicalStats;
 
-    @ManyToOne
-    private Event nextEvent;
 }

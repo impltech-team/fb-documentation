@@ -9,10 +9,10 @@ import io.limeup.flexbets.sport.repository.SportRepository;
 import io.limeup.flexbets.sport.service.AbstractReadService;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
+import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SportServiceImpl extends AbstractReadService<Sport, SportDTO, Long> implements SportService {
@@ -21,17 +21,16 @@ public class SportServiceImpl extends AbstractReadService<Sport, SportDTO, Long>
 
     private final SportMapper sportMapper;
 
-    private final SportRepository sportRepository;
-
-    protected SportServiceImpl(SportRepository repository, StatScoreProxyService statScoreProxyService, SportMapper sportMapper, SportRepository sportRepository) {
+    protected SportServiceImpl(SportRepository repository, StatScoreProxyService statScoreProxyService,
+                               SportMapper sportMapper) {
         super(repository);
         this.statScoreProxyService = statScoreProxyService;
         this.sportMapper = sportMapper;
-        this.sportRepository = sportRepository;
     }
 
     @Override
-    public List<SportDTO> listSports(List<Integer> sportIds, String name, RequestQueryDTO requestQuery) {
+    public List<SportDTO> listSports(List<Integer> sportIds, String name,
+                                     RequestQueryDTO requestQuery) {
         return null;
     }
 
@@ -42,10 +41,16 @@ public class SportServiceImpl extends AbstractReadService<Sport, SportDTO, Long>
 
     @Override
     public void fetchSportData() {
-        List<Sport> sports = statScoreProxyService.listSports(new SportQueryParams()).getItems()
-                .stream()
-                .map(sportMapper::toEntity)
-                .collect(Collectors.toList());
-        sportRepository.saveAll(sports);
+        List<Sport> sports = StatScorePaginationUtils.fetchAllPaginatedData(
+                statScoreProxyService::listSports,
+                sportMapper::toEntity,
+                SportQueryParams::new,
+                (query, page) -> {
+                    query.setPage(page);
+                    query.setLimit(500);
+                    return query;
+                }
+        );
+        repository.saveAll(sports);
     }
 }

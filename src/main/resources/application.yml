@@ -24,8 +24,12 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        boot:
-          allow_jdbc_metadata_access: false
+        default_schema: sport
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
   flyway:
     enabled: true
     schemas: sport

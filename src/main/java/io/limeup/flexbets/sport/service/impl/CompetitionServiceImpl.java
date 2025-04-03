@@ -47,8 +47,17 @@ public class CompetitionServiceImpl extends AbstractReadService<Competition, Com
     }
 
     @Override
-    public List<CompetitionDTO> listCompetitions(List<Integer> areaIds, List<Integer> sportIds, String dateFrom, String dateTo, String type, String gender, String statusType, RequestQueryDTO requestQuery) {
+    public List<CompetitionDTO> listCompetitions(List<Integer> areaIds, List<Integer> sportIds, String dateFrom,
+                                                 String dateTo, String type, String gender, String statusType,
+                                                 RequestQueryDTO requestQuery) {
         return null;
+    }
+
+    @Override
+    public Competition create(StatScoreCompetitionDTO dto) {
+        Sport sport = sportService.readById((long) dto.getSportId()).get();
+        Area area = areaService.readById((long) dto.getAreaId()).get();
+        return repository.save(competitionMapper.toEntity(dto, sport, area));
     }
 
     @Override

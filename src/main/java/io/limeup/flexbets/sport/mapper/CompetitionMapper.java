@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CompetitionMapper {
 
-    public static Competition toEntity(StatScoreCompetitionDTO dto, Sport sport, Area area) {
+    public Competition toEntity(StatScoreCompetitionDTO dto, Sport sport, Area area) {
         Competition competition = new Competition();
 
         competition.setId((long) dto.getId());

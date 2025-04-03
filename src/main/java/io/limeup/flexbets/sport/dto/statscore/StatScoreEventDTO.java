@@ -35,5 +35,6 @@ public class StatScoreEventDTO {
     private String roundName;
     private int competitionId;
     private String competitionShortName;
+    private int venueId;
     private List<StatScoreEventParticipantDTO> participants;
 }

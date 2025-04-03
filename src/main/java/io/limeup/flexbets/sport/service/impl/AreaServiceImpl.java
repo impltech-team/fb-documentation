@@ -9,11 +9,11 @@ import io.limeup.flexbets.sport.repository.AreaRepository;
 import io.limeup.flexbets.sport.service.AbstractReadService;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
+import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AreaServiceImpl extends AbstractReadService<Area, AreaDTO, Long> implements AreaService {
@@ -24,7 +24,8 @@ public class AreaServiceImpl extends AbstractReadService<Area, AreaDTO, Long> im
 
     private final AreaRepository areaRepository;
 
-    protected AreaServiceImpl(JpaRepository<Area, Long> repository, StatScoreProxyService statScoreProxyService, AreaMapper areaMapper, AreaRepository areaRepository) {
+    protected AreaServiceImpl(JpaRepository<Area, Long> repository, StatScoreProxyService statScoreProxyService,
+                              AreaMapper areaMapper, AreaRepository areaRepository) {
         super(repository);
         this.statScoreProxyService = statScoreProxyService;
         this.areaMapper = areaMapper;
@@ -38,10 +39,16 @@ public class AreaServiceImpl extends AbstractReadService<Area, AreaDTO, Long> im
 
     @Override
     public void fetchAreaData() {
-        List<Area> areas = statScoreProxyService.listAreas(new AreaQueryParams()).getItems()
-                .stream()
-                .map(areaMapper::toEntity)
-                .collect(Collectors.toList());
-        areaRepository.saveAll(areas);
+        List<Area> areas = StatScorePaginationUtils.fetchAllPaginatedData(
+                statScoreProxyService::listAreas,
+                areaMapper::toEntity,
+                AreaQueryParams::new,
+                (query, page) -> {
+                    query.setPage(page);
+                    query.setLimit(500);
+                    return query;
+                }
+        );
+        repository.saveAll(areas);
     }
 }

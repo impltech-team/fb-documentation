@@ -5,9 +5,14 @@ import io.limeup.flexbets.sport.dto.SingleRootItemPaginatedResponse;
 import io.limeup.flexbets.sport.dto.statscore.ListWrapper;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class StatScorePaginationUtils {
 
@@ -63,6 +68,30 @@ public class StatScorePaginationUtils {
         }
 
         return builder.build();
+    }
+
+    public static <Q, D, E> List<E> fetchAllPaginatedData(
+            Function<Q, PaginatedResponse<D>> fetchPageFunction,
+            Function<D, E> mapToEntity,
+            Supplier<Q> initialQuerySupplier,
+            BiFunction<Q, Integer, Q> setPageFunction
+    ) {
+        List<E> allResults = new ArrayList<>();
+        int page = 1;
+        PaginatedResponse<D> response;
+
+        do {
+            Q query = setPageFunction.apply(initialQuerySupplier.get(), page);
+            response = fetchPageFunction.apply(query);
+            if (response.getItems() != null) {
+                allResults.addAll(response.getItems().stream()
+                        .map(mapToEntity)
+                        .collect(Collectors.toList()));
+            }
+            page++;
+        } while (page <= response.getTotalPages());
+
+        return allResults;
     }
 
 }

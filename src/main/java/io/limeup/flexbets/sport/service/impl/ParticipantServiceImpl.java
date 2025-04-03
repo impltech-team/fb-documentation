@@ -26,14 +26,16 @@ public class ParticipantServiceImpl extends AbstractReadService<Participant, Par
     private final StatScoreClient statScoreClient;
     private final StatScoreMapper statScoreMapper;
 
-    protected ParticipantServiceImpl(ParticipantRepository repository, StatScoreClient statScoreClient, StatScoreMapper statScoreMapper) {
+    protected ParticipantServiceImpl(ParticipantRepository repository, StatScoreClient statScoreClient,
+                                     StatScoreMapper statScoreMapper) {
         super(repository);
         this.statScoreClient = statScoreClient;
         this.statScoreMapper = statScoreMapper;
     }
 
     @Override
-    public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds, RequestQueryDTO requestQuery) {
+    public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
+                                                              RequestQueryDTO requestQuery) {
         //after data prefetching we gonna map competition_id to a season_id and sport_id, so this val won't be static
         ParticipantQueryParams queryParams = new ParticipantQueryParams(
                 1,

@@ -11,6 +11,7 @@ import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.naming.event.EventContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,46 +30,38 @@ public class StatScoreDataServiceImpl implements StatScoreDataService {
     }
 
     @Override
-    public Map<StatScoreSeasonDTO, List<StatScoreEventDTO>> getAllEventsPerSeasons(EventQueryParams queryParams) {
-        return collectAllEventsBySeason(statScoreProxyService.listEvents(queryParams).getItems());
+    public List<EventContext> getAllEventsWithContext(EventQueryParams queryParams) {
+        return collectAllEventsWithContext(statScoreProxyService.listEvents(queryParams).getItems());
     }
 
-    private Map<StatScoreSeasonDTO, List<StatScoreEventDTO>> collectAllEventsBySeason(List<StatScoreCompetitionDTO> competitions) {
+    private List<EventContext> collectAllEventsWithContext(List<StatScoreCompetitionDTO> competitions) {
         return Optional.ofNullable(competitions).orElse(List.of()).stream()
                 .flatMap(comp -> {
                     List<StatScoreSeasonDTO> seasons = Optional.ofNullable(comp.getSeasons())
                             .filter(list -> !list.isEmpty())
-                            .orElseGet(() -> Optional.ofNullable(comp.getSeason())
-                                    .map(List::of).orElse(List.of()));
-                    return seasons.stream();
+                            .orElseGet(() -> Optional.ofNullable(comp.getSeason()).map(List::of).orElse(List.of()));
+                    return seasons.stream()
+                            .flatMap(season -> {
+                                List<StatScoreStageDTO> stages = Optional.ofNullable(season.getStages())
+                                        .filter(list -> !list.isEmpty())
+                                        .orElseGet(() -> Optional.ofNullable(season.getStage()).map(List::of).orElse(List.of()));
+                                return stages.stream()
+                                        .flatMap(stage -> {
+                                            List<StatScoreGroupDTO> groups = Optional.ofNullable(stage.getGroups())
+                                                    .filter(list -> !list.isEmpty())
+                                                    .orElseGet(() -> Optional.ofNullable(stage.getGroup()).map(List::of).orElse(List.of()));
+                                            return groups.stream()
+                                                    .flatMap(group -> {
+                                                        List<StatScoreEventDTO> events = Optional.ofNullable(group.getEvents())
+                                                                .filter(list -> !list.isEmpty())
+                                                                .orElseGet(() -> Optional.ofNullable(group.getEvent()).map(List::of).orElse(List.of()));
+                                                        return events.stream()
+                                                                .map(event -> new EventContext(event, group, stage, season, comp));
+                                                    });
+                                        });
+                            });
                 })
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        season -> {
-                            List<StatScoreStageDTO> stages = Optional.ofNullable(season.getStages())
-                                    .filter(list -> !list.isEmpty())
-                                    .orElseGet(() -> Optional.ofNullable(season.getStage())
-                                            .map(List::of).orElse(List.of()));
-
-                            return stages.stream()
-                                    .flatMap(stage -> {
-                                        List<StatScoreGroupDTO> groups = Optional.ofNullable(stage.getGroups())
-                                                .filter(list -> !list.isEmpty())
-                                                .orElseGet(() -> Optional.ofNullable(stage.getGroup())
-                                                        .map(List::of).orElse(List.of()));
-
-                                        return groups.stream()
-                                                .flatMap(group -> {
-                                                    List<StatScoreEventDTO> events = Optional.ofNullable(group.getEvents())
-                                                            .filter(list -> !list.isEmpty())
-                                                            .orElseGet(() -> Optional.ofNullable(group.getEvent())
-                                                                    .map(List::of).orElse(List.of()));
-                                                    return events.stream();
-                                                });
-                                    })
-                                    .toList();
-                        }
-                ));
+                .toList();
     }
 
     private List<StatScoreEventDTO> collectAllEventsToList(List<StatScoreCompetitionDTO> competitions) {

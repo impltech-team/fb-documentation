@@ -12,6 +12,4 @@ public interface SubParticipantService extends ReadService<SubParticipant, SubPa
 
     SubParticipantDTO getSubParticipantById(Integer subParticipantId);
 
-    void fetchStatData(int durationDays);
-
 }
