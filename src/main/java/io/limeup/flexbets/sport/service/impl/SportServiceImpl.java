@@ -6,7 +6,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.mapper.SportMapper;
 import io.limeup.flexbets.sport.model.Sport;
 import io.limeup.flexbets.sport.repository.SportRepository;
-import io.limeup.flexbets.sport.service.AbstractReadService;
+import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class SportServiceImpl extends AbstractReadService<Sport, SportDTO, Long> implements SportService {
+public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO, Long> implements SportService {
 
     private final StatScoreProxyService statScoreProxyService;
 
@@ -51,6 +51,6 @@ public class SportServiceImpl extends AbstractReadService<Sport, SportDTO, Long>
                     return query;
                 }
         );
-        repository.saveAll(sports);
+        repository.saveAllAndFlush(sports);
     }
 }

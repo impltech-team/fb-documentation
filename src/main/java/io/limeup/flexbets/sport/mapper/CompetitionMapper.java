@@ -14,7 +14,7 @@ public class CompetitionMapper {
     public Competition toEntity(StatScoreCompetitionDTO dto, Sport sport, Area area) {
         Competition competition = new Competition();
 
-        competition.setId((long) dto.getId());
+        competition.setExternalId(dto.getId());
         competition.setName(dto.getName());
         competition.setGender(dto.getGender());
         competition.setSport(sport);

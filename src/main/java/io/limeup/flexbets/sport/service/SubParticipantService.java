@@ -6,7 +6,7 @@ import io.limeup.flexbets.sport.model.SubParticipant;
 
 import java.util.List;
 
-public interface SubParticipantService extends ReadService<SubParticipant, SubParticipantDTO, Long>{
+public interface SubParticipantService extends ExternalIdReadService<SubParticipant, SubParticipantDTO, Long> {
 
     List<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions, List<Integer> participantIds, Integer marketId, RequestQueryDTO requestQuery);
 

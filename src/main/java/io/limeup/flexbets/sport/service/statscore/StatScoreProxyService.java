@@ -23,6 +23,8 @@ import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 
+import java.awt.*;
+
 public interface StatScoreProxyService {
 
     PaginatedResponse<StatScoreSubParticipantDTO> listEventSubParticipants(Integer eventId);
@@ -66,4 +68,6 @@ public interface StatScoreProxyService {
     PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query);
 
     StatScoreCompetitionDTO getCompetition(Integer competitionId);
+
+    PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer externalId);
 }

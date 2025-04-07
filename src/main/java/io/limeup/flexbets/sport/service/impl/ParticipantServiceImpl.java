@@ -10,7 +10,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.mapper.StatScoreMapper;
 import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
-import io.limeup.flexbets.sport.service.AbstractReadService;
+import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-public class ParticipantServiceImpl extends AbstractReadService<Participant, ParticipantDTO, Long> implements ParticipantService {
+public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participant, ParticipantDTO, Long> implements ParticipantService {
 
     private final StatScoreClient statScoreClient;
     private final StatScoreMapper statScoreMapper;

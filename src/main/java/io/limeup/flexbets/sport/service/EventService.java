@@ -6,7 +6,7 @@ import io.limeup.flexbets.sport.model.Event;
 
 import java.util.List;
 
-public interface EventService extends ReadService<Event, EventDTO, Long> {
+public interface EventService extends ExternalIdReadService<Event, EventDTO, Long> {
     List<EventDTO> listEvents(Integer competitionId, String dateFrom, String dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery);
 

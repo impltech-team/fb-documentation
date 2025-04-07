@@ -1,7 +1,12 @@
 package io.limeup.flexbets.sport.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +19,15 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Venue extends BaseIdentifiableEntity {
+public class Venue {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "venue_seq")
+    @SequenceGenerator(name = "venue_seq", sequenceName = "venue_id_seq")
+    private Long id;
+
+    @Column(unique = true)
+    private Integer externalId;
 
     private String name;
 

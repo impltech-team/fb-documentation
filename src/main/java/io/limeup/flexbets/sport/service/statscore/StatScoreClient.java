@@ -24,6 +24,8 @@ import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import reactor.core.publisher.Mono;
 
+import java.nio.channels.MembershipKey;
+
 public interface StatScoreClient {
 
     Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getEventSubParticipants(Integer eventId);
@@ -67,4 +69,6 @@ public interface StatScoreClient {
     Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getCompetitions(CompetitionQueryParams query);
 
     Mono<StatScoreResponse<StatScoreCompetitionDTO>> getCompetitionById(Integer competitionId);
+
+    Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getEventParticipants(Integer eventId);
 }

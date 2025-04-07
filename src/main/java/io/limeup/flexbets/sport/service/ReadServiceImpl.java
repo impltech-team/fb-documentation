@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class AbstractReadService<T, D, ID> implements ReadService<T, D, ID> {
+public class ReadServiceImpl<T, D, ID> implements ReadService<T, D, ID>  {
 
     protected final JpaRepository<T, ID> repository;
 
-    protected AbstractReadService(JpaRepository<T, ID> repository) {
+    public ReadServiceImpl(JpaRepository<T, ID> repository) {
         this.repository = repository;
     }
 
@@ -43,4 +43,5 @@ public class AbstractReadService<T, D, ID> implements ReadService<T, D, ID> {
         return toDto.apply(repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entity not found: " + id)));
     }
+
 }

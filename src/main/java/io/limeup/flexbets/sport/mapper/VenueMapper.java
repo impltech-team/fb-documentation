@@ -14,7 +14,7 @@ public class VenueMapper {
         if (dto == null) return null;
 
         Venue entity = new Venue();
-        entity.setId(dto.getId().longValue());
+        entity.setExternalId(dto.getId());
         entity.setName(dto.getName());
         entity.setCity(dto.getCity());
         entity.setCountry(dto.getCountry());

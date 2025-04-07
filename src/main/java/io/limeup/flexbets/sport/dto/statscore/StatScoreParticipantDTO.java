@@ -31,6 +31,7 @@ public class StatScoreParticipantDTO {
 
     private Details details;
     private List<StatScoreVenueDTO> venues;
+    private List<StatScoreSubParticipantDTO> subparticipants;
 
     @Data
     public static class Details {

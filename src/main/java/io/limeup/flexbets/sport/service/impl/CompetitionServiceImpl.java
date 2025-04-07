@@ -9,12 +9,11 @@ import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Sport;
 import io.limeup.flexbets.sport.repository.CompetitionRepository;
-import io.limeup.flexbets.sport.service.AbstractReadService;
+import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,25 +22,22 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class CompetitionServiceImpl extends AbstractReadService<Competition, CompetitionDTO, Long> implements CompetitionService {
+public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competition, CompetitionDTO, Long> implements CompetitionService {
 
     private final StatScoreProxyService statScoreProxyService;
 
     private final CompetitionMapper competitionMapper;
 
-    private final CompetitionRepository competitionRepository;
-
     private final SportService sportService;
 
     private final AreaService areaService;
 
-    protected CompetitionServiceImpl(JpaRepository<Competition, Long> repository, StatScoreProxyService statScoreProxyService,
-                                     CompetitionMapper competitionMapper, CompetitionRepository competitionRepository,
-                                     SportService sportService, AreaService areaService) {
+    protected CompetitionServiceImpl(CompetitionRepository repository, StatScoreProxyService statScoreProxyService,
+                                     CompetitionMapper competitionMapper, SportService sportService,
+                                     AreaService areaService) {
         super(repository);
         this.statScoreProxyService = statScoreProxyService;
         this.competitionMapper = competitionMapper;
-        this.competitionRepository = competitionRepository;
         this.sportService = sportService;
         this.areaService = areaService;
     }
@@ -55,8 +51,8 @@ public class CompetitionServiceImpl extends AbstractReadService<Competition, Com
 
     @Override
     public Competition create(StatScoreCompetitionDTO dto) {
-        Sport sport = sportService.readById((long) dto.getSportId()).get();
-        Area area = areaService.readById((long) dto.getAreaId()).get();
+        Sport sport = sportService.readByExternalId(dto.getSportId()).get();
+        Area area = areaService.readByExternalId(dto.getAreaId()).get();
         return repository.save(competitionMapper.toEntity(dto, sport, area));
     }
 
@@ -66,20 +62,20 @@ public class CompetitionServiceImpl extends AbstractReadService<Competition, Com
                 .listCompetitions(new CompetitionQueryParams())
                 .getItems();
 
-        List<Long> sportIds = competitionDTOs.stream()
-                .map(dto -> (long) dto.getSportId())
+        List<Integer> sportIds = competitionDTOs.stream()
+                .map(StatScoreCompetitionDTO::getSportId)
                 .distinct()
                 .toList();
 
-        List<Long> areaIds = competitionDTOs.stream()
-                .map(dto -> (long) dto.getAreaId())
+        List<Integer> areaIds = competitionDTOs.stream()
+                .map(StatScoreCompetitionDTO::getAreaId)
                 .distinct()
                 .toList();
 
-        Map<Long, Sport> sportsMap = sportService.readByIds(sportIds).stream()
+        Map<Long, Sport> sportsMap = sportService.readByExternalIdIn(sportIds).stream()
                 .collect(Collectors.toMap(Sport::getId, Function.identity()));
 
-        Map<Long, Area> areasMap = areaService.readByIds(areaIds).stream()
+        Map<Long, Area> areasMap = areaService.readByExternalIdIn(areaIds).stream()
                 .collect(Collectors.toMap(Area::getId, Function.identity()));
 
         List<Competition> competitions = competitionDTOs.stream()
@@ -90,6 +86,6 @@ public class CompetitionServiceImpl extends AbstractReadService<Competition, Com
                 })
                 .toList();
 
-        competitionRepository.saveAll(competitions);
+        repository.saveAllAndFlush(competitions);
     }
 }

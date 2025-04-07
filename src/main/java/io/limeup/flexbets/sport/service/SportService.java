@@ -6,7 +6,7 @@ import io.limeup.flexbets.sport.model.Sport;
 
 import java.util.List;
 
-public interface SportService extends ReadService<Sport, SportDTO, Long> {
+public interface SportService extends ExternalIdReadService<Sport, SportDTO, Long> {
     List<SportDTO> listSports(List<Integer> sportIds, String name, RequestQueryDTO requestQuery);
 
     SportDTO getSportById(Integer sportId);

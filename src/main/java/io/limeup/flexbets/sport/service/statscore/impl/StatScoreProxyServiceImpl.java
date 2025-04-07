@@ -154,4 +154,10 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
     public StatScoreCompetitionDTO getCompetition(Integer competitionId) {
         return Objects.requireNonNull(statScoreClient.getCompetitionById(competitionId).block()).getApi().getData();
     }
+
+    @Override
+    public PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer eventId) {
+        return StatScorePaginationUtils.buildPaginatedResponse(
+                statScoreClient.getEventParticipants(eventId).block(), null, null);
+    }
 }

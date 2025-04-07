@@ -18,19 +18,26 @@ public class EventMapper {
             return null;
         }
 
-        Event event = new Event();
-        event.setId((long) dto.getId());
-        event.setName(dto.getName());
+        Event entity = new Event();
+        return updateEntity(entity, dto, competition, venue);
+    }
+
+    public Event updateEntity(Event entity, StatScoreEventDTO dto, Competition competition, Venue venue) {
+        if (entity == null || dto == null) {
+            return entity;
+        }
+        entity.setExternalId(dto.getId());
+        entity.setName(dto.getName());
 
         if (dto.getStartDate() != null) {
-            event.setStartDate(LocalDateTime.parse(dto.getStartDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            entity.setStartDate(LocalDateTime.parse(dto.getStartDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         }
 
-        event.setCompetition(competition);
-        event.setVenue(venue);
-        event.setParticipants(new ArrayList<>());
+        entity.setCompetition(competition);
+        entity.setVenue(venue);
+        entity.setParticipants(new ArrayList<>());
 
-        return event;
+        return entity;
     }
 
 }

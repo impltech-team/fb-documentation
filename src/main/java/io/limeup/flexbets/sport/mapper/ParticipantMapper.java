@@ -9,15 +9,21 @@ import java.util.ArrayList;
 
 @Component
 public class ParticipantMapper {
+
     public Participant toEntity(StatScoreEventParticipantDTO dto, Competition competition) {
-        Participant p = new Participant();
-        p.setId((long) dto.getId());
-        p.setTeamName(dto.getName());
-        p.setAcronym(dto.getAcronym());
-        p.setCompetition(competition);
-        p.setType(dto.getType());
-        p.setHistoricalStats(new ArrayList<>());
-        return p;
+        Participant entity = new Participant();
+        return updateEntity(entity, dto, competition);
+    }
+
+    public Participant updateEntity(Participant entity, StatScoreEventParticipantDTO dto, Competition competition) {
+        if (dto == null || entity == null) return entity;
+        entity.setExternalId(dto.getId());
+        entity.setTeamName(dto.getName());
+        entity.setAcronym(dto.getAcronym());
+        entity.setCompetition(competition);
+        entity.setType(dto.getType());
+        entity.setHistoricalStats(new ArrayList<>());
+        return entity;
     }
 }
 

@@ -17,7 +17,12 @@ public class SubParticipantMapper {
         if (dto == null) return null;
 
         SubParticipant entity = new SubParticipant();
-        entity.setId(dto.getId().longValue());
+        return updateEntity(entity, dto, area, participant, competition);
+    }
+
+    public SubParticipant updateEntity(SubParticipant entity, StatScoreSubParticipantDTO dto, Area area, Participant participant, Competition competition) {
+        if (dto == null || entity == null) return entity;
+        entity.setExternalId(dto.getId());
         entity.setPlayerName(dto.getName());
         entity.setShirtNumber(dto.getShirtNr());
         entity.setAvatarUrl(dto.getLogo());
@@ -36,10 +41,14 @@ public class SubParticipantMapper {
                 }
             }
         }
+
         entity.setArea(area);
-        entity.setParticipant(participant);
+        if (participant != null) {
+            entity.setParticipant(participant);
+        }
         entity.setCompetition(competition);
         return entity;
     }
+
 
 }

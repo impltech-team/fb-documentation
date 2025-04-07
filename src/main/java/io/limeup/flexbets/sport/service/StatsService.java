@@ -6,7 +6,7 @@ import io.limeup.flexbets.sport.model.EventStat;
 
 import java.util.List;
 
-public interface StatsService extends ReadService<EventStat, StatsResponseDTO, Long> {
+public interface StatsService extends ExternalIdReadService<EventStat, StatsResponseDTO, Long> {
 
     List<StatsResponseDTO> listBatchStats(StatsBatchRequestDTO request);
 

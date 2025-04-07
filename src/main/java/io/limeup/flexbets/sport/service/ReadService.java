@@ -15,4 +15,5 @@ public interface ReadService<T, D, ID> {
     D readDTOByIdSafe(ID id, Function<T, D> toDto);
 
     List<D> readDTOByIds(List<ID> ids, Function<T, D> toDto);
+
 }

@@ -6,7 +6,7 @@ import io.limeup.flexbets.sport.model.Area;
 
 import java.util.List;
 
-public interface AreaService extends ReadService<Area, AreaDTO, Long> {
+public interface AreaService extends ExternalIdReadService<Area, AreaDTO, Long> {
 
     List<AreaDTO> listAreas(List<Integer> areaIds, String name, RequestQueryDTO requestQuery);
 

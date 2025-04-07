@@ -12,7 +12,7 @@ public class SportMapper {
         if (dto == null) return null;
 
         Sport entity = new Sport();
-        entity.setId(dto.getId().longValue());
+        entity.setExternalId(dto.getId());
         entity.setName(dto.getName());
         return entity;
     }
@@ -21,18 +21,9 @@ public class SportMapper {
         if (dto == null) return null;
 
         Sport entity = new Sport();
-        entity.setId(dto.getId().longValue());
+        entity.setExternalId(dto.getId());
         entity.setName(dto.getName());
         return entity;
-    }
-
-    public StatScoreSportDTO toDto(Sport entity) {
-        if (entity == null) return null;
-
-        StatScoreSportDTO dto = new StatScoreSportDTO();
-        dto.setId(entity.getId().intValue());
-        dto.setName(entity.getName());
-        return dto;
     }
 
 }

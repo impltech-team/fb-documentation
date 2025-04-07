@@ -1,11 +1,16 @@
 package io.limeup.flexbets.sport.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +21,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Competition extends BaseIdentifiableEntity {
+public class Competition {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "competition_seq")
+    @SequenceGenerator(name = "competition_seq", sequenceName = "competition_id_seq")
+    private Long id;
+
+    @Column(unique = true)
+    private Integer externalId;
 
     private String name;
 

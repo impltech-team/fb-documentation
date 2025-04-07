@@ -424,6 +424,18 @@ public class StatScoreClientImpl implements StatScoreClient {
         );
     }
 
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getEventParticipants(Integer eventId) {
+        return fetchListWrapper(
+                "/events/{eventId}/participants",
+                Map.of("eventId", eventId),
+                Map.of(),
+                "participants",
+                new TypeReference<>() {
+                }
+        );
+    }
+
     private <T> Mono<StatScoreResponse<T>> fetchSingleNodeWrapped(
             String path,
             Map<String, Object> pathVariables,

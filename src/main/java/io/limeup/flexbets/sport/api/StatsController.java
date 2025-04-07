@@ -2,7 +2,6 @@ package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.dto.StatsBatchRequestDTO;
 import io.limeup.flexbets.sport.dto.StatsResponseDTO;
-import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.StatsService;

@@ -11,22 +11,11 @@ public class AreaMapper {
         if (dto == null) return null;
 
         Area entity = new Area();
-        entity.setId(dto.getId().longValue());
+        entity.setExternalId(dto.getId());
         entity.setName(dto.getName());
         entity.setAreaCode(dto.getAreaCode());
         entity.setParentAreaId(dto.getParentAreaId());
         return entity;
-    }
-
-    public StatScoreAreaDTO toDto(Area entity) {
-        if (entity == null) return null;
-
-        StatScoreAreaDTO dto = new StatScoreAreaDTO();
-        dto.setId(entity.getId().intValue());
-        dto.setName(entity.getName());
-        dto.setAreaCode(entity.getAreaCode());
-        dto.setParentAreaId(entity.getParentAreaId());
-        return dto;
     }
 
 }
