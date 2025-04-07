@@ -59,7 +59,7 @@ public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competitio
     @Override
     public void fetchCompetitionData() {
         List<StatScoreCompetitionDTO> competitionDTOs = statScoreProxyService
-                .listCompetitions(new CompetitionQueryParams())
+                .listCompetitions(new CompetitionQueryParams(), true)
                 .getItems();
 
         List<Integer> sportIds = competitionDTOs.stream()

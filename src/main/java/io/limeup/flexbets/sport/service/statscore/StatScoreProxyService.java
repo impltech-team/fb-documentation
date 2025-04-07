@@ -27,47 +27,47 @@ import java.awt.*;
 
 public interface StatScoreProxyService {
 
-    PaginatedResponse<StatScoreSubParticipantDTO> listEventSubParticipants(Integer eventId);
+    PaginatedResponse<StatScoreSubParticipantDTO> listEventSubParticipants(Integer eventId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreSubParticipantDTO> listSquadSubParticipants(Integer participantId, Integer seasonId);
+    PaginatedResponse<StatScoreSubParticipantDTO> listSquadSubParticipants(Integer participantId, Integer seasonId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreParticipantDTO> listParticipants(ParticipantQueryParams participantQueryParams);
+    PaginatedResponse<StatScoreParticipantDTO> listParticipants(ParticipantQueryParams participantQueryParams, boolean retryEnabled);
 
-    StatScoreParticipantDTO getParticipantById(Integer participantId);
+    StatScoreParticipantDTO getParticipantById(Integer participantId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreCompetitionDTO> listEvents(EventQueryParams query);
+    PaginatedResponse<StatScoreCompetitionDTO> listEvents(EventQueryParams query, boolean retryEnabled);
 
-    StatScoreCompetitionDTO getEventById(Integer eventId);
+    StatScoreCompetitionDTO getEventById(Integer eventId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreAreaDTO> listAreas(AreaQueryParams query);
+    PaginatedResponse<StatScoreAreaDTO> listAreas(AreaQueryParams query, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreSportLiteDTO> listSports(SportQueryParams query);
+    PaginatedResponse<StatScoreSportLiteDTO> listSports(SportQueryParams query, boolean retryEnabled);
 
-    StatScoreSportDTO getSportById(Integer sportId);
+    StatScoreSportDTO getSportById(Integer sportId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreVenueDTO> listVenues(VenueQueryParams query);
+    PaginatedResponse<StatScoreVenueDTO> listVenues(VenueQueryParams query, boolean retryEnabled);
 
-    StatScoreVenueDTO getVenueById(Integer venueId);
+    StatScoreVenueDTO getVenueById(Integer venueId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId);
+    PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId, boolean retryEnabled);
 
-    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query);
+    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query);
+    PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query, boolean retryEnabled);
 
-    StatScoreCompetitionDTO getSeasonById(Integer seasonId);
+    StatScoreCompetitionDTO getSeasonById(Integer seasonId, boolean retryEnabled);
 
-    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query);
+    SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query, boolean retryEnabled);
 
-    StatScoreCompetitionDTO getStageById(Integer stageId);
+    StatScoreCompetitionDTO getStageById(Integer stageId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query);
+    PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query, boolean retryEnabled);
 
-    StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query);
+    StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query);
+    PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query, boolean retryEnabled);
 
-    StatScoreCompetitionDTO getCompetition(Integer competitionId);
+    StatScoreCompetitionDTO getCompetition(Integer competitionId, boolean retryEnabled);
 
-    PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer externalId);
+    PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer externalId, boolean retryEnabled);
 }

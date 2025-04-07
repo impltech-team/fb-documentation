@@ -14,6 +14,13 @@ public class VenueMapper {
         if (dto == null) return null;
 
         Venue entity = new Venue();
+        return updateEntity(entity, dto);
+    }
+
+    public Venue updateEntity(Venue entity, StatScoreVenueDTO dto) {
+        if (entity == null || dto == null) {
+            return entity;
+        }
         entity.setExternalId(dto.getId());
         entity.setName(dto.getName());
         entity.setCity(dto.getCity());
@@ -32,5 +39,4 @@ public class VenueMapper {
         entity.setUrl(dto.getUrl());
         return entity;
     }
-
 }

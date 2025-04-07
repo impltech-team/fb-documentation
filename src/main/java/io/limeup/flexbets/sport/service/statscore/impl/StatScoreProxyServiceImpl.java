@@ -37,127 +37,127 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
     private final StatScoreClient statScoreClient;
 
     @Override
-    public PaginatedResponse<StatScoreSubParticipantDTO> listEventSubParticipants(Integer eventId) {
+    public PaginatedResponse<StatScoreSubParticipantDTO> listEventSubParticipants(Integer eventId, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getEventSubParticipants(eventId).block(), null, null);
+                statScoreClient.getEventSubParticipants(eventId, retryEnabled).block(), null, null);
     }
 
     @Override
-    public PaginatedResponse<StatScoreSubParticipantDTO> listSquadSubParticipants(Integer participantId, Integer seasonId) {
+    public PaginatedResponse<StatScoreSubParticipantDTO> listSquadSubParticipants(Integer participantId, Integer seasonId, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getSquadSubParticipants(participantId, seasonId).block(), null, null);
+                statScoreClient.getSquadSubParticipants(participantId, seasonId, retryEnabled).block(), null, null);
     }
 
     @Override
-    public PaginatedResponse<StatScoreParticipantDTO> listParticipants(ParticipantQueryParams query) {
+    public PaginatedResponse<StatScoreParticipantDTO> listParticipants(ParticipantQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getParticipants(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getParticipants(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public StatScoreParticipantDTO getParticipantById(Integer participantId) {
-        return Objects.requireNonNull(statScoreClient.getParticipantById(participantId).block()).getApi().getData();
+    public StatScoreParticipantDTO getParticipantById(Integer participantId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getParticipantById(participantId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreCompetitionDTO> listEvents(EventQueryParams query) {
+    public PaginatedResponse<StatScoreCompetitionDTO> listEvents(EventQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getEvents(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getEvents(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public StatScoreCompetitionDTO getEventById(Integer eventId) {
-        return Objects.requireNonNull(statScoreClient.getEventById(eventId).block()).getApi().getData();
+    public StatScoreCompetitionDTO getEventById(Integer eventId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getEventById(eventId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreAreaDTO> listAreas(AreaQueryParams query) {
+    public PaginatedResponse<StatScoreAreaDTO> listAreas(AreaQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getAreas(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getAreas(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public PaginatedResponse<StatScoreSportLiteDTO> listSports(SportQueryParams query) {
+    public PaginatedResponse<StatScoreSportLiteDTO> listSports(SportQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getSports(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getSports(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public StatScoreSportDTO getSportById(Integer sportId) {
-        return Objects.requireNonNull(statScoreClient.getSportById(sportId).block()).getApi().getData();
+    public StatScoreSportDTO getSportById(Integer sportId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getSportById(sportId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreVenueDTO> listVenues(VenueQueryParams query) {
+    public PaginatedResponse<StatScoreVenueDTO> listVenues(VenueQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getVenues(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getVenues(query, retryEnabled).block(), query.getPage(), query.getLimit());
 
     }
 
     @Override
-    public StatScoreVenueDTO getVenueById(Integer venueId) {
-        return Objects.requireNonNull(statScoreClient.getVenueById(venueId).block()).getApi().getData();
+    public StatScoreVenueDTO getVenueById(Integer venueId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getVenueById(venueId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId) {
+    public PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getBrackets(stageId).block(), null, null);
+                statScoreClient.getBrackets(stageId, retryEnabled).block(), null, null);
     }
 
     @Override
-    public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query) {
+    public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponseForSingleRoot(
-                statScoreClient.getGroups(query).block(), query.getPage(), query.getLimit(), "competition");
+                statScoreClient.getGroups(query, retryEnabled).block(), query.getPage(), query.getLimit(), "competition");
     }
 
     @Override
-    public PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query) {
+    public PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getSeasons(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getSeasons(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public StatScoreCompetitionDTO getSeasonById(Integer seasonId) {
-        return Objects.requireNonNull(statScoreClient.getSeasonById(seasonId).block()).getApi().getData();
+    public StatScoreCompetitionDTO getSeasonById(Integer seasonId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getSeasonById(seasonId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query) {
+    public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponseForSingleRoot(
-                statScoreClient.getStages(query).block(), query.getPage(), query.getLimit(), "competition");
+                statScoreClient.getStages(query, retryEnabled).block(), query.getPage(), query.getLimit(), "competition");
     }
 
     @Override
-    public StatScoreCompetitionDTO getStageById(Integer stageId) {
-        return Objects.requireNonNull(statScoreClient.getStageById(stageId).block()).getApi().getData();
+    public StatScoreCompetitionDTO getStageById(Integer stageId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getStageById(stageId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query) {
+    public PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getStandings(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getStandings(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query) {
-        return Objects.requireNonNull(statScoreClient.getStandingById(standingId, query).block()).getApi().getData();
+    public StatScoreStandingDTO getStanding(Integer standingId, StandingByIdQueryParams query, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getStandingById(standingId, query, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query) {
+    public PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getCompetitions(query).block(), query.getPage(), query.getLimit());
+                statScoreClient.getCompetitions(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
-    public StatScoreCompetitionDTO getCompetition(Integer competitionId) {
-        return Objects.requireNonNull(statScoreClient.getCompetitionById(competitionId).block()).getApi().getData();
+    public StatScoreCompetitionDTO getCompetition(Integer competitionId, boolean retryEnabled) {
+        return Objects.requireNonNull(statScoreClient.getCompetitionById(competitionId, retryEnabled).block()).getApi().getData();
     }
 
     @Override
-    public PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer eventId) {
+    public PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer eventId, boolean retryEnabled) {
         return StatScorePaginationUtils.buildPaginatedResponse(
-                statScoreClient.getEventParticipants(eventId).block(), null, null);
+                statScoreClient.getEventParticipants(eventId, retryEnabled).block(), null, null);
     }
 }

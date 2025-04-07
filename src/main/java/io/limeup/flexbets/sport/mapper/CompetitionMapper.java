@@ -12,31 +12,38 @@ import org.springframework.stereotype.Component;
 public class CompetitionMapper {
 
     public Competition toEntity(StatScoreCompetitionDTO dto, Sport sport, Area area) {
-        Competition competition = new Competition();
+        Competition entity = new Competition();
 
-        competition.setExternalId(dto.getId());
-        competition.setName(dto.getName());
-        competition.setGender(dto.getGender());
-        competition.setSport(sport);
-        competition.setArea(area);
+        return updateEntity(entity, dto, sport, area);
+    }
+
+    public Competition updateEntity(Competition entity, StatScoreCompetitionDTO dto, Sport sport, Area area) {
+        if (entity == null || dto == null) {
+            return entity;
+        }
+        entity.setExternalId(dto.getId());
+        entity.setName(dto.getName());
+        entity.setGender(dto.getGender());
+        entity.setSport(sport);
+        entity.setArea(area);
 
         if (dto.getType() != null) {
             try {
-                competition.setType(CompetitionType.valueOf(dto.getType().toUpperCase()));
+                entity.setType(CompetitionType.valueOf(dto.getType().toUpperCase()));
             } catch (IllegalArgumentException e) {
-                competition.setType(CompetitionType.UNDEFINED);
+                entity.setType(CompetitionType.UNDEFINED);
             }
         }
 
         if (dto.getStatus() != null) {
             try {
-                competition.setStatusType(StatusType.valueOf(dto.getStatus().toUpperCase()));
+                entity.setStatusType(StatusType.valueOf(dto.getStatus().toUpperCase()));
             } catch (IllegalArgumentException e) {
-                competition.setStatusType(null);
+                entity.setStatusType(null);
             }
         }
 
-        return competition;
+        return entity;
     }
 
 }

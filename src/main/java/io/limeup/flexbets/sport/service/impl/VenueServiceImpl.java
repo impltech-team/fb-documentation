@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.service.impl;
 
 import io.limeup.flexbets.sport.dto.VenueDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.mapper.VenueMapper;
 import io.limeup.flexbets.sport.model.Venue;
@@ -8,10 +9,13 @@ import io.limeup.flexbets.sport.repository.VenueRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
+import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
 import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO, Long> implements VenueService {
@@ -27,10 +31,15 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
     }
 
     @Override
+    public Venue create(StatScoreVenueDTO venueDTO) {
+        return repository.save(venueMapper.toEntity(venueDTO));
+    }
+
+    @Override
     public void fetchVenueData() {
-        List<Venue> venues = StatScorePaginationUtils.fetchAllPaginatedData(
-                statScoreProxyService::listVenues,
-                venueMapper::toEntity,
+        List<StatScoreVenueDTO> fetchedVenues = StatScorePaginationUtils.fetchAllPaginatedData(
+                query -> statScoreProxyService.listVenues(query, true),
+                Function.identity(),
                 VenueQueryParams::new,
                 (query, page) -> {
                     query.setPage(page);
@@ -38,6 +47,13 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
                     return query;
                 }
         );
-        repository.saveAllAndFlush(venues);
+        StatScoreDataUtils.mergeAndSaveDTOs(
+                fetchedVenues,
+                StatScoreVenueDTO::getId,
+                ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
+                (dto, existing) -> venueMapper.updateEntity(existing, dto),
+                venueMapper::toEntity,
+                repository::saveAllAndFlush
+        );
     }
 }

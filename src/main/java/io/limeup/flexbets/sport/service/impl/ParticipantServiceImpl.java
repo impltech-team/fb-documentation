@@ -48,7 +48,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                         participantIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
                 null
         );
-        StatScoreResponse<ListWrapper<StatScoreParticipantDTO>> result = statScoreClient.getParticipants(queryParams).block();
+        StatScoreResponse<ListWrapper<StatScoreParticipantDTO>> result = statScoreClient.getParticipants(queryParams, false).block();
         return PaginatedResponse.<ParticipantDTO>builder()
                 .count(result.getApi().getMethod().getTotal_items())
                 .page(requestQuery.getPage())
@@ -64,6 +64,6 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     public ParticipantDTO getParticipantById(Integer participantId) {
         return statScoreMapper.mapToParticipantDTO(
                 Objects.requireNonNull(
-                        statScoreClient.getParticipantById(participantId).block()).getApi().getData());
+                        statScoreClient.getParticipantById(participantId, false).block()).getApi().getData());
     }
 }

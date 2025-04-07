@@ -183,7 +183,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getEventSubParticipants returns Curry")
     void testGetEventSubParticipants() {
-        StepVerifier.create(statScoreClient.getEventSubParticipants(123))
+        StepVerifier.create(statScoreClient.getEventSubParticipants(123, false))
                 .assertNext(resp -> {
                     ListWrapper<StatScoreSubParticipantDTO> wrapper = resp.getApi().getData();
                     List<StatScoreSubParticipantDTO> items = wrapper.getItems();
@@ -200,7 +200,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         ParticipantQueryParams params = new ParticipantQueryParams();
         params.setSportId(1);
 
-        StepVerifier.create(statScoreClient.getParticipants(params))
+        StepVerifier.create(statScoreClient.getParticipants(params, false))
                 .assertNext(resp -> {
                     List<StatScoreParticipantDTO> participants = resp.getApi().getData().getItems();
                     Assertions.assertEquals(2, participants.size());
@@ -225,7 +225,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         params.setVirtual("no");
         params.setMultiIds("1,2,3");
 
-        StepVerifier.create(statScoreClient.getParticipants(params))
+        StepVerifier.create(statScoreClient.getParticipants(params, false))
                 .assertNext(resp -> {
                     var items = resp.getApi().getData().getItems();
                     Assertions.assertFalse(items.isEmpty());
@@ -249,7 +249,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @DisplayName("Verify getParticipantById returns expected team")
     void testGetParticipantById() {
 
-        StepVerifier.create(statScoreClient.getParticipantById(123))
+        StepVerifier.create(statScoreClient.getParticipantById(123, false))
                 .assertNext(participantResponse -> {
                     var participant = participantResponse.getApi().getData();
                     Assertions.assertEquals(123, participant.getId());
@@ -266,8 +266,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @DisplayName("Verify getEvents returns correct events with all params")
     void testGetEventsWithAllParams() {
         EventQueryParams query = new EventQueryParams();
-        query.setDateFrom("2025-03-27 00:00:00");
-        query.setDateTo("2025-03-29 23:59:59");
+        query.setDateFrom(LocalDateTime.parse("2025-03-27 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        query.setDateTo(LocalDateTime.parse("2025-03-29 23:59:59", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         query.setSportId(1);
         query.setAreaId(191);
         query.setCompetitionId(101);
@@ -296,7 +296,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setPage(1);
         query.setLimit(20);
 
-        StepVerifier.create(statScoreClient.getEvents(query))
+        StepVerifier.create(statScoreClient.getEvents(query, false))
                 .assertNext(resp -> {
                     var competitions = resp.getApi().getData().getItems();
                     Assertions.assertEquals(1, competitions.size());
@@ -321,8 +321,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     for (StatScoreEventDTO event : events) {
                         // Validate date range
                         LocalDateTime eventDate = LocalDateTime.parse(event.getStartDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-                        LocalDateTime from = LocalDateTime.parse(query.getDateFrom(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        LocalDateTime to = LocalDateTime.parse(query.getDateTo(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                        LocalDateTime from = query.getDateFrom();
+                        LocalDateTime to = query.getDateTo();
                         Assertions.assertTrue((!eventDate.isBefore(from)) && (!eventDate.isAfter(to)), "Event is within the date range");
 
                         // Validate event properties
@@ -349,7 +349,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getEventById returns competition details")
     void testGetEventById() {
-        StepVerifier.create(statScoreClient.getEventById(123))
+        StepVerifier.create(statScoreClient.getEventById(123, false))
                 .assertNext(compResponse -> {
                     var comp = compResponse.getApi().getData();
                     Assertions.assertEquals(101, comp.getId());
@@ -375,7 +375,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getSquadSubParticipants returns Curry")
     void testGetSquadSubParticipants() {
-        StepVerifier.create(statScoreClient.getSquadSubParticipants(1040, 62587))
+        StepVerifier.create(statScoreClient.getSquadSubParticipants(1040, 62587, false))
                 .assertNext(resp -> {
                     var items = resp.getApi().getData().getItems();
                     Assertions.assertEquals(1, items.size());
@@ -393,7 +393,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         params.setPage(1);
         params.setLimit(10);
 
-        StepVerifier.create(statScoreClient.getAreas(params))
+        StepVerifier.create(statScoreClient.getAreas(params, false))
                 .assertNext(resp -> {
                     var items = resp.getApi().getData().getItems();
                     Assertions.assertEquals(2, items.size());
@@ -410,7 +410,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         params.setPage(1);
         params.setLimit(2);
 
-        StepVerifier.create(statScoreClient.getSports(params))
+        StepVerifier.create(statScoreClient.getSports(params, false))
                 .assertNext(resp -> {
                     var items = resp.getApi().getData().getItems();
                     Assertions.assertEquals(2, items.size());
@@ -423,7 +423,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getSportById returns Basketball")
     void testGetSportById() {
-        StepVerifier.create(statScoreClient.getSportById(1))
+        StepVerifier.create(statScoreClient.getSportById(1, false))
                 .assertNext(sportResponse -> {
                     var sport = sportResponse.getApi().getData();
                     Assertions.assertEquals(1, sport.getId());
@@ -447,7 +447,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getVenueById returns expected venue")
     void testGetVenueById() {
-        StepVerifier.create(statScoreClient.getVenueById(810))
+        StepVerifier.create(statScoreClient.getVenueById(810, false))
                 .assertNext(venueResponse -> {
                     var venue = venueResponse.getApi().getData();
                     Assertions.assertEquals(810, venue.getId());
@@ -467,7 +467,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setPage(1);
         query.setLimit(10);
 
-        StepVerifier.create(statScoreClient.getVenues(query))
+        StepVerifier.create(statScoreClient.getVenues(query, false))
                 .assertNext(resp -> {
                     var venues = resp.getApi().getData().getItems();
                     Assertions.assertFalse(venues.isEmpty());
@@ -481,7 +481,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @DisplayName("Verify getBrackets returns expected nodes")
     void testGetBrackets() {
         int stageId = 135822;
-        StepVerifier.create(statScoreClient.getBrackets(stageId))
+        StepVerifier.create(statScoreClient.getBrackets(stageId, false))
                 .assertNext(resp -> {
                     var brackets = resp.getApi().getData().getItems();
                     Assertions.assertFalse(brackets.isEmpty());
@@ -503,7 +503,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setPage(1);
         query.setLimit(10);
 
-        StepVerifier.create(statScoreClient.getGroups(query))
+        StepVerifier.create(statScoreClient.getGroups(query, false))
                 .assertNext(resp -> {
                     var comp = resp.getApi().getData();
                     Assertions.assertEquals(101, comp.getId());
@@ -534,7 +534,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setAreaId(191);
         query.setTimestamp(1743060000L);
 
-        StepVerifier.create(statScoreClient.getSeasons(query))
+        StepVerifier.create(statScoreClient.getSeasons(query, false))
                 .assertNext(resp -> {
                     var competitions = resp.getApi().getData().getItems();
                     Assertions.assertEquals(1, competitions.size());
@@ -561,7 +561,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getSeasonById returns competition with single season details")
     void testGetSeasonById() {
-        StepVerifier.create(statScoreClient.getSeasonById(62587))
+        StepVerifier.create(statScoreClient.getSeasonById(62587, false))
                 .assertNext(resp -> {
                     var competition = resp.getApi().getData();
                     Assertions.assertEquals(101, competition.getId());
@@ -591,7 +591,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setPage(1);
         query.setLimit(50);
 
-        StepVerifier.create(statScoreClient.getStages(query))
+        StepVerifier.create(statScoreClient.getStages(query, false))
                 .assertNext(resp -> {
                     var comp = resp.getApi().getData();
                     Assertions.assertEquals(101, comp.getId());
@@ -614,7 +614,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     @Test
     @DisplayName("Verify getStageById returns expected stage details")
     void testGetStageById() {
-        StepVerifier.create(statScoreClient.getStageById(135822))
+        StepVerifier.create(statScoreClient.getStageById(135822, false))
                 .assertNext(resp -> {
                     var comp = resp.getApi().getData();
                     Assertions.assertEquals(101, comp.getId());
@@ -648,7 +648,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setTimestamp(1743061234L);
         query.setItemStatus("active");
 
-        StepVerifier.create(statScoreClient.getStandings(query))
+        StepVerifier.create(statScoreClient.getStandings(query, false))
                 .assertNext(resp -> {
                     var method = resp.getApi().getMethod();
                     Assertions.assertEquals("standings.index", method.getName());
@@ -674,7 +674,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         params.setParticipantId("123");
         params.setSubParticipantId(12);
 
-        StepVerifier.create(statScoreClient.getStandingById(182996, params))
+        StepVerifier.create(statScoreClient.getStandingById(182996, params, false))
                 .assertNext(resp -> {
                     var s = resp.getApi().getData();
                     Assertions.assertEquals(182996, s.getId());

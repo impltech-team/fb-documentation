@@ -2,6 +2,7 @@ package io.limeup.flexbets.sport.service.impl;
 
 import io.limeup.flexbets.sport.dto.AreaDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreAreaDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
 import io.limeup.flexbets.sport.mapper.AreaMapper;
 import io.limeup.flexbets.sport.model.Area;
@@ -9,12 +10,15 @@ import io.limeup.flexbets.sport.repository.AreaRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
+import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
 import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 public class AreaServiceImpl extends ExternalIdReadServiceImpl<Area, AreaDTO, Long> implements AreaService {
@@ -37,9 +41,9 @@ public class AreaServiceImpl extends ExternalIdReadServiceImpl<Area, AreaDTO, Lo
 
     @Override
     public void fetchAreaData() {
-        List<Area> areas = StatScorePaginationUtils.fetchAllPaginatedData(
-                statScoreProxyService::listAreas,
-                areaMapper::toEntity,
+        List<StatScoreAreaDTO> fetchedAreas = StatScorePaginationUtils.fetchAllPaginatedData(
+                query -> statScoreProxyService.listAreas(query, true),
+                Function.identity(),
                 AreaQueryParams::new,
                 (query, page) -> {
                     query.setPage(page);
@@ -47,7 +51,14 @@ public class AreaServiceImpl extends ExternalIdReadServiceImpl<Area, AreaDTO, Lo
                     return query;
                 }
         );
-        repository.saveAllAndFlush(areas);
+        StatScoreDataUtils.mergeAndSaveDTOs(
+                fetchedAreas,
+                StatScoreAreaDTO::getId,
+                ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
+                (dto, existing) -> areaMapper.updateEntity(existing, dto),
+                areaMapper::toEntity,
+                repository::saveAllAndFlush
+        );
     }
 
     @Override

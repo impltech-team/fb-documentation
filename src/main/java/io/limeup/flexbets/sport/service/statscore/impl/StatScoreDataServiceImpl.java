@@ -26,12 +26,12 @@ public class StatScoreDataServiceImpl implements StatScoreDataService {
 
     @Override
     public List<StatScoreEventDTO> getAllEvents(EventQueryParams queryParams) {
-        return collectAllEventsToList(statScoreProxyService.listEvents(queryParams).getItems());
+        return collectAllEventsToList(statScoreProxyService.listEvents(queryParams, true).getItems());
     }
 
     @Override
     public List<EventContext> getAllEventsWithContext(EventQueryParams queryParams) {
-        return collectAllEventsWithContext(statScoreProxyService.listEvents(queryParams).getItems());
+        return collectAllEventsWithContext(statScoreProxyService.listEvents(queryParams, true).getItems());
     }
 
     private List<EventContext> collectAllEventsWithContext(List<StatScoreCompetitionDTO> competitions) {

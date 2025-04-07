@@ -33,13 +33,12 @@ import io.limeup.flexbets.sport.dto.StatsResponseDTO;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,64 +124,86 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
         Map<Integer, Set<Participant>> eventParticipantsMap = new HashMap<>();
 
-        fetchEventAndParticipants(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
+        extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
                 eventParticipantsMap, false);
 
         List<Participant> participants = participantRepository.saveAllAndFlush(participantsToSave.values());
+        Map<Long, Participant> participantById = mapParticipantsById(participants);
 
-        Map<Long, Participant> participantById = participants.stream()
-                .collect(Collectors.toMap(Participant::getId, Function.identity()));
+        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap, participantById);
+        eventRepository.saveAllAndFlush(eventsToSave.values());
 
-        for (Event event : eventsToSave.values()) {
+        for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
+            processSquadSubParticipants(pesc);
+            fetchHistoricalStats(pesc.participant().getExternalId());
+        }
+    }
+
+    private void processSquadSubParticipants(ParticipantEventSeasonCompetition pesc) {
+        Participant participant = pesc.participant();
+        if (participant == null) return;
+
+        List<StatScoreSubParticipantDTO> subParticipantDTOs =
+                statScoreProxyService.listSquadSubParticipants(participant.getExternalId(), pesc.seasonId(), true).getItems();
+
+        List<SubParticipant> existingSubs = subParticipantRepository
+                .findByExternalIdIn(subParticipantDTOs.stream().map(StatScoreSubParticipantDTO::getId).toList());
+        Map<Integer, SubParticipant> existingSubsMap = existingSubs.stream()
+                .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
+
+        List<SubParticipant> toSave = syncSubParticipants(subParticipantDTOs, existingSubsMap, dto -> null, pesc.competition);
+
+        if (!toSave.isEmpty()) {
+            subParticipantRepository.saveAllAndFlush(toSave);
+        }
+    }
+
+    private List<SubParticipant> syncSubParticipants(List<StatScoreSubParticipantDTO> dtos,
+                                                     Map<Integer, SubParticipant> existingSubsMap,
+                                                     Function<StatScoreSubParticipantDTO, Participant> participantResolver,
+                                                     Competition competition) {
+        List<SubParticipant> toSave = new ArrayList<>();
+        for (StatScoreSubParticipantDTO dto : dtos) {
+            Area area = areaService.readByExternalId(dto.getAreaId()).orElse(null);
+            SubParticipant existing = existingSubsMap.get(dto.getId());
+            Participant participant = participantResolver.apply(dto);
+
+            if (existing == null) {
+                SubParticipant sub = subParticipantMapper.toEntity(dto, area, participant, competition);
+                existingSubsMap.put(dto.getId(), sub);
+                toSave.add(sub);
+            } else {
+                subParticipantMapper.updateEntity(existing, dto, area, participant, competition);
+                toSave.add(existing);
+            }
+        }
+        return toSave;
+    }
+
+    private void updateEventsWithParticipants(Collection<Event> events,
+                                              Map<Integer, Set<Participant>> eventParticipantsMap,
+                                              Map<Long, Participant> participantById) {
+        for (Event event : events) {
             Set<Participant> linkedParticipants = eventParticipantsMap.getOrDefault(event.getExternalId(), Set.of());
             event.setParticipants(linkedParticipants.stream()
                     .map(p -> participantById.get(p.getId()))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList()));
         }
-        eventRepository.saveAllAndFlush(eventsToSave.values());
-
-        for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
-
-            Participant participant = pesc.participant();
-            if (participant == null) continue;
-
-            List<StatScoreSubParticipantDTO> statScoreSubParticipants =
-                    statScoreProxyService.listSquadSubParticipants(pesc.participant().getExternalId(), pesc.seasonId()).getItems();
-
-            List<SubParticipant> existingSubs = subParticipantRepository
-                    .findByExternalIdIn(statScoreSubParticipants.stream().map(StatScoreSubParticipantDTO::getId).collect(Collectors.toList()));
-            Map<Integer, SubParticipant> existingSubsMap = existingSubs.stream()
-                    .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
-
-            List<SubParticipant> toSave = new ArrayList<>();
-
-            for (StatScoreSubParticipantDTO dto : statScoreSubParticipants) {
-                SubParticipant existing = existingSubsMap.get(dto.getId());
-                Area area = areaService.readByExternalId(dto.getAreaId()).orElse(null);
-                if (existing == null) {
-                    SubParticipant sub = subParticipantMapper.toEntity(dto, area, null, pesc.competition);
-                    existingSubsMap.put(sub.getExternalId(), sub);
-                    toSave.add(sub);
-                } else {
-                    subParticipantMapper.updateEntity(existing, dto, area, null, pesc.competition);
-                    toSave.add(existing);
-                }
-            }
-
-            if (!toSave.isEmpty()) {
-                subParticipantRepository.saveAllAndFlush(toSave);
-            }
-            fetchHistoricalStats(pesc.participant().getExternalId());
-        }
     }
 
-    private void fetchEventAndParticipants(List<StatScoreDataService.EventContext> eventContexts,
-                                           Map<Integer, Participant> participantsToSave,
-                                           Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp,
-                                           Map<Integer, Event> eventsToSave,
-                                           Map<Integer, Set<Participant>> eventParticipantsMap,
-                                           boolean isHistoricalData) {
+    private Map<Long, Participant> mapParticipantsById(List<Participant> participants) {
+        return participants.stream()
+                .collect(Collectors.toMap(Participant::getId, Function.identity()));
+    }
+
+
+    private void extractEventParticipantsData(List<StatScoreDataService.EventContext> eventContexts,
+                                              Map<Integer, Participant> participantsToSave,
+                                              Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp,
+                                              Map<Integer, Event> eventsToSave,
+                                              Map<Integer, Set<Participant>> eventParticipantsMap,
+                                              boolean isHistoricalData) {
 
         Set<Integer> allParticipantIds = eventContexts.stream()
                 .flatMap(ctx -> Optional.ofNullable(ctx.event().getParticipants()).orElse(List.of()).stream())
@@ -208,8 +229,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             Competition competition = competitionService.readByExternalId(competitionDTO.getId())
                     .orElseGet(() -> competitionService.create(competitionDTO));
             Venue venue = venueService.readByExternalId(ctx.event().getVenueId())
-                    .orElseGet(null);
-
+                    .orElseGet(() -> venueService.create(statScoreProxyService.getVenueById(ctx.event().getVenueId(), true)));
 
             Event event = existingEvents.get(eventDTO.getId());
             if (event == null) {
@@ -250,6 +270,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Map<Integer, Event> eventsToSave = new HashMap<>();
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
         Map<Integer, Set<Participant>> eventParticipantsMap = new HashMap<>();
+
         List<StatScoreDataService.EventContext> historicalEvents = statScoreDataService.getAllEventsWithContext(
                 EventQueryParams.builder()
                         .participantId(participantId)
@@ -258,96 +279,75 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                         .sortType("start_date")
                         .sortOrder("desc")
                         .build());
-        fetchEventAndParticipants(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
+
+        extractEventParticipantsData(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
                 eventParticipantsMap, true);
+
         List<Participant> participants = participantRepository.saveAllAndFlush(new ArrayList<>(participantsToSave.values()));
+        Map<Long, Participant> participantById = mapParticipantsById(participants);
 
-        Map<Integer, Participant> participantById = participants.stream()
-                .collect(Collectors.toMap(
-                        Participant::getExternalId,
-                        Function.identity(),
-                        (existing, duplicate) -> existing
-                ));
-
-
-        for (Event event : eventsToSave.values()) {
-            Set<Participant> linkedParticipants = eventParticipantsMap.getOrDefault(event.getId(), Set.of());
-            event.setParticipants(linkedParticipants.stream()
-                    .map(p -> participantById.get(p.getExternalId()))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList()));
-        }
+        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap, participantById);
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         //refetch all stats for historical events per participant
-        statRepository.deleteByEventIdIn(uniqueParticipantEventSeasonComp.stream().map(u -> u.event().getId()).collect(Collectors.toList()));
+        statRepository.deleteByEventIdIn(uniqueParticipantEventSeasonComp.stream()
+                .map(u -> u.event().getId())
+                .collect(Collectors.toList()));
 
-        Map<Event, List<ParticipantEventSeasonCompetition>> byEvent =
-                uniqueParticipantEventSeasonComp.stream()
-                        .collect(Collectors.groupingBy(ParticipantEventSeasonCompetition::event));
+        Map<Event, List<ParticipantEventSeasonCompetition>> byEvent = uniqueParticipantEventSeasonComp.stream()
+                .collect(Collectors.groupingBy(ParticipantEventSeasonCompetition::event));
 
         byEvent.entrySet().stream()
                 .sorted(Comparator.comparing(e -> e.getKey().getStartDate()))
-                .forEach(entry -> {
-                    Event event = entry.getKey();
-                    List<ParticipantEventSeasonCompetition> pescList = entry.getValue();
-                    List<StatScoreSubParticipantDTO> delayedStatsToProcess = new ArrayList<>();
+                .forEach(entry -> processHistoricalStatsPerEvent(entry.getKey(), entry.getValue()));
+    }
 
-                    Set<EventStat> eventStats = new HashSet<>();
-                    List<StatScoreParticipantDTO> statScoreParticipants =
-                            statScoreProxyService.listEventParticipants(event.getExternalId()).getItems();
-                    List<StatScoreSubParticipantDTO> statScoreSubParticipants =
-                            statScoreProxyService.listEventSubParticipants(event.getExternalId()).getItems();
-                    //need statScoreParticipants to map sub-participants to correct participant
-                    //need subNameToParticipantExternalIdMap as sub-participant sports-API ids from listEventParticipants and listEventSubParticipants are different
-                    Map<String, Integer> subNameToParticipantExternalIdMap = statScoreParticipants.stream()
-                            .filter(p -> p.getSubparticipants() != null)
-                            .flatMap(p -> p.getSubparticipants().stream()
-                                    .map(sub -> Map.entry(normalizeName(sub.getName()), p.getId())))
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+    private void processHistoricalStatsPerEvent(Event event, List<ParticipantEventSeasonCompetition> pescList) {
+        Set<EventStat> eventStats = new HashSet<>();
+        List<SubParticipant> toSave;
 
-                    List<Integer> subParticipantExternalIds = statScoreSubParticipants.stream()
-                            .map(StatScoreSubParticipantDTO::getId)
-                            .collect(Collectors.toList());
+        List<StatScoreParticipantDTO> statScoreParticipants =
+                statScoreProxyService.listEventParticipants(event.getExternalId(), true).getItems();
+        List<StatScoreSubParticipantDTO> statScoreSubParticipants =
+                statScoreProxyService.listEventSubParticipants(event.getExternalId(), true).getItems();
+        //need statScoreParticipants to map sub-participants to correct participant
+        //need subNameToParticipantExternalIdMap as sub-participant sports-API ids from listEventParticipants and listEventSubParticipants are different
+        Map<String, Integer> subNameToParticipantExternalIdMap = statScoreParticipants.stream()
+                .filter(p -> p.getSubparticipants() != null)
+                .flatMap(p -> p.getSubparticipants().stream()
+                        .map(sub -> Map.entry(normalizeName(sub.getName()), p.getId())))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
 
-                    Map<Integer, SubParticipant> existingSubsMap = subParticipantRepository
-                            .findByExternalIdIn(subParticipantExternalIds).stream()
-                            .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
+        List<Integer> subParticipantExternalIds = statScoreSubParticipants.stream()
+                .map(StatScoreSubParticipantDTO::getId)
+                .collect(Collectors.toList());
 
-                    List<SubParticipant> toSave = new ArrayList<>();
+        Map<Integer, SubParticipant> existingSubsMap = subParticipantRepository
+                .findByExternalIdIn(subParticipantExternalIds).stream()
+                .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
 
-                    for (StatScoreSubParticipantDTO dto : statScoreSubParticipants) {
-                        SubParticipant existing = existingSubsMap.get(dto.getId());
-                        Area area = areaService.readByExternalId(dto.getAreaId()).orElse(null);
-                        Integer parentParticipantExternalId = subNameToParticipantExternalIdMap.get(normalizeName(dto.getName()));
-                        ParticipantEventSeasonCompetition pesc = pescList.stream()
-                                .filter(p -> p.participant.getExternalId().equals(parentParticipantExternalId))
-                                .findFirst().orElse(null);
-                        if (existing == null) {
+        Function<StatScoreSubParticipantDTO, Participant> resolveParticipant = dto -> {
+            Integer parentId = subNameToParticipantExternalIdMap.get(normalizeName(dto.getName()));
+            return pescList.stream()
+                    .filter(p -> p.participant.getExternalId().equals(parentId))
+                    .map(p -> p.participant)
+                    .findFirst()
+                    .orElse(null);
+        };
+        toSave = syncSubParticipants(statScoreSubParticipants, existingSubsMap, resolveParticipant, pescList.get(0).competition);
 
-                            SubParticipant sub = subParticipantMapper.toEntity(dto, area, pesc.participant, pesc.competition);
-                            toSave.add(sub);
-                            delayedStatsToProcess.add(dto);
-                            existingSubsMap.put(dto.getId(), sub);
-                        } else {
-                            subParticipantMapper.updateEntity(existing, dto, area, pesc.participant, pesc.competition);
-                            toSave.add(existing);
-                            fillStats(eventStats, event, dto.getStats(), existing.getId(), StatTargetType.SUBPARTICIPANT, existing.getExternalId());
-                        }
-                    }
+        for (ParticipantEventSeasonCompetition pesc : pescList) {
+            fillStats(eventStats, event, pesc.participantDTO.getStats(),
+                    pesc.participant.getId(), StatTargetType.PARTICIPANT, pesc.participantDTO.getId());
+        }
 
-                    for (ParticipantEventSeasonCompetition pesc : pescList) {
-                        fillStats(eventStats, event, pesc.participantDTO.getStats(), pesc.participant.getId(), StatTargetType.PARTICIPANT, pesc.participantDTO.getId());
-                    }
+        subParticipantRepository.saveAllAndFlush(toSave);
 
-                    subParticipantRepository.saveAllAndFlush(toSave);
-
-                    for (StatScoreSubParticipantDTO dto : delayedStatsToProcess) {
-                        SubParticipant sub = existingSubsMap.get(dto.getId());
-                        fillStats(eventStats, event, dto.getStats(), sub.getId(), StatTargetType.SUBPARTICIPANT, sub.getExternalId());
-                    }
-                    statRepository.saveAllAndFlush(eventStats);
-                });
+        for (StatScoreSubParticipantDTO dto : statScoreSubParticipants) {
+            SubParticipant sub = existingSubsMap.get(dto.getId());
+            fillStats(eventStats, event, dto.getStats(), sub.getId(), StatTargetType.SUBPARTICIPANT, sub.getExternalId());
+        }
+        statRepository.saveAllAndFlush(eventStats);
     }
 
     private void fillStats(Set<EventStat> eventStats, Event event, List<StatScoreStatDTO> stats,
