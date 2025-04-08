@@ -11,9 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 public class HistoricalStatDTO {
     private String statName;
-    private double average;
-    private int count;
-    private int maxValue;
-    private int minValue;
+    private Double average;
+    private Integer count;
+    private Integer maxValue;
+    private Integer minValue;
     private List<EventStatisticDTO> eventStatistics;
 }

@@ -128,10 +128,11 @@ CREATE TABLE event_stat (
 
 -- INDEXES
 -- EVENT_STAT
+CREATE INDEX idx_event_stat_target_id ON event_stat (target_id);
+CREATE INDEX idx_event_stat_event_id ON event_stat (event_id);
 CREATE INDEX idx_event_stat_target_event ON event_stat (target_id, event_id);
 CREATE INDEX idx_event_stat_target_external_id ON event_stat (target_external_id);
-CREATE INDEX idx_event_stat_sub_appearance ON event_stat (stat_name, value_raw, target_type);
-CREATE INDEX idx_event_stat_target_event_name ON event_stat (target_id, event_id, stat_name);
+CREATE INDEX idx_event_stat_stat_name ON event_stat (stat_name);
 
 -- EVENT
 CREATE INDEX idx_event_start_date_desc ON event (start_date DESC);
@@ -161,6 +162,3 @@ CREATE INDEX idx_area_parent_id ON area (parent_area_id);
 
 -- SPORT
 CREATE INDEX idx_sport_external_id ON sport (external_id);
-
--- EVENT_PARTICIPANT
-CREATE INDEX idx_event_participant_participant_id ON event_participant(participant_id);

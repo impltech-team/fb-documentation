@@ -35,6 +35,7 @@ public class StatScoreSubParticipantDTO {
     private String positionReasonCode;
     private String positionReason;
     private Integer positionReasonId;
+    private String teamConnection;
     private List<StatScoreStatDTO> stats;
 
     @Data

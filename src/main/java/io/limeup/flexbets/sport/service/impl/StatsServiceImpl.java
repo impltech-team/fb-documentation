@@ -144,14 +144,17 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         if (participant == null) return;
 
         List<StatScoreSubParticipantDTO> subParticipantDTOs =
-                statScoreProxyService.listSquadSubParticipants(participant.getExternalId(), pesc.seasonId(), true).getItems();
+                statScoreProxyService.listSquadSubParticipants(participant.getExternalId(), pesc.seasonId(), true)
+                        .getItems().stream()
+                        .filter(dto -> dto.getTeamConnection().equals("current"))
+                        .collect(Collectors.toList());
 
         List<SubParticipant> existingSubs = subParticipantRepository
                 .findByExternalIdIn(subParticipantDTOs.stream().map(StatScoreSubParticipantDTO::getId).toList());
         Map<Integer, SubParticipant> existingSubsMap = existingSubs.stream()
                 .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
 
-        List<SubParticipant> toSave = syncSubParticipants(subParticipantDTOs, existingSubsMap, dto -> null, pesc.competition);
+        List<SubParticipant> toSave = syncSubParticipants(subParticipantDTOs, existingSubsMap, participant, pesc.competition);
 
         if (!toSave.isEmpty()) {
             subParticipantRepository.saveAllAndFlush(toSave);
@@ -160,15 +163,17 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
     private List<SubParticipant> syncSubParticipants(List<StatScoreSubParticipantDTO> dtos,
                                                      Map<Integer, SubParticipant> existingSubsMap,
-                                                     Function<StatScoreSubParticipantDTO, Participant> participantResolver,
+                                                     Participant participant,
                                                      Competition competition) {
         List<SubParticipant> toSave = new ArrayList<>();
         for (StatScoreSubParticipantDTO dto : dtos) {
             Area area = areaService.readByExternalId(dto.getAreaId()).orElse(null);
             SubParticipant existing = existingSubsMap.get(dto.getId());
-            Participant participant = participantResolver.apply(dto);
 
             if (existing == null) {
+                if (participant == null) {
+                    participant = participantRepository.findByExternalId(dto.getTeamId()).orElse(null);
+                }
                 SubParticipant sub = subParticipantMapper.toEntity(dto, area, participant, competition);
                 existingSubsMap.put(dto.getId(), sub);
                 toSave.add(sub);
@@ -306,18 +311,8 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Set<EventStat> eventStats = new HashSet<>();
         List<SubParticipant> toSave;
 
-        List<StatScoreParticipantDTO> statScoreParticipants =
-                statScoreProxyService.listEventParticipants(event.getExternalId(), true).getItems();
         List<StatScoreSubParticipantDTO> statScoreSubParticipants =
                 statScoreProxyService.listEventSubParticipants(event.getExternalId(), true).getItems();
-        //need statScoreParticipants to map sub-participants to correct participant
-        //need subNameToParticipantExternalIdMap as sub-participant sports-API ids from listEventParticipants and listEventSubParticipants are different
-        Map<String, Integer> subNameToParticipantExternalIdMap = statScoreParticipants.stream()
-                .filter(p -> p.getSubparticipants() != null)
-                .flatMap(p -> p.getSubparticipants().stream()
-                        .map(sub -> Map.entry(normalizeName(sub.getName()), p.getId())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
-
         List<Integer> subParticipantExternalIds = statScoreSubParticipants.stream()
                 .map(StatScoreSubParticipantDTO::getId)
                 .collect(Collectors.toList());
@@ -325,16 +320,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Map<Integer, SubParticipant> existingSubsMap = subParticipantRepository
                 .findByExternalIdIn(subParticipantExternalIds).stream()
                 .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
-
-        Function<StatScoreSubParticipantDTO, Participant> resolveParticipant = dto -> {
-            Integer parentId = subNameToParticipantExternalIdMap.get(normalizeName(dto.getName()));
-            return pescList.stream()
-                    .filter(p -> p.participant.getExternalId().equals(parentId))
-                    .map(p -> p.participant)
-                    .findFirst()
-                    .orElse(null);
-        };
-        toSave = syncSubParticipants(statScoreSubParticipants, existingSubsMap, resolveParticipant, pescList.get(0).competition);
+        toSave = syncSubParticipants(statScoreSubParticipants, existingSubsMap, null, pescList.get(0).competition);
 
         for (ParticipantEventSeasonCompetition pesc : pescList) {
             fillStats(eventStats, event, pesc.participantDTO.getStats(),
