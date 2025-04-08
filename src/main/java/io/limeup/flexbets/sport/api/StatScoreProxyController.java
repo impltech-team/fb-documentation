@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/proxy/statscore")
+@RequestMapping("/v1/proxy/statscore")
 public class StatScoreProxyController {
 
     private final StatScoreProxyService statScoreProxyService;
