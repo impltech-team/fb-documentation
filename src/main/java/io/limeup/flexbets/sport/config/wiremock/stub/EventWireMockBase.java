@@ -23,7 +23,7 @@ public class EventWireMockBase extends WireMockBase {
     public CommandLineRunner setupEventWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
-            WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/events/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("participantMapping", Map.of(
@@ -109,7 +109,7 @@ public class EventWireMockBase extends WireMockBase {
                                         }
                                     """)));
 
-            WireMock.stubFor(get(urlPathMatching("/v1/events/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/events/list"))
                     .atPriority(10)
                     .willReturn(aResponse()
                             .withTransformers("logging-transformer")
@@ -121,7 +121,7 @@ public class EventWireMockBase extends WireMockBase {
                     }
                 """)));
 
-            WireMock.stubFor(get(urlPathMatching("/v1/events/\\d+"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/events/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withStatus(200)
                             .withTransformerParameter("participantMapping", Map.of(

@@ -22,7 +22,7 @@ public class CompetitionWireMockBase extends WireMockBase {
     public CommandLineRunner setupCompetitionWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
-            WireMock.stubFor(get(urlPathMatching("/v1/competitions/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/competitions/list"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",

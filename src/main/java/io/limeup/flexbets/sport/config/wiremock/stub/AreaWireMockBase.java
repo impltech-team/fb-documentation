@@ -22,7 +22,7 @@ public class AreaWireMockBase extends WireMockBase {
     public CommandLineRunner setupAreaWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
-            WireMock.stubFor(get(urlPathMatching("/v1/areas/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/areas/list"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("countryCodeMapping", Map.of(
                                     "US", "United States",
