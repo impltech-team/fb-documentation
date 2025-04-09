@@ -1,8 +1,10 @@
 package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
+import io.limeup.flexbets.sport.model.MarketType;
 import io.limeup.flexbets.sport.service.MarketService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,8 +19,11 @@ import java.util.List;
 public class MarketController {
     private final MarketService marketService;
 
-    @GetMapping
-    public ResponseEntity<List<MarketLiteDTO>> listMarkets(@RequestParam(name = "competition_id") Integer competitionId) {
-        return ResponseEntity.ok(marketService.listMarkets(competitionId));
+    @GetMapping("/list")
+    public ResponseEntity<List<MarketLiteDTO>> listMarkets(
+            @RequestParam(name = "competition_id") Integer competitionId,
+            @RequestParam(name = "marketType", required = false, defaultValue = "SUB_PARTICIPANT") MarketType marketType
+    ) {
+                return ResponseEntity.ok(marketService.listMarkets(competitionId, marketType));
     }
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MarketLiteDTO {
-    private String marketId;
+    private Integer marketId;
     private String marketName;
     private String type;
 }

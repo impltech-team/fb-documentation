@@ -14,9 +14,29 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class StatScorePaginationUtils {
+public class PaginationUtils {
 
     public static <T> PaginatedResponse<T> buildPaginatedResponse(
+            List<T> items,
+            Integer totalCount,
+            Integer page,
+            Integer limit
+    ) {
+        PaginatedResponse.PaginatedResponseBuilder<T> builder = PaginatedResponse.<T>builder()
+                .count(totalCount)
+                .items(items);
+
+        if (page != null && limit != null) {
+            builder
+                    .page(page)
+                    .pageSize(limit)
+                    .totalPages((int) Math.ceil((double) totalCount / limit));
+        }
+
+        return builder.build();
+    }
+
+    public static <T> PaginatedResponse<T> buildStatScorePaginatedResponse(
             StatScoreResponse<ListWrapper<T>> response,
             Integer page,
             Integer limit
@@ -30,21 +50,10 @@ public class StatScorePaginationUtils {
                 .map(ListWrapper::getItems)
                 .orElse(Collections.emptyList());
 
-        PaginatedResponse.PaginatedResponseBuilder<T> builder = PaginatedResponse.<T>builder()
-                .count(total)
-                .items(items);
-
-        if (page != null && limit != null) {
-            builder
-                    .page(page)
-                    .pageSize(limit)
-                    .totalPages((int) Math.ceil((double) total / limit));
-        }
-
-        return builder.build();
+        return buildPaginatedResponse(items, total, page, limit);
     }
 
-    public static <T> SingleRootItemPaginatedResponse<T> buildPaginatedResponseForSingleRoot(
+    public static <T> SingleRootItemPaginatedResponse<T> buildStatScorePaginatedResponseForSingleRoot(
             StatScoreResponse<T> root,
             Integer page,
             Integer limit,

@@ -11,7 +11,7 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
-import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
+import io.limeup.flexbets.sport.utils.PaginationUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,7 @@ public class AreaServiceImpl extends ExternalIdReadServiceImpl<Area, AreaDTO, Lo
 
     @Override
     public void fetchAreaData() {
-        List<StatScoreAreaDTO> fetchedAreas = StatScorePaginationUtils.fetchAllPaginatedData(
+        List<StatScoreAreaDTO> fetchedAreas = PaginationUtils.fetchAllPaginatedData(
                 query -> statScoreProxyService.listAreas(query, true),
                 Function.identity(),
                 AreaQueryParams::new,

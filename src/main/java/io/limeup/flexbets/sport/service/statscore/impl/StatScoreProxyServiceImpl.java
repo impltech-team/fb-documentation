@@ -24,7 +24,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
-import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
+import io.limeup.flexbets.sport.utils.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,19 +38,19 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreSubParticipantDTO> listEventSubParticipants(Integer eventId, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getEventSubParticipants(eventId, retryEnabled).block(), null, null);
     }
 
     @Override
     public PaginatedResponse<StatScoreSubParticipantDTO> listSquadSubParticipants(Integer participantId, Integer seasonId, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getSquadSubParticipants(participantId, seasonId, retryEnabled).block(), null, null);
     }
 
     @Override
     public PaginatedResponse<StatScoreParticipantDTO> listParticipants(ParticipantQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getParticipants(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
@@ -61,7 +61,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreCompetitionDTO> listEvents(EventQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getEvents(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
@@ -72,13 +72,13 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreAreaDTO> listAreas(AreaQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getAreas(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
     @Override
     public PaginatedResponse<StatScoreSportLiteDTO> listSports(SportQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getSports(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
@@ -89,7 +89,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreVenueDTO> listVenues(VenueQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getVenues(query, retryEnabled).block(), query.getPage(), query.getLimit());
 
     }
@@ -101,19 +101,19 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreBracketDTO> listBracketsByStageId(Integer stageId, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getBrackets(stageId, retryEnabled).block(), null, null);
     }
 
     @Override
     public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listGroups(GroupQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponseForSingleRoot(
+        return PaginationUtils.buildStatScorePaginatedResponseForSingleRoot(
                 statScoreClient.getGroups(query, retryEnabled).block(), query.getPage(), query.getLimit(), "competition");
     }
 
     @Override
     public PaginatedResponse<StatScoreCompetitionDTO> listSeasons(SeasonQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getSeasons(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
@@ -124,7 +124,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public SingleRootItemPaginatedResponse<StatScoreCompetitionDTO> listStages(StageQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponseForSingleRoot(
+        return PaginationUtils.buildStatScorePaginatedResponseForSingleRoot(
                 statScoreClient.getStages(query, retryEnabled).block(), query.getPage(), query.getLimit(), "competition");
     }
 
@@ -135,7 +135,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreStandingDTO> listStandings(StandingQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getStandings(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
@@ -146,7 +146,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreCompetitionDTO> listCompetitions(CompetitionQueryParams query, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getCompetitions(query, retryEnabled).block(), query.getPage(), query.getLimit());
     }
 
@@ -157,7 +157,7 @@ public class StatScoreProxyServiceImpl implements StatScoreProxyService {
 
     @Override
     public PaginatedResponse<StatScoreParticipantDTO> listEventParticipants(Integer eventId, boolean retryEnabled) {
-        return StatScorePaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildStatScorePaginatedResponse(
                 statScoreClient.getEventParticipants(eventId, retryEnabled).block(), null, null);
     }
 }

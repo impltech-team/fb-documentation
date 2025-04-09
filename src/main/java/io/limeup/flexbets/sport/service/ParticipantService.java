@@ -7,7 +7,8 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import java.util.List;
 
 public interface ParticipantService {
-    PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds, RequestQueryDTO requestQuery);
+    PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
+                                                       Integer marketId, RequestQueryDTO requestQuery);
 
-    ParticipantDTO getParticipantById(Integer participantId);
+    ParticipantDTO getParticipantById(Integer participantId, Integer marketId);
 }

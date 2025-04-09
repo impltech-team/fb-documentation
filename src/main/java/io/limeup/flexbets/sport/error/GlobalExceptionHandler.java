@@ -1,14 +1,21 @@
 package io.limeup.flexbets.sport.error;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @ControllerAdvice
@@ -37,7 +44,7 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getResponseBodyAsString());
         body.put("path", ex.getRequest().getURI().toString());
 
-        return ResponseEntity.status(ex.getRawStatusCode()).body(body);
+        return ResponseEntity.status(ex.getStatusCode()).body(body);
     }
 
     @ExceptionHandler(Exception.class)
@@ -51,4 +58,40 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
+    @ExceptionHandler(value = HttpStatusCodeException.class)
+    public ResponseEntity<Object> handleException(HttpStatusCodeException ex) {
+        log.error("HttpStatusCodeException error: {} {}", ex.getStatusCode(), ex.getStatusText());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", ex.getStatusCode());
+        body.put("error", ex.getStatusText());
+        body.put("message", ex.getResponseBodyAsString());
+
+        return ResponseEntity.status(ex.getStatusCode()).body(body);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        log.error("TypeMismatch error: {}", ex.getMessage());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        ex.getRequiredType();
+        body.put("message", String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
+                ex.getValue(), ex.getName(), ex.getRequiredType().getSimpleName()));
+
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Object> handleValidationException(ValidationException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Validation Failed");
+        body.put("messages", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
 }

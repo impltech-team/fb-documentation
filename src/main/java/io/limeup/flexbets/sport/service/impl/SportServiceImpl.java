@@ -11,7 +11,7 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
-import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
+import io.limeup.flexbets.sport.utils.PaginationUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO,
 
     @Override
     public void fetchSportData() {
-        List<StatScoreSportLiteDTO> fetchedSports = StatScorePaginationUtils.fetchAllPaginatedData(
+        List<StatScoreSportLiteDTO> fetchedSports = PaginationUtils.fetchAllPaginatedData(
                 query -> statScoreProxyService.listSports(query, true),
                 Function.identity(),
                 SportQueryParams::new,

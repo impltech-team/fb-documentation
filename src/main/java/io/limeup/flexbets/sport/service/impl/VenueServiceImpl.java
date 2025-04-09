@@ -10,7 +10,7 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
-import io.limeup.flexbets.sport.utils.StatScorePaginationUtils;
+import io.limeup.flexbets.sport.utils.PaginationUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
 
     @Override
     public void fetchVenueData() {
-        List<StatScoreVenueDTO> fetchedVenues = StatScorePaginationUtils.fetchAllPaginatedData(
+        List<StatScoreVenueDTO> fetchedVenues = PaginationUtils.fetchAllPaginatedData(
                 query -> statScoreProxyService.listVenues(query, true),
                 Function.identity(),
                 VenueQueryParams::new,

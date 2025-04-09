@@ -142,7 +142,7 @@ public class SubParticipantMapper {
                     first.getHeight(),
                     first.getBirthDate(),
                     historicalStats,
-                    new ArrayList<>() // odds
+                    new ArrayList<>()  // empty until trade360 integration
             );
 
             result.add(dto);
