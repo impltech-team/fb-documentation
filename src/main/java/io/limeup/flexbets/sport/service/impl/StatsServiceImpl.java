@@ -3,7 +3,6 @@ package io.limeup.flexbets.sport.service.impl;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
@@ -127,10 +126,8 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
                 eventParticipantsMap, false);
 
-        List<Participant> participants = participantRepository.saveAllAndFlush(participantsToSave.values());
-        Map<Long, Participant> participantById = mapParticipantsById(participants);
-
-        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap, participantById);
+        participantRepository.saveAllAndFlush(participantsToSave.values());
+        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap);
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
@@ -186,14 +183,10 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
     }
 
     private void updateEventsWithParticipants(Collection<Event> events,
-                                              Map<Integer, Set<Participant>> eventParticipantsMap,
-                                              Map<Long, Participant> participantById) {
+                                              Map<Integer, Set<Participant>> eventParticipantsMap) {
         for (Event event : events) {
             Set<Participant> linkedParticipants = eventParticipantsMap.getOrDefault(event.getExternalId(), Set.of());
-            event.setParticipants(linkedParticipants.stream()
-                    .map(p -> participantById.get(p.getId()))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList()));
+            event.setParticipants(new ArrayList<>(linkedParticipants));
         }
     }
 
@@ -288,10 +281,8 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         extractEventParticipantsData(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
                 eventParticipantsMap, true);
 
-        List<Participant> participants = participantRepository.saveAllAndFlush(new ArrayList<>(participantsToSave.values()));
-        Map<Long, Participant> participantById = mapParticipantsById(participants);
-
-        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap, participantById);
+        participantRepository.saveAllAndFlush(new ArrayList<>(participantsToSave.values()));
+        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap);
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         //refetch all stats for historical events per participant
@@ -343,7 +334,4 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         }
     }
 
-    private String normalizeName(String name) {
-        return name == null ? "" : name.trim().toLowerCase();
-    }
 }
