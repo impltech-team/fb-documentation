@@ -15,25 +15,29 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
+import io.limeup.flexbets.sport.utils.StatScoreDateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,19 +54,19 @@ public class StatScoreClientImpl implements StatScoreClient {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getEventSubParticipants(Integer eventId) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getEventSubParticipants(Integer eventId, boolean retryEnabled) {
         return fetchListWrapper(
                 "/events/{eventId}/sub-participants",
                 Map.of("eventId", eventId),
                 Map.of(),
                 "sub_participants",
-                new TypeReference<>() {
-                }
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getParticipants(ParticipantQueryParams params) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getParticipants(ParticipantQueryParams params, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
         queryParams.put("sport_id", params.getSportId());
         queryParams.put("limit", params.getLimit());
@@ -80,27 +84,29 @@ public class StatScoreClientImpl implements StatScoreClient {
                 queryParams,
                 "participants",
                 new TypeReference<>() {
-                }
+                },
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreParticipantDTO>> getParticipantById(Integer participantId) {
+    public Mono<StatScoreResponse<StatScoreParticipantDTO>> getParticipantById(Integer participantId, boolean retryEnabled) {
         return fetchSingleNodeWrapped(
                 "/participants/" + participantId,
                 Map.of(),
                 Map.of(),
                 "participant",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getEvents(EventQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getEvents(EventQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("date_from", query.getDateFrom());
-        queryParams.put("date_to", query.getDateTo());
+        queryParams.put("date_from", StatScoreDateTimeUtils.formatDateTime(query.getDateFrom()));
+        queryParams.put("date_to", StatScoreDateTimeUtils.formatDateTime(query.getDateTo()));
         queryParams.put("sport_id", query.getSportId());
         queryParams.put("area_id", query.getAreaId());
         queryParams.put("competition_id", query.getCompetitionId());
@@ -134,24 +140,25 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "competitions",
-                new TypeReference<>() {
-                }
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getEventById(Integer eventId) {
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getEventById(Integer eventId, boolean retryEnabled) {
         return fetchSingleNodeWrapped(
                 "/events/" + eventId,
                 Map.of(),
                 Map.of(),
                 "competition",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getSquadSubParticipants(Integer participantId, Integer seasonId) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getSquadSubParticipants(Integer participantId, Integer seasonId, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
         queryParams.put("season_id", seasonId);
         return fetchListWrapper(
@@ -159,13 +166,13 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of("participant_id", participantId),
                 queryParams,
                 "participants",
-                new TypeReference<>() {
-                }
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreAreaDTO>>> getAreas(AreaQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreAreaDTO>>> getAreas(AreaQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("lang", query.getLang());
@@ -179,12 +186,13 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "areas",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreSportLiteDTO>>> getSports(SportQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreSportLiteDTO>>> getSports(SportQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("page", query.getPage());
@@ -196,23 +204,25 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "sports",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreSportDTO>> getSportById(Integer sportId) {
+    public Mono<StatScoreResponse<StatScoreSportDTO>> getSportById(Integer sportId, boolean retryEnabled) {
         return fetchSingleNodeWrapped(
                 "/sports/" + sportId,
                 Map.of(),
                 Map.of(),
                 "sport",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreVenueDTO>>> getVenues(VenueQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreVenueDTO>>> getVenues(VenueQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("sport_id", query.getSportId());
@@ -226,34 +236,37 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "venues",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreVenueDTO>> getVenueById(Integer venueId) {
+    public Mono<StatScoreResponse<StatScoreVenueDTO>> getVenueById(Integer venueId, boolean retryEnabled) {
         return fetchSingleNodeWrapped(
                 "/venues/" + venueId,
                 Map.of(),
                 Map.of(),
                 "venue",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreBracketDTO>>> getBrackets(Integer stageId) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreBracketDTO>>> getBrackets(Integer stageId, boolean retryEnabled) {
         return fetchListWrapper(
                 "/brackets/{stage_id}",
                 Map.of("stage_id", stageId),
                 Map.of(),
                 "nodes",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getGroups(GroupQueryParams query) {
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getGroups(GroupQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("stage_id", query.getStageId());
@@ -266,12 +279,13 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "competition",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getSeasons(StatScoreSeasonQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getSeasons(SeasonQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("lang", query.getLang());
@@ -292,23 +306,25 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 "competitions",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getSeasonById(Integer seasonId) {
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getSeasonById(Integer seasonId, boolean retryEnabled) {
         return fetchSingleNodeWrapped(
                 "/seasons/" + seasonId,
                 Map.of(),
                 Map.of(),
                 "competition",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStages(StatScoreStageQueryParams query) {
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStages(StageQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("season_id", query.getSeasonId());
@@ -321,23 +337,25 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "competition",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStageById(Integer stageId) {
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStageById(Integer stageId, boolean retryEnabled) {
         return fetchSingleNodeWrapped(
                 "/stages/" + stageId,
                 Map.of(),
                 Map.of(),
                 "competition",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<ListWrapper<StatScoreStandingDTO>>> getStandings(StandingQueryParams query) {
+    public Mono<StatScoreResponse<ListWrapper<StatScoreStandingDTO>>> getStandings(StandingQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("lang", query.getLang());
@@ -359,12 +377,13 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "standings_list",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
     @Override
-    public Mono<StatScoreResponse<StatScoreStandingDTO>> getStandingById(Integer standingId, StandingByIdQueryParams query) {
+    public Mono<StatScoreResponse<StatScoreStandingDTO>> getStandingById(Integer standingId, StandingByIdQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
         queryParams.put("lang", query.getLang());
@@ -376,7 +395,65 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "standings",
-                new TypeReference<>() {}
+                new TypeReference<>() {},
+                retryEnabled
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getCompetitions(CompetitionQueryParams query, boolean retryEnabled) {
+        Map<String, Object> queryParams = new LinkedHashMap<>();
+
+        queryParams.put("lang", query.getLang());
+        queryParams.put("date_from", StatScoreDateTimeUtils.formatDateTime(query.getDateFrom()));
+        queryParams.put("date_to", StatScoreDateTimeUtils.formatDateTime(query.getDateTo()));
+        queryParams.put("page", query.getPage());
+        queryParams.put("limit", query.getLimit());
+        queryParams.put("area_type", query.getAreaType());
+        queryParams.put("type", query.getType());
+        queryParams.put("area_id", query.getAreaId());
+        queryParams.put("sport_id", query.getSportId());
+        queryParams.put("tour_id", query.getTourId());
+        queryParams.put("multi_ids", query.getMultiIds());
+        queryParams.put("gender", query.getGender());
+        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put("short_name", query.getShortName());
+        queryParams.put("sort_type", query.getSortType());
+        queryParams.put("participant_id", query.getParticipantId());
+        queryParams.put("status_type", query.getStatusType());
+        queryParams.put("tz", query.getTz());
+
+        return fetchListWrapper(
+                "/competitions",
+                Map.of(),
+                queryParams,
+                "competitions",
+                new TypeReference<>() {},
+                retryEnabled
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getCompetitionById(Integer competitionId, boolean retryEnabled) {
+        return fetchSingleNodeWrapped(
+                "/competitions/" + competitionId,
+                Map.of(),
+                Map.of(),
+                "competitions",
+                new TypeReference<>() {},
+                retryEnabled
+        );
+    }
+
+    @Override
+    public Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getEventParticipants(Integer eventId, boolean retryEnabled) {
+        return fetchListWrapper(
+                "/events/{eventId}/participants",
+                Map.of("eventId", eventId),
+                Map.of(),
+                "participants",
+                new TypeReference<>() {},
+                retryEnabled
         );
     }
 
@@ -385,9 +462,10 @@ public class StatScoreClientImpl implements StatScoreClient {
             Map<String, Object> pathVariables,
             Map<String, Object> queryParams,
             String nodeName,
-            TypeReference<T> nodeType
+            TypeReference<T> nodeType,
+            boolean retryEnabled
     ) {
-        return webClient.get()
+        Mono<StatScoreResponse<T>> mono = webClient.get()
                 .uri(uriBuilder -> {
                     var builder = uriBuilder.path(path);
                     queryParams.forEach((key, value) -> {
@@ -420,6 +498,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                     }
                     return response;
                 });
+        return callWithOptionalRetry(mono, retryEnabled);
     }
 
     private <T> Mono<StatScoreResponse<ListWrapper<T>>> fetchListWrapper(
@@ -427,9 +506,10 @@ public class StatScoreClientImpl implements StatScoreClient {
             Map<String, Object> uriVariables,
             Map<String, Object> queryParams,
             String listNodeName,
-            TypeReference<List<T>> itemType
+            TypeReference<List<T>> itemType,
+            boolean retryEnabled
     ) {
-        return webClient.get()
+        Mono<StatScoreResponse<ListWrapper<T>>> mono = webClient.get()
                 .uri(uriBuilder -> {
                     UriBuilder builder = uriBuilder.path(url);
                     if (queryParams != null) {
@@ -473,5 +553,23 @@ public class StatScoreClientImpl implements StatScoreClient {
 
                     return response;
                 });
+        return callWithOptionalRetry(mono, retryEnabled);
+    }
+
+    public <T> Mono<T> callWithOptionalRetry(Mono<T> request, boolean retryEnabled) {
+        if (retryEnabled) {
+            return request.retryWhen(
+                    Retry.backoff(3, Duration.ofSeconds(2))
+                            .filter(this::isRetryableError)
+                            .onRetryExhaustedThrow((spec, signal) -> signal.failure())
+            );
+        } else {
+            return request;
+        }
+    }
+
+    private boolean isRetryableError(Throwable t) {
+        return t instanceof WebClientResponseException ex &&
+                (ex.getStatusCode().is5xxServerError());
     }
 }

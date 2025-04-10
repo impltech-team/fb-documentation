@@ -22,7 +22,7 @@ public class CompetitionWireMockBase extends WireMockBase {
     public CommandLineRunner setupCompetitionWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
-            WireMock.stubFor(get(urlPathMatching("/v1/competitions/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/competitions/list"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
@@ -59,9 +59,7 @@ public class CompetitionWireMockBase extends WireMockBase {
                                         "area_id": {{areaId}},
                                         "area_name": "{{lookup parameters.areaMapping areaId}}",
                                         "status_type": "{{pickRandom 'active' 'upcoming' 'finished'}}",
-                                        "gender": "{{pickRandom 'male' 'female' 'mixed'}}",
-                                        "start_date": "{{now offset='-30 days' format='yyyy-MM-dd'}}",
-                                        "end_date": "{{now offset='+120 days' format='yyyy-MM-dd'}}"
+                                        "gender": "{{pickRandom 'male' 'female' 'mixed'}}"
                                     }
                                     {{#unless @last}},{{/unless}}
                                     {{/each}}

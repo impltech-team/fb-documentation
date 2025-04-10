@@ -16,10 +16,12 @@ import java.util.List;
 @RequestMapping("/v1/stats")
 @RequiredArgsConstructor
 public class StatsController {
-    private final StatsService oddsService;
+
+    private final StatsService statsService;
 
     @PostMapping("/batch")
     public ResponseEntity<List<StatsResponseDTO>> listBatchStats(@RequestBody StatsBatchRequestDTO request) {
-        return ResponseEntity.ok(oddsService.listBatchStats(request));
+        return ResponseEntity.ok(statsService.listBatchStats(request));
     }
+
 }

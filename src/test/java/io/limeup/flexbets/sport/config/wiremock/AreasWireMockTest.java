@@ -55,11 +55,11 @@ public class AreasWireMockTest extends BaseWireMockTest {
         // Validate first area (United States)
         Map<String, Object> firstArea = areas.get(0);
         assertThat(firstArea.get("name")).isEqualTo("United States");
-        assertThat(firstArea.get("country_code")).isEqualTo("US");
+        assertThat(firstArea.get("area_code")).isEqualTo("US");
 
         // Validate second area (Europe)
         Map<String, Object> secondArea = areas.get(1);
         assertThat(secondArea.get("name")).isEqualTo("Europe");
-        assertThat(secondArea.get("country_code")).isNull();
+        assertThat(secondArea.get("area_code")).isNull();
     }
 }

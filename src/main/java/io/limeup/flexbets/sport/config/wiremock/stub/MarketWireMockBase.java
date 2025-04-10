@@ -24,7 +24,7 @@ public class MarketWireMockBase extends WireMockBase {
     public CommandLineRunner setupMarketWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
-            WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/markets/list"))
                     .withQueryParam("competition_id", matching("\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMarkets", Map.of(
@@ -55,7 +55,7 @@ public class MarketWireMockBase extends WireMockBase {
                             ]
                             """)));
 
-            WireMock.stubFor(get(urlPathMatching("/v1/markets/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/markets/list"))
                     .atPriority(10)
                     .willReturn(aResponse()
                             .withTransformers("logging-transformer")
@@ -67,7 +67,7 @@ public class MarketWireMockBase extends WireMockBase {
                     }
                 """)));
 
-            WireMock.stubFor(post(urlPathMatching("/v1/stats/batch"))
+            WireMock.stubFor(post(urlPathMatching("/mock/v1/stats/batch"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("subParticipantMapping", Map.of(
                                     "1", "LeBron James",

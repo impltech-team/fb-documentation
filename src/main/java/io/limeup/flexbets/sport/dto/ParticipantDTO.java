@@ -20,24 +20,4 @@ public class ParticipantDTO {
     private EventLiteDTO nextEvent;
     private List<HistoricalStatDTO> historicalStats;
     private List<OddsDTO> odds;
-    private Details details;
-
-    @Data
-    public static class Details {
-        private String founded;
-        private String phone;
-        private String email;
-        private String address;
-        private Integer venueId;
-        private String venueName;
-        private String weight;
-        private String height;
-        private String nickname;
-        private String positionName;
-        private Integer positionId;
-        private String birthdate;
-        private String bornPlace;
-        private String isRetired;
-        private String subtype;
-    }
 }

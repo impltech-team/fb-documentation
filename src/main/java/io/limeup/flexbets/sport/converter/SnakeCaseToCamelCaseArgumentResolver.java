@@ -8,8 +8,8 @@ import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreSeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StatScoreStageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -34,8 +34,8 @@ public class SnakeCaseToCamelCaseArgumentResolver implements HandlerMethodArgume
             SportQueryParams.class,
             VenueQueryParams.class,
             GroupQueryParams.class,
-            StatScoreSeasonQueryParams.class,
-            StatScoreStageQueryParams.class,
+            SeasonQueryParams.class,
+            StageQueryParams.class,
             StandingQueryParams.class,
             StandingByIdQueryParams.class
     );

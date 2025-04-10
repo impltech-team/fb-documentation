@@ -23,7 +23,7 @@ public class SportWireMockBase extends WireMockBase {
     public CommandLineRunner setupSportWireMock() {
         return args -> {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
-            WireMock.stubFor(get(urlPathMatching("/v1/sports/list"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/sports/list"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
@@ -56,7 +56,7 @@ public class SportWireMockBase extends WireMockBase {
                                     }
                                     """)));
 
-            WireMock.stubFor(get(urlPathMatching("/v1/sports/\\d+"))
+            WireMock.stubFor(get(urlPathMatching("/mock/v1/sports/\\d+"))
                     .willReturn(withCommonHeaders(aResponse())
                             .withTransformerParameter("sportMapping", Map.of(
                                     "1", "Soccer",
