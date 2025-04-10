@@ -13,9 +13,7 @@
       "area_id": 10,
       "area_name": "United States",
       "status_type": "active",
-      "gender": "male",
-      "start_date": "2024-10-15",
-      "end_date": "2025-04-15"
+      "gender": "male"
     },
     {
       "id": 2002,
@@ -26,9 +24,7 @@
       "area_id": 20,
       "area_name": "Europe",
       "status_type": "active",
-      "gender": "male",
-      "start_date": "2024-09-10",
-      "end_date": "2025-06-01"
+      "gender": "male"
     }
   ]
 }

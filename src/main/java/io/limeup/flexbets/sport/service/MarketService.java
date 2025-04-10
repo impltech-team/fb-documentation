@@ -1,9 +1,17 @@
 package io.limeup.flexbets.sport.service;
 
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
+import io.limeup.flexbets.sport.model.Market;
+import io.limeup.flexbets.sport.model.MarketType;
 
 import java.util.List;
+import java.util.Set;
 
-public interface MarketService {
-    List<MarketLiteDTO> listMarkets(Integer competitionId);
+public interface MarketService extends ExternalIdReadService<Market, MarketLiteDTO, Long> {
+
+    List<MarketLiteDTO> listMarkets(Integer competitionId, MarketType marketType);
+
+    List<Market> listMarketEntities(Integer competitionId, MarketType marketType);
+
+    Set<String> getStatsByMarket(Integer competitionId, Integer marketId, MarketType marketType);
 }

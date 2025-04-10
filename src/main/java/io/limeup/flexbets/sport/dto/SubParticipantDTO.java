@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -25,7 +26,7 @@ public class SubParticipantDTO {
     private String gender;
     private String weight;
     private String height;
-    private String birthDate;
+    private LocalDate birthDate;
     private List<HistoricalStatDTO> historicalStats;
     private List<OddsDTO> odds;
 }

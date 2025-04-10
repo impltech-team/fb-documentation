@@ -59,9 +59,7 @@ public class CompetitionWireMockBase extends WireMockBase {
                                         "area_id": {{areaId}},
                                         "area_name": "{{lookup parameters.areaMapping areaId}}",
                                         "status_type": "{{pickRandom 'active' 'upcoming' 'finished'}}",
-                                        "gender": "{{pickRandom 'male' 'female' 'mixed'}}",
-                                        "start_date": "{{now offset='-30 days' format='yyyy-MM-dd'}}",
-                                        "end_date": "{{now offset='+120 days' format='yyyy-MM-dd'}}"
+                                        "gender": "{{pickRandom 'male' 'female' 'mixed'}}"
                                     }
                                     {{#unless @last}},{{/unless}}
                                     {{/each}}

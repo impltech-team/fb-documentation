@@ -24,7 +24,7 @@ public class AreaWireMockBase extends WireMockBase {
             WireMock.configureFor(getWireMockHost(), getWireMockPort());
             WireMock.stubFor(get(urlPathMatching("/mock/v1/areas/list"))
                     .willReturn(withCommonHeaders(aResponse())
-                            .withTransformerParameter("countryCodeMapping", Map.of(
+                            .withTransformerParameter("areaCodeMapping", Map.of(
                                     "US", "United States",
                                     "EU", "Europe",
                                     "AS", "Asia",
@@ -41,12 +41,12 @@ public class AreaWireMockBase extends WireMockBase {
                                       "areas": [
                                         {{#each (range 1 parameters.current_page_count)}}
                                         {{#assign "areaId"}}{{randomInt lower=10 upper=99}}{{/assign}}
-                                        {{#assign "countryCode"}}{{pickRandom 'US' 'EU' 'AS' 'SA' 'AF'}}{{/assign}}
-                                        {{#assign "areaName"}}{{lookup parameters.countryCodeMapping countryCode}}{{/assign}}
+                                        {{#assign "areaCode"}}{{pickRandom 'US' 'EU' 'AS' 'SA' 'AF'}}{{/assign}}
+                                        {{#assign "areaName"}}{{lookup parameters.areaCodeMapping areaCode}}{{/assign}}
                                         {
                                           "id": {{areaId}},
                                           "name": "{{#if areaName}}{{areaName}}{{else}}Unknown Area{{/if}}",
-                                          "country_code": "{{countryCode}}"
+                                          "area_code": "{{areaCode}}"
                                         }
                                         {{#unless @last}},{{/unless}}
                                         {{/each}}

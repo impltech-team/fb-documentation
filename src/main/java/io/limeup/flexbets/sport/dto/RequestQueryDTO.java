@@ -2,6 +2,7 @@ package io.limeup.flexbets.sport.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,8 +18,9 @@ public class RequestQueryDTO {
     @Max(100)
     private int pageSize = 50;
 
-    private String sortBy = "id";
+    private String sortBy;
 
+    @Pattern(regexp = "asc|desc", flags = Pattern.Flag.CASE_INSENSITIVE, message = "sortOrder must be 'asc' or 'desc'")
     private String sortOrder = "asc";
 
     private String filter;

@@ -6,11 +6,34 @@ wiremock:
   port: 9098
   host: localhost
 statscore:
-  client: 2286
-  secret: sbeIyhmdUGiiBIUZvr2EiobwBXOVhXGLr4k
+  client: ${STATSCORE_CLIENT}
+  secret: ${STATSCORE_SECRET}
+
 spring:
   application:
     name: flexbets-sport
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: sport
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+  flyway:
+    enabled: true
+    schemas: sport
+    locations: classpath:db/migration
   docker:
     compose:
       enabled: false
@@ -18,5 +41,14 @@ spring:
     property-naming-strategy: SNAKE_CASE
   profiles:
     active: mock
+  cache:
+    type: simple
+
 scheduler:
   mock-live-update-interval: 30000
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
