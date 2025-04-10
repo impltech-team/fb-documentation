@@ -1,5 +1,17 @@
 SET search_path TO sport;
 
+INSERT INTO competition (external_id, name, type, sport_id, area_id, status_type, gender)
+SELECT 101, 'NBA', 'COUNTRY_LEAGUE', 1, 190, 'ACTIVE', 'male'
+WHERE NOT EXISTS (
+        SELECT 1 FROM sport.competition WHERE external_id = 101
+    );
+
+INSERT INTO competition (external_id, name, type, sport_id, area_id, status_type, gender)
+SELECT 5611, 'National Football League', 'COUNTRY_LEAGUE', 8, 190, 'ACTIVE', 'male'
+WHERE NOT EXISTS (
+        SELECT 1 FROM sport.competition WHERE external_id = 5611
+    );
+
 CREATE SEQUENCE market_id_seq START WITH 1 INCREMENT BY 50;
 
 CREATE TABLE market (
