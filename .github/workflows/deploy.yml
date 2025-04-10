@@ -137,6 +137,7 @@ jobs:
             role-to-assume: ${{ secrets.IAM_ROLE }}
 
         - name: Update ECS task definition
+          if: ${{ matrix.env == 'stage' && contains(github.event.head_commit.message, '[ok]') }}
           run: |
             aws ecs describe-task-definition --task-definition ${{ env.ecs_task }} \
               --query taskDefinition --output json > task-raw.json
