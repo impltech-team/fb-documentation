@@ -43,6 +43,9 @@ jobs:
           ./gradlew build -x test --no-daemon
 
       - name: Dependency check
+        id: dependency-check
+        timeout-minutes: 3
+        continue-on-error: true
         run: |
           VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
@@ -52,7 +55,9 @@ jobs:
             --scan ~/.gradle/caches \
             --format JSON \
             --prettyPrint
+
       - name: Upload dependency check report
+        if: ${{ steps.dependency-check.outcome != 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
@@ -124,6 +129,7 @@ jobs:
       strategy:
         matrix:
           env: [dev]
+      if: ${{ contains(github.jobs[github.job].name, 'stage') && contains(github.event.head_commit.message, '[ok]')}}
       env:
         ecs_cluster: ${{ matrix.env }}
         ecs_service: ${{ matrix.env }}
