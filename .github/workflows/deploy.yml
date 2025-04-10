@@ -129,7 +129,6 @@ jobs:
       strategy:
         matrix:
           env: [dev]
-      if: ${{ contains(github.jobs[github.job].name, 'stage') && contains(github.event.head_commit.message, '[ok]')}}
       env:
         ecs_cluster: ${{ matrix.env }}
         ecs_service: ${{ matrix.env }}
