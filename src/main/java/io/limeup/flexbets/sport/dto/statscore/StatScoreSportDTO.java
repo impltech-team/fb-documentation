@@ -104,7 +104,7 @@ public class StatScoreSportDTO {
         private Long ut;
         private String code;
         private String forValue;
-        private Boolean gameBreak;
+        private String gameBreak;
         private List<Attribute> attributes;
 
         @Data

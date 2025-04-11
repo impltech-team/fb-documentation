@@ -61,6 +61,7 @@ public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO,
                 ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
                 (dto, existing) -> sportMapper.updateEntity(existing, dto),
                 sportMapper::toEntity,
+                Sport::getExternalId,
                 repository::saveAllAndFlush
         );
     }

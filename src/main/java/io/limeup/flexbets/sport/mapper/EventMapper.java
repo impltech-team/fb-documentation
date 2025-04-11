@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.Venue;
@@ -13,16 +14,16 @@ import java.util.ArrayList;
 @Component
 public class EventMapper {
 
-    public Event toEntity(StatScoreEventDTO dto, Competition competition, Venue venue) {
+    public Event toEntity(StatScoreEventDTO dto, Competition competition, Venue venue, StatScoreSeasonDTO season) {
         if (dto == null) {
             return null;
         }
 
         Event entity = new Event();
-        return updateEntity(entity, dto, competition, venue);
+        return updateEntity(entity, dto, competition, venue, season);
     }
 
-    public Event updateEntity(Event entity, StatScoreEventDTO dto, Competition competition, Venue venue) {
+    public Event updateEntity(Event entity, StatScoreEventDTO dto, Competition competition, Venue venue, StatScoreSeasonDTO season) {
         if (entity == null || dto == null) {
             return entity;
         }
@@ -36,7 +37,8 @@ public class EventMapper {
         entity.setCompetition(competition);
         entity.setVenue(venue);
         entity.setParticipants(new ArrayList<>());
-
+        entity.setSeasonExternalId(season.getId());
+        entity.setSeasonName(season.getName());
         return entity;
     }
 

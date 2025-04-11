@@ -1,15 +1,38 @@
 SET search_path TO sport;
 
+INSERT INTO sport (external_id, name)
+VALUES
+(1, 'Basketball'),
+(8, 'Am. football')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO sport (external_id, name)
+VALUES
+(1, 'Basketball'),
+(8, 'Am. football')
+ON CONFLICT (external_id) DO NOTHING;
+
+INSERT INTO area (external_id, name, area_code, parent_area_id)
+VALUES (191, 'USA', 'USA', 212)
+ON CONFLICT (external_id) DO NOTHING;
+
+
 INSERT INTO competition (external_id, name, type, sport_id, area_id, status_type, gender)
-SELECT 101, 'NBA', 'COUNTRY_LEAGUE', 1, 190, 'ACTIVE', 'male'
+SELECT 101, 'NBA', 'COUNTRY_LEAGUE',
+       (SELECT id FROM sport WHERE external_id = 1),
+       (SELECT id FROM area WHERE external_id = 191),
+       'ACTIVE', 'male'
 WHERE NOT EXISTS (
-        SELECT 1 FROM sport.competition WHERE external_id = 101
+        SELECT 1 FROM competition WHERE external_id = 101
     );
 
 INSERT INTO competition (external_id, name, type, sport_id, area_id, status_type, gender)
-SELECT 5611, 'National Football League', 'COUNTRY_LEAGUE', 8, 190, 'ACTIVE', 'male'
+SELECT 5611, 'National Football League', 'COUNTRY_LEAGUE',
+       (SELECT id FROM sport WHERE external_id = 8),
+       (SELECT id FROM area WHERE external_id = 191),
+       'ACTIVE', 'male'
 WHERE NOT EXISTS (
-        SELECT 1 FROM sport.competition WHERE external_id = 5611
+        SELECT 1 FROM competition WHERE external_id = 5611
     );
 
 CREATE SEQUENCE market_id_seq START WITH 1 INCREMENT BY 50;
