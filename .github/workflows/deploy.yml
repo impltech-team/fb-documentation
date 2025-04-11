@@ -140,18 +140,15 @@ jobs:
         - run: echo ${{ matrix.env }}
         - uses: actions/checkout@v4
           id: checkout
-          if: ${{ matrix.env != 'stage' && !(matrix.env == 'stage' && contains(github.event.head_commit.message, '[ok]')) }}
 
         - name: Configure AWS credentials
           id: aws-credentials
-          if: ${{ steps.checkout.outcome != 'cancelled' }}
           uses: ./.github/workflows/oidc
           with:
             role-to-assume: ${{ secrets.IAM_ROLE }}
 
         - name: Update ECS task definition
           id: task-def-update
-          if: ${{ steps.aws-credentials.outcome != 'cancelled' }}
           run: |
             aws ecs describe-task-definition --task-definition ${{ env.ecs_task }} \
               --query taskDefinition --output json > task-raw.json
@@ -168,7 +165,6 @@ jobs:
             ' task-clear.json > task-definition.json
 
         - name: Deploy to ECS
-          if: ${{ steps.task-def-update.outcome != 'cancelled' }}
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
             task-definition: task-definition.json
