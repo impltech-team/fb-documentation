@@ -13,27 +13,28 @@ public class StatScoreDataUtils {
 
     public static <D, E> void mergeAndSaveDTOs(
             List<D> fetchedDTOs,
-            Function<D, Integer> externalIdExtractor,
+            Function<D, Integer> dtoExternalIdExtractor,
             Function<Collection<Integer>, List<E>> findExistingByIds,
             BiFunction<D, E, E> updateMapper,
             Function<D, E> createMapper,
+            Function<E, Integer> entityExternalIdExtractor,
             Consumer<List<E>> saveAll
     ) {
         if (fetchedDTOs.isEmpty()) return;
 
         Map<Integer, E> existingMap = findExistingByIds.apply(
                 fetchedDTOs.stream()
-                        .map(externalIdExtractor)
+                        .map(dtoExternalIdExtractor)
                         .collect(Collectors.toSet())
         ).stream().collect(Collectors.toMap(
-                e -> externalIdExtractor.apply((D) e),
+                entityExternalIdExtractor,
                 Function.identity()
         ));
 
         List<E> toSave = new ArrayList<>();
 
         for (D dto : fetchedDTOs) {
-            Integer id = externalIdExtractor.apply(dto);
+            Integer id = dtoExternalIdExtractor.apply(dto);
             E existing = existingMap.get(id);
 
             if (existing != null) {
