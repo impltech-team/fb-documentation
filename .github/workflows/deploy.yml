@@ -139,7 +139,7 @@ jobs:
       steps:
         - uses: actions/checkout@v4
           id: checkout
-          # if: ${{ matrix.env != 'stage' || (matrix.env == 'stage' && contains(github.event.head_commit.message, '[ok]')) }}
+          if: ${{ matrix.env != 'stage' || (matrix.env == 'stage' && contains(github.event.head_commit.message, '[ok]')) }}
 
         - name: Configure AWS credentials
           id: aws-credentials
