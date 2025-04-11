@@ -54,4 +54,8 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", referencedColumnName = "id")
     private Venue venue;
+
+    private Integer seasonExternalId;
+
+    private String seasonName;
 }

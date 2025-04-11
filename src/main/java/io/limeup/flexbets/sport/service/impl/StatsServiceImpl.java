@@ -230,11 +230,11 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
             Event event = existingEvents.get(eventDTO.getId());
             if (event == null) {
-                event = eventMapper.toEntity(eventDTO, competition, venue);
+                event = eventMapper.toEntity(eventDTO, competition, venue, ctx.season());
                 eventsToSave.put(eventDTO.getId(), event);
                 existingEvents.put(eventDTO.getId(), event);
             } else if (!isHistoricalData) {
-                eventMapper.updateEntity(event, eventDTO, competition, venue);
+                eventMapper.updateEntity(event, eventDTO, competition, venue, ctx.season());
                 eventsToSave.put(eventDTO.getId(), event);
             }
 

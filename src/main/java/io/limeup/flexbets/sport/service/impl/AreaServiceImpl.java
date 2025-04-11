@@ -57,6 +57,7 @@ public class AreaServiceImpl extends ExternalIdReadServiceImpl<Area, AreaDTO, Lo
                 ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
                 (dto, existing) -> areaMapper.updateEntity(existing, dto),
                 areaMapper::toEntity,
+                Area::getExternalId,
                 repository::saveAllAndFlush
         );
     }

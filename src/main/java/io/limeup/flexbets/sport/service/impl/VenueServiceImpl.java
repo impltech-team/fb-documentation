@@ -53,6 +53,7 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
                 ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
                 (dto, existing) -> venueMapper.updateEntity(existing, dto),
                 venueMapper::toEntity,
+                Venue::getExternalId,
                 repository::saveAllAndFlush
         );
     }
