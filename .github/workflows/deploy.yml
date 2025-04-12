@@ -170,4 +170,4 @@ jobs:
             task-definition: task-definition.json
             cluster: ${{ env.ecs_cluster }}
             service: ${{ env.ecs_service }}
-            wait-for-service-stability: true
+            wait-for-service-stability: false
