@@ -149,6 +149,7 @@ jobs:
 
         - name: Update ECS task definition
           id: task-def-update
+          timeout-minutes: 3
           run: |
             aws ecs describe-task-definition --task-definition ${{ env.ecs_task }} \
               --query taskDefinition --output json > task-raw.json
@@ -170,4 +171,4 @@ jobs:
             task-definition: task-definition.json
             cluster: ${{ env.ecs_cluster }}
             service: ${{ env.ecs_service }}
-            wait-for-service-stability: false
+            wait-for-service-stability: true
