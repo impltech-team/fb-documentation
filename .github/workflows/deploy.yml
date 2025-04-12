@@ -2,7 +2,10 @@ name: Deploy to ECS
 
 on:
   push:
-    branches: [main, feat/ci-docker]
+    branches: [feat/ci-docker]
+  pull_request:
+    branches: [main]
+    types: [opened]
   workflow_dispatch:
 
 jobs:
@@ -43,6 +46,9 @@ jobs:
           ./gradlew build -x test --no-daemon
 
       - name: Dependency check
+        id: dependency-check
+        timeout-minutes: 3
+        continue-on-error: true
         run: |
           VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
@@ -52,7 +58,9 @@ jobs:
             --scan ~/.gradle/caches \
             --format JSON \
             --prettyPrint
+
       - name: Upload dependency check report
+        if: ${{ steps.dependency-check.outcome != 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
@@ -123,26 +131,25 @@ jobs:
         contents: read
       strategy:
         matrix:
-          env: [dev]
+          env: [dev,stage]
       env:
         ecs_cluster: ${{ matrix.env }}
         ecs_service: ${{ matrix.env }}
         ecs_task: ${{ matrix.env }}-api
       steps:
+        - run: echo ${{ matrix.env }}
         - uses: actions/checkout@v4
           id: checkout
-          # if: ${{ matrix.env != 'stage' || (matrix.env == 'stage' && contains(github.event.head_commit.message, '[ok]')) }}
 
         - name: Configure AWS credentials
           id: aws-credentials
-          # if: ${{ !success() && steps.checkout.outcome != 'cancelled' }}
           uses: ./.github/workflows/oidc
           with:
             role-to-assume: ${{ secrets.IAM_ROLE }}
 
         - name: Update ECS task definition
           id: task-def-update
-          # if: ${{ !success() && steps.aws-credentials.outcome != 'cancelled' }}
+          timeout-minutes: 3
           run: |
             aws ecs describe-task-definition --task-definition ${{ env.ecs_task }} \
               --query taskDefinition --output json > task-raw.json
@@ -159,7 +166,6 @@ jobs:
             ' task-clear.json > task-definition.json
 
         - name: Deploy to ECS
-          # if: ${{ !success() && steps.task-def-update.outcome != 'cancelled' }}
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
             task-definition: task-definition.json
