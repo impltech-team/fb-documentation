@@ -30,4 +30,5 @@ public interface SubParticipantStatRow {
     LocalDateTime getFutureEventStartDate();
     String getEventParticipantAcronyms();
     String getFutureEventAcronyms();
+    String getCurrentTeamAcronym();
 }
