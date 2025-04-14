@@ -96,7 +96,7 @@ public class SubParticipantMapper {
                                 row.getEventStartDate(),
                                 Optional.ofNullable(row.getValueNumeric()).orElse(0.0),
                                 row.getValueRaw(),
-                                extractOpponentFromAcronyms(row.getEventParticipantAcronyms(), row.getTeamName())
+                                extractOpponentFromAcronyms(row.getEventParticipantAcronyms(), row.getCurrentTeamAcronym())
                         ))
                         .collect(Collectors.toList());
 
@@ -121,7 +121,7 @@ public class SubParticipantMapper {
                     first.getFutureEventId(),
                     first.getFutureEventName(),
                     first.getFutureEventStartDate().toString(),
-                    extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getTeamName())
+                    extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getCurrentTeamAcronym())
             ) : null;
 
             SubParticipantDTO dto = new SubParticipantDTO(
@@ -151,11 +151,11 @@ public class SubParticipantMapper {
         return result;
     }
 
-    private static String extractOpponentFromAcronyms(String acronymsCsv, String playerAcronym) {
-        if (acronymsCsv == null || playerAcronym == null) return null;
-        return Arrays.stream(acronymsCsv.split(","))
+    private static String extractOpponentFromAcronyms(String acronymsCsv, String currentTeamAcronym) {
+        if (acronymsCsv == null || currentTeamAcronym == null) return null;
+        return Arrays.stream(acronymsCsv.split(":"))
                 .map(String::trim)
-                .filter(acr -> !acr.equalsIgnoreCase(playerAcronym))
+                .filter(acr -> !acr.equalsIgnoreCase(currentTeamAcronym))
                 .findFirst()
                 .orElse(null);
     }
