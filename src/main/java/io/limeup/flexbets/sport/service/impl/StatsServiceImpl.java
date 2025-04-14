@@ -167,9 +167,6 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             SubParticipant existing = existingSubsMap.get(dto.getId());
 
             if (existing == null) {
-                if (participant == null) {
-                    participant = participantRepository.findByExternalId(dto.getTeamId()).orElse(null);
-                }
                 SubParticipant sub = subParticipantMapper.toEntity(dto, area, participant, competition);
                 existingSubsMap.put(dto.getId(), sub);
                 toSave.add(sub);
