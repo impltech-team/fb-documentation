@@ -91,17 +91,17 @@ public class SportMapper {
                 .collect(Collectors.toList());
         dto.setResultTypes(resultTypes);
 
-        List<SportDTO.EventStatistic> eventStats = Optional.ofNullable(statScoreSportDTO.getDetails())
+        List<SportDTO.EventDetails> eventDetails = Optional.ofNullable(statScoreSportDTO.getDetails())
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(detail -> {
-                    SportDTO.EventStatistic stat = new SportDTO.EventStatistic();
-                    stat.setStatName(detail.getCode());
+                    SportDTO.EventDetails stat = new SportDTO.EventDetails();
+                    stat.setName(detail.getCode());
                     stat.setDescription(detail.getName());
                     return stat;
                 })
                 .collect(Collectors.toList());
-        dto.setEventStatistics(eventStats);
+        dto.setEventDetails(eventDetails);
 
         List<SportDTO.TeamStatistic> teamStats = Optional.ofNullable(statScoreSportDTO.getStats())
                 .map(StatScoreSportDTO.SportStats::getTeam)
