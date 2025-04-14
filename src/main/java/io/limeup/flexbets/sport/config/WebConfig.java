@@ -1,7 +1,12 @@
 package io.limeup.flexbets.sport.config;
 
+import io.limeup.flexbets.sport.converter.CompetitionTypeConverter;
+import io.limeup.flexbets.sport.converter.MarketTypeConverter;
 import io.limeup.flexbets.sport.converter.SnakeCaseToCamelCaseArgumentResolver;
+import io.limeup.flexbets.sport.converter.StatTargetTypeConverter;
+import io.limeup.flexbets.sport.converter.StatusTypeConverter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -18,5 +23,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(argumentResolver);
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StatusTypeConverter());
+        registry.addConverter(new StatTargetTypeConverter());
+        registry.addConverter(new MarketTypeConverter());
+        registry.addConverter(new CompetitionTypeConverter());
     }
 }
