@@ -66,115 +66,115 @@ class StatScoreClientImplTest extends BaseWireMockTest {
     void setupStub() {
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(AREAS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_event_sub_participants_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(PARTICIPANTS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_participants_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(PARTICIPANT_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_participant_by_id_response.json")));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(EVENTS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_events_response.json")));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(EVENT_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_event_by_id_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SQUAD_SUB_PARTICIPANTS_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_squad_sub_participants_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(AREAS_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_areas_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SPORTS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_sports_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SPORT_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_sport_by_id_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(VENUE_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_venue_by_id_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(VENUES_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_venues_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(BRACKETS_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_brackets_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(GROUPS_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_groups_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SEASONS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_seasons_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SEASON_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_season_by_id_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STAGES_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_stages_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STAGE_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_stage_by_id_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STANDINGS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_standings_response.json")
                         .withStatus(200)));
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(STANDING_BY_ID_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("statscore_standing_by_id_response.json")
                         .withStatus(200)));
 
@@ -280,14 +280,14 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setVenueId(810);
         query.setSortType("start_date");
         query.setSortOrder("desc");
-        query.setRelationStatus("finished");
+        query.setRelationStatus(FINISHED);
         query.setStatusId(11);
-        query.setStatusType("finished");
-        query.setCoverageType("from_tv");
+        query.setStatusType(FINISHED);
+        query.setCoverageType(FROM_TV);
         query.setScoutsfeed("yes");
         query.setEventsDetails("yes");
         query.setCompetitionsDetails("yes");
-        query.setItemStatus("active");
+        query.setItemStatus(ACTIVE);
         query.setVerifiedResult("yes");
         query.setProduct("basketball_stats");
         query.setBooked("no");
@@ -326,18 +326,18 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                         Assertions.assertTrue((!eventDate.isBefore(from)) && (!eventDate.isAfter(to)), "Event is within the date range");
 
                         // Validate event properties
-                        Assertions.assertEquals("from_tv", event.getCoverageType());
+                        Assertions.assertEquals(FROM_TV, event.getCoverageType());
                         Assertions.assertEquals("yes", event.getScoutsfeed());
-                        Assertions.assertEquals("finished", event.getRelationStatus());
-                        Assertions.assertEquals("finished", event.getStatusType());
-                        Assertions.assertEquals("active", event.getItemStatus());
+                        Assertions.assertEquals(FINISHED, event.getRelationStatus());
+                        Assertions.assertEquals(FINISHED, event.getStatusType());
+                        Assertions.assertEquals(ACTIVE, event.getItemStatus());
                         Assertions.assertEquals("yes", event.getVerifiedResult());
                         Assertions.assertEquals(101, event.getCompetitionId());
 
                         // Validate participants
                         for (StatScoreEventParticipantDTO p : event.getParticipants()) {
                             Assertions.assertEquals(1, p.getSportId());
-                            Assertions.assertEquals("Basketball", p.getSportName());
+                            Assertions.assertEquals(BASKETBALL, p.getSportName());
                             Assertions.assertEquals(191, p.getAreaId());
                             Assertions.assertTrue(query.getMultiIds().contains(String.valueOf(p.getId())));
                         }
@@ -355,17 +355,17 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals(101, comp.getId());
                     Assertions.assertEquals("NBA", comp.getName());
                     Assertions.assertEquals("NBA", comp.getShortName());
-                    Assertions.assertEquals("Basketball", comp.getSportName());
+                    Assertions.assertEquals(BASKETBALL, comp.getSportName());
                     Assertions.assertEquals("USA", comp.getAreaName());
                     Assertions.assertEquals(1, comp.getSportId());
                     Assertions.assertEquals(191, comp.getAreaId());
-                    Assertions.assertEquals("active", comp.getStatus());
+                    Assertions.assertEquals(ACTIVE, comp.getStatus());
                     var event = comp.getSeason().getStage().getGroup().getEvent();
-                    Assertions.assertEquals("from_tv", event.getCoverageType());
+                    Assertions.assertEquals(FROM_TV, event.getCoverageType());
                     Assertions.assertEquals("yes", event.getScoutsfeed());
-                    Assertions.assertEquals("finished", event.getRelationStatus());
-                    Assertions.assertEquals("finished", event.getStatusType());
-                    Assertions.assertEquals("active", event.getItemStatus());
+                    Assertions.assertEquals(FINISHED, event.getRelationStatus());
+                    Assertions.assertEquals(FINISHED, event.getStatusType());
+                    Assertions.assertEquals(ACTIVE, event.getItemStatus());
                     Assertions.assertEquals("yes", event.getVerifiedResult());
                     Assertions.assertEquals(101, event.getCompetitionId());
                 })
@@ -414,7 +414,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                 .assertNext(resp -> {
                     var items = resp.getApi().getData().getItems();
                     Assertions.assertEquals(2, items.size());
-                    Assertions.assertEquals("Basketball", items.get(0).getName());
+                    Assertions.assertEquals(BASKETBALL, items.get(0).getName());
                     Assertions.assertEquals("Football", items.get(1).getName());
                 })
                 .verifyComplete();
@@ -427,10 +427,10 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                 .assertNext(sportResponse -> {
                     var sport = sportResponse.getApi().getData();
                     Assertions.assertEquals(1, sport.getId());
-                    Assertions.assertEquals("Basketball", sport.getName());
+                    Assertions.assertEquals(BASKETBALL, sport.getName());
                     Assertions.assertNotNull(sport.getStatuses());
                     Assertions.assertFalse(sport.getStatuses().isEmpty());
-                    Assertions.assertEquals("Finished", sport.getStatuses().get(0).getName());
+                    Assertions.assertEquals(FINISHED, sport.getStatuses().get(0).getName());
 
                     Assertions.assertNotNull(sport.getStats());
                     Assertions.assertEquals("Points", sport.getStats().getTeam().get(0).getName());
@@ -439,7 +439,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals("Foul", sport.getIncidents().get(0).getName());
 
                     Assertions.assertNotNull(sport.getVenuesDetails());
-                    Assertions.assertEquals("Staples Center", sport.getVenuesDetails().get(0).getName());
+                    Assertions.assertEquals(VENUE, sport.getVenuesDetails().get(0).getName());
                 })
                 .verifyComplete();
     }
@@ -451,7 +451,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                 .assertNext(venueResponse -> {
                     var venue = venueResponse.getApi().getData();
                     Assertions.assertEquals(810, venue.getId());
-                    Assertions.assertEquals("Staples Center", venue.getName());
+                    Assertions.assertEquals(VENUE, venue.getName());
                     Assertions.assertEquals("USA", venue.getCountry());
                     Assertions.assertEquals("Los Angeles", venue.getCity());
                 })
@@ -472,7 +472,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     var venues = resp.getApi().getData().getItems();
                     Assertions.assertFalse(venues.isEmpty());
                     Assertions.assertEquals(810, venues.get(0).getId());
-                    Assertions.assertEquals("Staples Center", venues.get(0).getName());
+                    Assertions.assertEquals(VENUE, venues.get(0).getName());
                 })
                 .verifyComplete();
     }
@@ -542,7 +542,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     var comp = competitions.get(0);
                     Assertions.assertEquals(101, comp.getId());
                     Assertions.assertEquals("NBA", comp.getName());
-                    Assertions.assertEquals("active", comp.getStatus());
+                    Assertions.assertEquals(ACTIVE, comp.getStatus());
                     Assertions.assertEquals(191, comp.getAreaId());
                     Assertions.assertEquals(1, comp.getSportId());
 
@@ -551,7 +551,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals(2, seasons.size());
 
                     Assertions.assertEquals(62587, seasons.get(0).getId());
-                    Assertions.assertEquals("NBA 2024/25", seasons.get(0).getName());
+                    Assertions.assertEquals(SEASON, seasons.get(0).getName());
                     Assertions.assertEquals("2024/25", seasons.get(0).getYear());
                     Assertions.assertEquals("yes", seasons.get(0).getActual());
                 })
@@ -566,18 +566,18 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     var competition = resp.getApi().getData();
                     Assertions.assertEquals(101, competition.getId());
                     Assertions.assertEquals("NBA", competition.getName());
-                    Assertions.assertEquals("Basketball", competition.getSportName());
+                    Assertions.assertEquals(BASKETBALL, competition.getSportName());
                     Assertions.assertEquals("USA", competition.getAreaName());
 
                     var season = competition.getSeason();
                     Assertions.assertNotNull(season);
                     Assertions.assertEquals(62587, season.getId());
-                    Assertions.assertEquals("NBA 2024/25", season.getName());
+                    Assertions.assertEquals(SEASON, season.getName());
                     Assertions.assertEquals("2024/25", season.getYear());
 
                     Assertions.assertNotNull(season.getStages());
                     Assertions.assertEquals(2, season.getStages().size());
-                    Assertions.assertEquals("Regular Season", season.getStages().get(0).getName());
+                    Assertions.assertEquals(REGULAR_SEASON, season.getStages().get(0).getName());
                 })
                 .verifyComplete();
     }
@@ -601,12 +601,12 @@ class StatScoreClientImplTest extends BaseWireMockTest {
 
                     var season = comp.getSeason();
                     Assertions.assertEquals(62587, season.getId());
-                    Assertions.assertEquals("NBA 2024/25", season.getName());
+                    Assertions.assertEquals(SEASON, season.getName());
                     Assertions.assertEquals("yes", season.getActual());
 
                     Assertions.assertEquals(2, season.getStages().size());
                     Assertions.assertEquals("NBA Cup - Championship", season.getStages().get(0).getName());
-                    Assertions.assertEquals("Regular Season", season.getStages().get(1).getName());
+                    Assertions.assertEquals(REGULAR_SEASON, season.getStages().get(1).getName());
                 })
                 .verifyComplete();
     }
@@ -625,7 +625,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals(62587, season.getId());
                     Assertions.assertNotNull(season.getStage());
                     Assertions.assertEquals(135822, season.getStage().getId());
-                    Assertions.assertEquals("Regular Season", season.getStage().getName());
+                    Assertions.assertEquals(REGULAR_SEASON, season.getStage().getName());
                 })
                 .verifyComplete();
     }
@@ -646,7 +646,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
         query.setSeasonId(62587);
         query.setStageId(135822);
         query.setTimestamp(1743061234L);
-        query.setItemStatus("active");
+        query.setItemStatus(ACTIVE);
 
         StepVerifier.create(statScoreClient.getStandings(query, false))
                 .assertNext(resp -> {
@@ -659,8 +659,8 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals(182996, s.getId());
                     Assertions.assertEquals("Streaks - USA, NBA 2024/25", s.getName());
                     Assertions.assertEquals(1, s.getSportId());
-                    Assertions.assertEquals("Basketball", s.getSportName());
-                    Assertions.assertEquals("active", s.getItemStatus());
+                    Assertions.assertEquals(BASKETBALL, s.getSportName());
+                    Assertions.assertEquals(ACTIVE, s.getItemStatus());
                     Assertions.assertEquals("yes", s.getResetGroupRank());
                 })
                 .verifyComplete();
@@ -680,7 +680,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals(182996, s.getId());
                     Assertions.assertEquals("Streaks - NBA", s.getName());
                     Assertions.assertEquals("season", s.getObjectType());
-                    Assertions.assertEquals("NBA 2024/25", s.getObjectName());
+                    Assertions.assertEquals(SEASON, s.getObjectName());
 
                     var group = s.getGroups().get(0);
                     Assertions.assertEquals(1, group.getId());
@@ -690,7 +690,7 @@ class StatScoreClientImplTest extends BaseWireMockTest {
                     Assertions.assertEquals(1040, p.getId());
                     Assertions.assertEquals("team", p.getType());
                     Assertions.assertEquals("Philadelphia 76ers", p.getName());
-                    Assertions.assertEquals("Basketball", p.getSportName());
+                    Assertions.assertEquals(BASKETBALL, p.getSportName());
                     Assertions.assertEquals("no", p.getVirtual());
                     Assertions.assertEquals("PHI", p.getAcronym());
 

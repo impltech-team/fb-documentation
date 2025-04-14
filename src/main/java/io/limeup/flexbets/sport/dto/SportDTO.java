@@ -21,7 +21,7 @@ public class SportDTO {
 
     @Data
     public static class Status {
-        private String status;
+        private String statusName;
         private String description;
     }
 

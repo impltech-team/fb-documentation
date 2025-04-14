@@ -1,9 +1,13 @@
 package io.limeup.flexbets.sport.utils;
 
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
+import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SingleRootItemPaginatedResponse;
 import io.limeup.flexbets.sport.dto.statscore.ListWrapper;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,9 +20,11 @@ import java.util.stream.Collectors;
 
 public class PaginationUtils {
 
+    private PaginationUtils() { }
+
     public static <T> PaginatedResponse<T> buildPaginatedResponse(
             List<T> items,
-            Integer totalCount,
+            Long totalCount,
             Integer page,
             Integer limit
     ) {
@@ -41,8 +47,8 @@ public class PaginationUtils {
             Integer page,
             Integer limit
     ) {
-        int total = Optional.ofNullable(response)
-                .map(r -> r.getApi().getMethod().getTotal_items())
+        long total = Optional.ofNullable(response)
+                .map(r -> r.getApi().getMethod().getTotalItems())
                 .orElse(0);
 
         List<T> items = Optional.ofNullable(response)
@@ -62,7 +68,7 @@ public class PaginationUtils {
         int total = Optional.ofNullable(root)
                 .map(StatScoreResponse::getApi)
                 .map(StatScoreResponse.ApiWrapper::getMethod)
-                .map(StatScoreResponse.MethodInfo::getTotal_items)
+                .map(StatScoreResponse.MethodInfo::getTotalItems)
                 .orElse(0);
         var builder = SingleRootItemPaginatedResponse.<T>builder()
                 .rootName(rootName)
@@ -101,6 +107,18 @@ public class PaginationUtils {
         } while (page <= response.getTotalPages());
 
         return allResults;
+    }
+
+
+    public static PageRequest getPageRequest(RequestQueryDTO requestQuery) {
+        PageRequest pageRequest;
+        if (StringUtils.isNotBlank(requestQuery.getSortBy())) {
+            Sort sort = Sort.by(Sort.Direction.fromString(requestQuery.getSortOrder()), requestQuery.getSortBy());
+            pageRequest = PageRequest.of(requestQuery.getPage() - 1, requestQuery.getPageSize(), sort);
+        } else {
+            pageRequest = PageRequest.of(requestQuery.getPage() - 1, requestQuery.getPageSize());
+        }
+        return pageRequest;
     }
 
 }

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @NoRepositoryBean
-public interface ExternalIdRepository<T, ID> extends JpaRepository<T, ID> {
+public interface ExternalIdRepository<T, I> extends JpaRepository<T, I> {
 
     Optional<T> findByExternalId(Integer externalId);
 

@@ -80,7 +80,7 @@ public class MockLiveDataSimulator {
 
     private Map<String, Object> createFormation() {
         Map<String, Object> formation = new HashMap<>();
-        List<String> BASKETBALL_FORMATIONS = List.of(
+        List<String> basketballFormations = List.of(
                 "1-2-2",
                 "2-1-2",
                 "3-2",
@@ -90,8 +90,8 @@ public class MockLiveDataSimulator {
 
         formation.put("id", 50000 + random.nextInt(10000));
 
-        String oldFormation = BASKETBALL_FORMATIONS.get(random.nextInt(BASKETBALL_FORMATIONS.size()));
-        String newFormation = BASKETBALL_FORMATIONS.get(random.nextInt(BASKETBALL_FORMATIONS.size()));
+        String oldFormation = basketballFormations.get(random.nextInt(basketballFormations.size()));
+        String newFormation = basketballFormations.get(random.nextInt(basketballFormations.size()));
 
 
         formation.put("old_formation", oldFormation);

@@ -15,7 +15,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaginatedResponse<T> {
 
-    private int count;
+    private long count;
     private int page;
     private int pageSize;
     private int totalPages;

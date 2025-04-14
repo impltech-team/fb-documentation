@@ -189,12 +189,6 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         }
     }
 
-    private Map<Long, Participant> mapParticipantsById(List<Participant> participants) {
-        return participants.stream()
-                .collect(Collectors.toMap(Participant::getId, Function.identity()));
-    }
-
-
     private void extractEventParticipantsData(List<StatScoreDataService.EventContext> eventContexts,
                                               Map<Integer, Participant> participantsToSave,
                                               Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp,

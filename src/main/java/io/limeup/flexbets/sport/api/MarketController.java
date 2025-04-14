@@ -22,7 +22,7 @@ public class MarketController {
     @GetMapping("/list")
     public ResponseEntity<List<MarketLiteDTO>> listMarkets(
             @RequestParam(name = "competition_id") Integer competitionId,
-            @RequestParam(name = "marketType", required = false, defaultValue = "SUB_PARTICIPANT") MarketType marketType
+            @RequestParam(name = "marketType", required = false) MarketType marketType
     ) {
                 return ResponseEntity.ok(marketService.listMarkets(competitionId, marketType));
     }

@@ -14,8 +14,7 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
-import io.micrometer.common.util.StringUtils;
-import jakarta.validation.ValidationException;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -27,7 +26,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("team_name", "acronym");
 
-    private final ParticipantRepository repository;
+    private final ParticipantRepository participantRepository;
 
     private final MarketService marketService;
 
@@ -35,7 +34,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
 
     protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository) {
         super(repository);
-        this.repository = repository;
+        this.participantRepository = repository;
         this.marketService = marketService;
         this.statRepository = statRepository;
     }
@@ -43,10 +42,18 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
                                                               Integer marketId, RequestQueryDTO requestQuery) {
-        validateRequest(requestQuery);
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
 
-        Set<String> statNames = Set.of("3pt jump shot attempts", "Turnovers", "Points", "Blocks");
-                //marketService.getStatsByMarket(competitionId, marketId, MarketType.PARTICIPANT);
+        Set<String> statNames = marketService.getStatsByMarket(competitionId, marketId, MarketType.PARTICIPANT);
+
+        Long count = participantRepository.countParticipants(competitionId,
+                participantIds == null ? Collections.emptyList() : participantIds,
+                requestQuery.getFilter());
+
+        if (count == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
+        }
+
         List<ParticipantStatRow> stats = statRepository.listParticipantStats(
                 competitionId,
                 participantIds == null ? Collections.emptyList() : participantIds,
@@ -58,19 +65,15 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                 requestQuery.getPageSize(),
                 statNames
         );
-        Integer count = repository.countParticipants(competitionId,
-                participantIds == null ? Collections.emptyList() : participantIds,
-                requestQuery.getFilter());
 
         return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @Override
     public ParticipantDTO getParticipantById(Integer participantId, Integer marketId) {
-        Participant rawParticipant = repository.findByExternalId(participantId)
+        Participant rawParticipant = participantRepository.findByExternalId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
-        Set<String> statNames = Set.of("3pt jump shot attempts", "Turnovers", "Points", "Blocks");
-                //marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
+        Set<String> statNames = marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
         List<ParticipantStatRow> participantStatsDetails = statRepository.getParticipantStatsDetails(
                 participantId, statNames);
         return ParticipantMapper.toDTO(participantStatsDetails)
@@ -79,9 +82,4 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
     }
 
-    private void validateRequest(RequestQueryDTO requestQuery) {
-        if (StringUtils.isNotBlank(requestQuery.getSortBy()) && !SUPPORTED_SORT_FIELDS.contains(requestQuery.getSortBy())) {
-            throw new ValidationException(String.format("Invalid sortBy: %s. Available options: %s", requestQuery.getSortBy(), SUPPORTED_SORT_FIELDS));
-        }
-    }
 }

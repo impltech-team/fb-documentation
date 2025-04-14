@@ -4,8 +4,10 @@ import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.model.Market;
 import org.springframework.stereotype.Component;
 
-@Component
 public class MarketMapper {
+
+    private MarketMapper() {
+    }
 
     public static MarketLiteDTO toLiteDTO(Market market) {
         MarketLiteDTO dto = new MarketLiteDTO();

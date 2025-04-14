@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompetitionDTO {
-    private Long id;
+    private Integer id;
     private String name;
     private String type;
     private Integer sportId;

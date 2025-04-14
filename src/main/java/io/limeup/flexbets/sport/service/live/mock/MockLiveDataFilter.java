@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.live.mock;
 
+import io.limeup.flexbets.sport.utils.ConstantUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -20,23 +21,23 @@ public class MockLiveDataFilter {
             return fullEventData;
         }
         filteredData.put("id", fullEventData.get("id"));
-        filteredData.put("participants", new ArrayList<>());
+        filteredData.put(ConstantUtils.Mock.PARTICIPANTS, new ArrayList<>());
 
-        List<Map<String, Object>> participants = (List<Map<String, Object>>) fullEventData.get("participants");
+        List<Map<String, Object>> participants = (List<Map<String, Object>>) fullEventData.get(ConstantUtils.Mock.PARTICIPANTS);
 
         for (Map<String, Object> participant : participants) {
             List<Map<String, Object>> filteredSubParticipants = new ArrayList<>();
-            List<Map<String, Object>> subParticipants = (List<Map<String, Object>>) participant.get("subparticipants");
+            List<Map<String, Object>> subParticipants = (List<Map<String, Object>>) participant.get(ConstantUtils.Mock.SUB_PARTICIPANTS);
 
             for (Map<String, Object> subParticipant : subParticipants) {
-                int subParticipantId = (int) subParticipant.get("sub_participant_id");
+                int subParticipantId = (int) subParticipant.get(ConstantUtils.StatScoreWebClient.SUB_PARTICIPANT_ID);
 
                 for (Map<String, Object> sub : clientSubscriptions) {
-                    if (sub.containsKey("sub_participant_id") && (int) sub.get("sub_participant_id") == subParticipantId) {
-                        List<Integer> requestedMarkets = (List<Integer>) sub.get("market_ids");
+                    if (sub.containsKey(ConstantUtils.StatScoreWebClient.SUB_PARTICIPANT_ID) && (int) sub.get(ConstantUtils.Mock.SUB_PARTICIPANT_ID) == subParticipantId) {
+                        List<Integer> requestedMarkets = (List<Integer>) sub.get(ConstantUtils.Mock.MARKET_IDS);
                         List<Map<String, Object>> filteredMarkets = new ArrayList<>();
 
-                        List<Map<String, Object>> markets = (List<Map<String, Object>>) subParticipant.get("markets");
+                        List<Map<String, Object>> markets = (List<Map<String, Object>>) subParticipant.get(ConstantUtils.Mock.MARKETS);
 
                         for (Map<String, Object> market : markets) {
                             if (requestedMarkets.contains(market.get("market_id"))) {
@@ -55,8 +56,8 @@ public class MockLiveDataFilter {
 
             if (!filteredSubParticipants.isEmpty()) {
                 Map<String, Object> filteredParticipant = new HashMap<>(participant);
-                filteredParticipant.put("subparticipants", filteredSubParticipants);
-                ((List<Map<String, Object>>) filteredData.get("participants")).add(filteredParticipant);
+                filteredParticipant.put(ConstantUtils.Mock.SUB_PARTICIPANTS, filteredSubParticipants);
+                ((List<Map<String, Object>>) filteredData.get(ConstantUtils.Mock.PARTICIPANTS)).add(filteredParticipant);
             }
         }
 

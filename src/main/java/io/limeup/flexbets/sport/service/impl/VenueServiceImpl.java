@@ -32,7 +32,7 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
 
     @Override
     public Venue create(StatScoreVenueDTO venueDTO) {
-        return repository.save(venueMapper.toEntity(venueDTO));
+        return externalIdRepository.save(venueMapper.toEntity(venueDTO));
     }
 
     @Override
@@ -50,11 +50,11 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
         StatScoreDataUtils.mergeAndSaveDTOs(
                 fetchedVenues,
                 StatScoreVenueDTO::getId,
-                ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
+                ids -> externalIdRepository.findByExternalIdIn(new ArrayList<>(ids)),
                 (dto, existing) -> venueMapper.updateEntity(existing, dto),
                 venueMapper::toEntity,
                 Venue::getExternalId,
-                repository::saveAllAndFlush
+                externalIdRepository::saveAllAndFlush
         );
     }
 }
