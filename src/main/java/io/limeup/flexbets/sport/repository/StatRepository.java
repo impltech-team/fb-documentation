@@ -157,6 +157,16 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
              AND es.target_id = t5.sub_participant_id
              AND es.target_type = 'SUBPARTICIPANT'
              AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+             ORDER BY
+                CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'asc' THEN sp.player_name END ASC,
+                CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'desc' THEN sp.player_name END DESC,
+                CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN p.team_name END ASC,
+                CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'desc' THEN p.team_name END DESC,
+                CASE WHEN :sortBy = 'position' AND :sortOrder = 'asc' THEN sp.position END ASC,
+                CASE WHEN :sortBy = 'position' AND :sortOrder = 'desc' THEN sp.position END DESC,
+                CASE WHEN :sortBy = 'event_time' AND :sortOrder = 'asc' THEN fem.future_event_start_date END ASC,
+                CASE WHEN :sortBy = 'event_time' AND :sortOrder = 'desc' THEN fem.future_event_start_date END DESC,
+                fem.future_event_start_date
         """, nativeQuery = true)
     List<SubParticipantStatRow> listSubParticipantStats(
             @Param("competitionId") Integer competitionId,
@@ -375,6 +385,14 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
      AND es.target_id = t5.participant_id
      AND es.target_type = 'PARTICIPANT'
      AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+     ORDER BY
+            CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN p.team_name END ASC,
+            CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'desc' THEN p.team_name END DESC,
+            CASE WHEN :sortBy = 'acronym' AND :sortOrder = 'asc' THEN p.acronym END ASC,
+            CASE WHEN :sortBy = 'acronym' AND :sortOrder = 'desc' THEN p.acronym END DESC,
+            CASE WHEN :sortBy = 'event_time' AND :sortOrder = 'asc' THEN fem.future_event_start_date END ASC,
+            CASE WHEN :sortBy = 'event_time' AND :sortOrder = 'desc' THEN fem.future_event_start_date END DESC,
+            fem.future_event_start_date
     """, nativeQuery = true)
     List<ParticipantStatRow> listParticipantStats(
             @Param("competitionId") Integer competitionId,
