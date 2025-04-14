@@ -28,10 +28,10 @@ public class ParticipantController {
     public ResponseEntity<PaginatedResponse<ParticipantDTO>> listParticipants(
             @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
-            @RequestParam(required = false, name = "market_id") Integer market_id,
+            @RequestParam(required = false, name = "market_id") Integer marketId,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(participantService.listParticipants(
-                competitionId, participantIds, market_id, requestQuery));
+                competitionId, participantIds, marketId, requestQuery));
     }
 
     @GetMapping("/{participant_id}")

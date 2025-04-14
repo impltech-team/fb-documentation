@@ -22,11 +22,11 @@ public class CustomPaginationTransformer implements ResponseDefinitionTransforme
         int page = 1;
         int pageSize = 50;
         try {
-            if (request.queryParameter("page").isPresent()) {
-                page = Integer.parseInt(request.queryParameter("page").firstValue());
+            if (request.queryParameter(BaseFilteringTransformer.PAGE).isPresent()) {
+                page = Integer.parseInt(request.queryParameter(BaseFilteringTransformer.PAGE).firstValue());
             }
-            if (request.queryParameter("page_size").isPresent()) {
-                pageSize = Integer.parseInt(request.queryParameter("page_size").firstValue());
+            if (request.queryParameter(BaseFilteringTransformer.PAGE_SIZE).isPresent()) {
+                pageSize = Integer.parseInt(request.queryParameter(BaseFilteringTransformer.PAGE_SIZE).firstValue());
             }
         } catch (NumberFormatException e) {
             log.warn("Invalid pagination parameters, using defaults");
@@ -48,11 +48,11 @@ public class CustomPaginationTransformer implements ResponseDefinitionTransforme
                 page, pageSize, currentPageCount, totalPages, count);
 
         return ResponseDefinitionBuilder.like(responseDefinition)
-                .withTransformerParameter("page", page)
-                .withTransformerParameter("page_size", pageSize)
-                .withTransformerParameter("current_page_count", currentPageCount)
-                .withTransformerParameter("total_pages", totalPages)
-                .withTransformerParameter("count", count)
+                .withTransformerParameter(BaseFilteringTransformer.PAGE, page)
+                .withTransformerParameter(BaseFilteringTransformer.PAGE_SIZE, pageSize)
+                .withTransformerParameter(BaseFilteringTransformer.CURRENT_PAGE_COUNT, currentPageCount)
+                .withTransformerParameter(BaseFilteringTransformer.TOTAL_PAGES, totalPages)
+                .withTransformerParameter(BaseFilteringTransformer.COUNT, count)
                 .build();
     }
 

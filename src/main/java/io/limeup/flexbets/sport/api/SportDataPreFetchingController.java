@@ -7,6 +7,7 @@ import io.limeup.flexbets.sport.service.VenueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,12 +21,12 @@ public class SportDataPreFetchingController {
     private final VenueService venueService;
 
     @PostMapping("/stats")
-    public void test() {
-        statsService.fetchStatData(1);
+    public void statsFetch(@RequestParam(value = "days", required = false, defaultValue = "1") Integer days) {
+        statsService.fetchStatData(days);
     }
 
     @PostMapping("/static")
-    public void test2() {
+    public void staticDataFetch() {
         areaService.fetchAreaData();
         venueService.fetchVenueData();
         sportService.fetchSportData();

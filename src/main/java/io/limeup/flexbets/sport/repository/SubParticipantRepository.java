@@ -29,7 +29,7 @@ public interface SubParticipantRepository extends ExternalIdRepository<SubPartic
           )
     ) AS counted
     """, nativeQuery = true)
-    int countSubParticipants(
+    long countSubParticipants(
             @Param("competitionId") Integer competitionId,
             @Param("positions") List<String> positions,
             @Param("participantIds") List<Integer> participantIds,

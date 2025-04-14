@@ -1,30 +1,42 @@
 package io.limeup.flexbets.sport.service.impl;
 
 import io.limeup.flexbets.sport.dto.CompetitionDTO;
+import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
 import io.limeup.flexbets.sport.mapper.CompetitionMapper;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
+import io.limeup.flexbets.sport.model.CompetitionType;
 import io.limeup.flexbets.sport.model.Sport;
+import io.limeup.flexbets.sport.model.StatusType;
 import io.limeup.flexbets.sport.repository.CompetitionRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
+import io.limeup.flexbets.sport.utils.PaginationUtils;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competition, CompetitionDTO, Long> implements CompetitionService {
 
+    private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("name", "id");
+
     private final StatScoreProxyService statScoreProxyService;
+
+    private final CompetitionRepository competitionRepository;
 
     private final CompetitionMapper competitionMapper;
 
@@ -37,23 +49,28 @@ public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competitio
                                      AreaService areaService) {
         super(repository);
         this.statScoreProxyService = statScoreProxyService;
+        this.competitionRepository = repository;
         this.competitionMapper = competitionMapper;
         this.sportService = sportService;
         this.areaService = areaService;
     }
 
     @Override
-    public List<CompetitionDTO> listCompetitions(List<Integer> areaIds, List<Integer> sportIds, String dateFrom,
-                                                 String dateTo, String type, String gender, String statusType,
-                                                 RequestQueryDTO requestQuery) {
-        return null;
+    public PaginatedResponse<CompetitionDTO> listCompetitions(Integer areaId, Integer sportId, CompetitionType type, String gender, StatusType statusType,
+                                                              RequestQueryDTO requestQuery) {
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
+        PageRequest pageRequest = PaginationUtils.getPageRequest(requestQuery);
+        Page<Competition> pagedResult = competitionRepository.listCompetitions(areaId, sportId, type, gender, statusType, pageRequest);
+
+        return PaginationUtils.buildPaginatedResponse(CompetitionMapper.toDTO(pagedResult.getContent()), pagedResult.getTotalElements(),
+                requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @Override
     public Competition create(StatScoreCompetitionDTO dto) {
         Sport sport = sportService.readByExternalId(dto.getSportId()).get();
         Area area = areaService.readByExternalId(dto.getAreaId()).get();
-        return repository.save(competitionMapper.toEntity(dto, sport, area));
+        return competitionRepository.save(competitionMapper.toEntity(dto, sport, area));
     }
 
     @Override
@@ -86,6 +103,6 @@ public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competitio
                 })
                 .toList();
 
-        repository.saveAllAndFlush(competitions);
+        competitionRepository.saveAllAndFlush(competitions);
     }
 }

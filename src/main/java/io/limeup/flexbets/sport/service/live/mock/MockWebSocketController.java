@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.live.mock;
 
+import io.limeup.flexbets.sport.utils.ConstantUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -57,14 +58,14 @@ public class MockWebSocketController extends TextWebSocketHandler {
     }
 
     private void handleSubscription(WebSocketSession session, JsonNode jsonNode) throws IOException {
-        int eventId = jsonNode.get("event_id").asInt();
+        int eventId = jsonNode.get(ConstantUtils.StatScoreWebClient.EVENT_ID).asInt();
         List<Map<String, Object>> subList = new ArrayList<>();
-        subList.add(Map.of("event_id", eventId));
+        subList.add(Map.of(ConstantUtils.StatScoreWebClient.EVENT_ID, eventId));
         if (jsonNode.has("subscriptions")) {
             for (JsonNode sub : jsonNode.get("subscriptions")) {
                 Map<String, Object> subData = new HashMap<>();
-                subData.put("sub_participant_id", sub.get("sub_participant_id").asInt());
-                subData.put("market_ids", objectMapper.convertValue(sub.get("market_ids"), List.class));
+                subData.put(ConstantUtils.Mock.SUB_PARTICIPANT_ID, sub.get(ConstantUtils.Mock.SUB_PARTICIPANT_ID).asInt());
+                subData.put(ConstantUtils.Mock.MARKET_IDS, objectMapper.convertValue(sub.get(ConstantUtils.Mock.MARKET_IDS), List.class));
                 subList.add(subData);
             }
         }
@@ -98,7 +99,7 @@ public class MockWebSocketController extends TextWebSocketHandler {
             List<Map<String, Object>> clientSubscriptions = subscriptions.get(session.getId());
             if (clientSubscriptions != null) {
                 try {
-                    int eventId = (int) clientSubscriptions.get(0).get("event_id");
+                    int eventId = (int) clientSubscriptions.get(0).get(ConstantUtils.StatScoreWebClient.EVENT_ID);
                     Map<String, Object> lastState = lastEventState.get(eventId);
                     Map<String, Object> filteredUpdate = mockLiveDataFilter.filterEventData(fullUpdate, clientSubscriptions);
 

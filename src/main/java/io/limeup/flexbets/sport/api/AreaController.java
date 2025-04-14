@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.dto.AreaDTO;
+import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.AreaService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class AreaController {
     private final AreaService areaService;
 
     @GetMapping("/list")
-    public ResponseEntity<List<AreaDTO>> listAreas(
+    public ResponseEntity<PaginatedResponse<AreaDTO>> listAreas(
             @RequestParam(required = false, name = "area_ids") List<Integer> areaIds,
             @RequestParam(required = false) String name,
             @ParameterObject RequestQueryDTO requestQuery) {

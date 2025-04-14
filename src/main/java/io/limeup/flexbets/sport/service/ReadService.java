@@ -4,16 +4,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface ReadService<T, D, ID> {
+public interface ReadService<T, D, I> {
 
-    Optional<T> readById(ID id);
+    Optional<T> readById(I id);
 
-    T readByIdSafe(ID id);
+    T readByIdSafe(I id);
 
-    List<T> readByIds(List<ID> ids);
+    List<T> readByIds(List<I> ids);
 
-    D readDTOByIdSafe(ID id, Function<T, D> toDto);
+    D readDTOByIdSafe(I id, Function<T, D> toDto);
 
-    List<D> readDTOByIds(List<ID> ids, Function<T, D> toDto);
+    List<D> readDTOByIds(List<I> ids, Function<T, D> toDto);
 
 }

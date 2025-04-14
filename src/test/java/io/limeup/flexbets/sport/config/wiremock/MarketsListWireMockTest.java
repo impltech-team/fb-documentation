@@ -21,12 +21,12 @@ public class MarketsListWireMockTest extends BaseWireMockTest {
     private void setupStub() {
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathMatching(MARKETS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, CONTENT_TYPE)
                         .withBodyFile("markets_response.json")
                         .withStatus(200)));
         getWireMockServer().stubFor(WireMock.post(WireMock.urlPathMatching(ODDS_BATCH_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, CONTENT_TYPE)
                         .withBodyFile("odds_batch_response.json")
                         .withStatus(200)));
     }

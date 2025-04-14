@@ -26,6 +26,7 @@ import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
 import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
+import io.limeup.flexbets.sport.utils.ConstantUtils;
 import io.limeup.flexbets.sport.utils.StatScoreDateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/events/{eventId}/sub-participants",
                 Map.of("eventId", eventId),
                 Map.of(),
-                "sub_participants",
+                ConstantUtils.StatScoreWebClient.SUB_PARTICIPANTS,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -68,21 +69,21 @@ public class StatScoreClientImpl implements StatScoreClient {
     @Override
     public Mono<StatScoreResponse<ListWrapper<StatScoreParticipantDTO>>> getParticipants(ParticipantQueryParams params, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
-        queryParams.put("sport_id", params.getSportId());
-        queryParams.put("limit", params.getLimit());
-        queryParams.put("page", params.getPage());
-        queryParams.put("season_id", params.getSeasonId());
-        queryParams.put("area_id", params.getAreaId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SPORT_ID, params.getSportId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, params.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, params.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SEASON_ID, params.getSeasonId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.AREA_ID, params.getAreaId());
         queryParams.put("subtype", Optional.ofNullable(params.getSubtype()).map(Enum::name).orElse(null));
         queryParams.put("type", Optional.ofNullable(params.getType()).map(Enum::name).orElse(null));
         queryParams.put("virtual", params.getVirtual());
-        queryParams.put("multi_ids", params.getMultiIds());
+        queryParams.put(ConstantUtils.StatScoreWebClient.MULTI_IDS, params.getMultiIds());
 
         return fetchListWrapper(
                 "/participants",
                 Map.of(),
                 queryParams,
-                "participants",
+                ConstantUtils.StatScoreWebClient.PARTICIPANTS,
                 new TypeReference<>() {
                 },
                 retryEnabled
@@ -95,7 +96,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/participants/" + participantId,
                 Map.of(),
                 Map.of(),
-                "participant",
+                ConstantUtils.StatScoreWebClient.PARTICIPANT,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -107,17 +108,17 @@ public class StatScoreClientImpl implements StatScoreClient {
 
         queryParams.put("date_from", StatScoreDateTimeUtils.formatDateTime(query.getDateFrom()));
         queryParams.put("date_to", StatScoreDateTimeUtils.formatDateTime(query.getDateTo()));
-        queryParams.put("sport_id", query.getSportId());
-        queryParams.put("area_id", query.getAreaId());
-        queryParams.put("competition_id", query.getCompetitionId());
-        queryParams.put("season_id", query.getSeasonId());
-        queryParams.put("stage_id", query.getStageId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SPORT_ID, query.getSportId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.AREA_ID, query.getAreaId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.COMPETITION_ID, query.getCompetitionId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SEASON_ID, query.getSeasonId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.STAGE_ID, query.getStageId());
         queryParams.put("group_id", query.getGroupId());
-        queryParams.put("participant_id", query.getParticipantId());
-        queryParams.put("multi_ids", query.getMultiIds());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, query.getParticipantId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.MULTI_IDS, query.getMultiIds());
         queryParams.put("venue_type", query.getVenueType());
         queryParams.put("venue_id", query.getVenueId());
-        queryParams.put("sort_type", query.getSortType());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SORT_TYPE, query.getSortType());
         queryParams.put("sort_order", query.getSortOrder());
         queryParams.put("relation_status", query.getRelationStatus());
         queryParams.put("status_id", query.getStatusId());
@@ -131,15 +132,15 @@ public class StatScoreClientImpl implements StatScoreClient {
         queryParams.put("product", query.getProduct());
         queryParams.put("booked", query.getBooked());
         queryParams.put("tz", query.getTz());
-        queryParams.put("timestamp", query.getTimestamp());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
 
         return fetchListWrapper(
                 "/events",
                 Map.of(),
                 queryParams,
-                "competitions",
+                ConstantUtils.StatScoreWebClient.COMPETITIONS,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -151,7 +152,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/events/" + eventId,
                 Map.of(),
                 Map.of(),
-                "competition",
+                ConstantUtils.StatScoreWebClient.COMPETITION,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -160,12 +161,12 @@ public class StatScoreClientImpl implements StatScoreClient {
     @Override
     public Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getSquadSubParticipants(Integer participantId, Integer seasonId, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
-        queryParams.put("season_id", seasonId);
+        queryParams.put(ConstantUtils.StatScoreWebClient.SEASON_ID, seasonId);
         return fetchListWrapper(
                 "/participants/{participant_id}/squad",
-                Map.of("participant_id", participantId),
+                Map.of(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, participantId),
                 queryParams,
-                "participants",
+                ConstantUtils.StatScoreWebClient.PARTICIPANTS,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -175,11 +176,11 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreAreaDTO>>> getAreas(AreaQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("lang", query.getLang());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LANG, query.getLang());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
         queryParams.put("parent_area_id", query.getParentAreaId());
-        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
 
         return fetchListWrapper(
                 "/areas",
@@ -195,9 +196,9 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreSportLiteDTO>>> getSports(SportQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
-        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
 
         return fetchListWrapper(
                 "/sports",
@@ -225,11 +226,11 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreVenueDTO>>> getVenues(VenueQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("sport_id", query.getSportId());
-        queryParams.put("participant_id", query.getParticipantId());
-        queryParams.put("timestamp", query.getTimestamp());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SPORT_ID, query.getSportId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, query.getParticipantId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
 
         return fetchListWrapper(
                 "/venues",
@@ -257,7 +258,7 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreBracketDTO>>> getBrackets(Integer stageId, boolean retryEnabled) {
         return fetchListWrapper(
                 "/brackets/{stage_id}",
-                Map.of("stage_id", stageId),
+                Map.of(ConstantUtils.StatScoreWebClient.STAGE_ID, stageId),
                 Map.of(),
                 "nodes",
                 new TypeReference<>() {},
@@ -269,16 +270,16 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getGroups(GroupQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("stage_id", query.getStageId());
-        queryParams.put("timestamp", query.getTimestamp());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.STAGE_ID, query.getStageId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
 
         return fetchSingleNodeWrapped(
                 "/groups",
                 Map.of(),
                 queryParams,
-                "competition",
+                ConstantUtils.StatScoreWebClient.COMPETITION,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -288,24 +289,24 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getSeasons(SeasonQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("lang", query.getLang());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
-        queryParams.put("sport_id", query.getSportId());
-        queryParams.put("competition_id", query.getCompetitionId());
-        queryParams.put("participant_id", query.getParticipantId());
-        queryParams.put("multi_ids", query.getMultiIds());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LANG, query.getLang());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SPORT_ID, query.getSportId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.COMPETITION_ID, query.getCompetitionId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, query.getParticipantId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.MULTI_IDS, query.getMultiIds());
         queryParams.put("year", query.getYear());
-        queryParams.put("sort_type", query.getSortType());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SORT_TYPE, query.getSortType());
         queryParams.put("sort_order", query.getSortOrder());
-        queryParams.put("area_id", query.getAreaId());
-        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.AREA_ID, query.getAreaId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
 
         return fetchListWrapper(
                 "/seasons",
                 Map.of(),
                 Map.of(),
-                "competitions",
+                ConstantUtils.StatScoreWebClient.COMPETITIONS,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -317,7 +318,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/seasons/" + seasonId,
                 Map.of(),
                 Map.of(),
-                "competition",
+                ConstantUtils.StatScoreWebClient.COMPETITION,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -327,16 +328,16 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<StatScoreCompetitionDTO>> getStages(StageQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("season_id", query.getSeasonId());
-        queryParams.put("timestamp", query.getTimestamp());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SEASON_ID, query.getSeasonId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
 
         return fetchSingleNodeWrapped(
                 "/stages",
                 Map.of(),
                 queryParams,
-                "competition",
+                ConstantUtils.StatScoreWebClient.COMPETITION,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -348,7 +349,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/stages/" + stageId,
                 Map.of(),
                 Map.of(),
-                "competition",
+                ConstantUtils.StatScoreWebClient.COMPETITION,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -358,18 +359,18 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreStandingDTO>>> getStandings(StandingQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("lang", query.getLang());
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LANG, query.getLang());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
         queryParams.put("object_type", query.getObjectType());
         queryParams.put("object_id", query.getObjectId());
         queryParams.put("type_id", query.getTypeId());
         queryParams.put("subtype", query.getSubtype());
-        queryParams.put("sport_id", query.getSportId());
-        queryParams.put("competition_id", query.getCompetitionId());
-        queryParams.put("season_id", query.getSeasonId());
-        queryParams.put("stage_id", query.getStageId());
-        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SPORT_ID, query.getSportId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.COMPETITION_ID, query.getCompetitionId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SEASON_ID, query.getSeasonId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.STAGE_ID, query.getStageId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
         queryParams.put("item_status", query.getItemStatus());
 
         return fetchListWrapper(
@@ -386,9 +387,9 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<StatScoreStandingDTO>> getStandingById(Integer standingId, StandingByIdQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("lang", query.getLang());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LANG, query.getLang());
         queryParams.put("subparticipant_id", query.getSubParticipantId());
-        queryParams.put("participant_id", query.getParticipantId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, query.getParticipantId());
 
         return fetchSingleNodeWrapped(
                 "/standings/" + standingId,
@@ -404,22 +405,22 @@ public class StatScoreClientImpl implements StatScoreClient {
     public Mono<StatScoreResponse<ListWrapper<StatScoreCompetitionDTO>>> getCompetitions(CompetitionQueryParams query, boolean retryEnabled) {
         Map<String, Object> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("lang", query.getLang());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LANG, query.getLang());
         queryParams.put("date_from", StatScoreDateTimeUtils.formatDateTime(query.getDateFrom()));
         queryParams.put("date_to", StatScoreDateTimeUtils.formatDateTime(query.getDateTo()));
-        queryParams.put("page", query.getPage());
-        queryParams.put("limit", query.getLimit());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PAGE, query.getPage());
+        queryParams.put(ConstantUtils.StatScoreWebClient.LIMIT, query.getLimit());
         queryParams.put("area_type", query.getAreaType());
         queryParams.put("type", query.getType());
-        queryParams.put("area_id", query.getAreaId());
-        queryParams.put("sport_id", query.getSportId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.AREA_ID, query.getAreaId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SPORT_ID, query.getSportId());
         queryParams.put("tour_id", query.getTourId());
-        queryParams.put("multi_ids", query.getMultiIds());
+        queryParams.put(ConstantUtils.StatScoreWebClient.MULTI_IDS, query.getMultiIds());
         queryParams.put("gender", query.getGender());
-        queryParams.put("timestamp", query.getTimestamp());
+        queryParams.put(ConstantUtils.StatScoreWebClient.TIMESTAMP, query.getTimestamp());
         queryParams.put("short_name", query.getShortName());
-        queryParams.put("sort_type", query.getSortType());
-        queryParams.put("participant_id", query.getParticipantId());
+        queryParams.put(ConstantUtils.StatScoreWebClient.SORT_TYPE, query.getSortType());
+        queryParams.put(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, query.getParticipantId());
         queryParams.put("status_type", query.getStatusType());
         queryParams.put("tz", query.getTz());
 
@@ -427,7 +428,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/competitions",
                 Map.of(),
                 queryParams,
-                "competitions",
+                ConstantUtils.StatScoreWebClient.COMPETITIONS,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -439,7 +440,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/competitions/" + competitionId,
                 Map.of(),
                 Map.of(),
-                "competitions",
+                ConstantUtils.StatScoreWebClient.COMPETITIONS,
                 new TypeReference<>() {},
                 retryEnabled
         );
@@ -451,7 +452,7 @@ public class StatScoreClientImpl implements StatScoreClient {
                 "/events/{eventId}/participants",
                 Map.of("eventId", eventId),
                 Map.of(),
-                "participants",
+                ConstantUtils.StatScoreWebClient.PARTICIPANTS,
                 new TypeReference<>() {},
                 retryEnabled
         );

@@ -26,7 +26,7 @@ public class CompetitionsWireMockTest extends BaseWireMockTest {
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(COMPETITIONS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("competitions_response.json")
                         .withStatus(200)));
     }

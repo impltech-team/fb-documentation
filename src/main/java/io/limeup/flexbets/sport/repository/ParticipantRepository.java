@@ -25,7 +25,7 @@ public interface ParticipantRepository extends ExternalIdRepository<Participant,
           )
     ) AS counted
     """, nativeQuery = true)
-    int countParticipants(
+    long countParticipants(
             @Param("competitionId") Integer competitionId,
             @Param("participantIds") List<Integer> participantIds,
             @Param("filter") String filter

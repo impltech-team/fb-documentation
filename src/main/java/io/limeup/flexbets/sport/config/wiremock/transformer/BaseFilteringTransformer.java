@@ -26,6 +26,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class BaseFilteringTransformer implements ResponseTransformerV2 {
 
+    public static final String PAGE = "page";
+    public static final String PAGE_SIZE = "page_size";
+    public static final String COUNT = "count";
+    public static final String TOTAL_PAGES = "total_pages";
+    public static final String CURRENT_PAGE_COUNT = "current_page_count";
+    public static final String FILTER = "filter";
+
     protected final ObjectMapper objectMapper = new ObjectMapper();
     private static final Random RANDOM = new Random();
 
@@ -35,8 +42,8 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
             LoggedRequest request = serveEvent.getRequest();
 
             // Extract pagination parameters
-            int pageSize = Integer.parseInt(extractQueryParam(request, "page_size", "50"));
-            int page = Integer.parseInt(extractQueryParam(request, "page", "1"));
+            int pageSize = Integer.parseInt(extractQueryParam(request, PAGE_SIZE, "50"));
+            int page = Integer.parseInt(extractQueryParam(request, PAGE, "1"));
 
             // Read response JSON
             JsonNode originalResponse = objectMapper.readTree(response.getBody());
@@ -49,7 +56,7 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
 
             ArrayNode dataArray = (ArrayNode) originalResponse.get(fieldKey);
 
-            // ✅ Extract filters based on the specific API implementation
+            // Extract filters based on the specific API implementation
             Map<String, List<String>> filters = extractFilters(request);
             Map<String, String> greaterFilters = extractGreaterFilters(request);
             Map<String, String> lessFilters = extractLessFilters(request);
@@ -60,17 +67,17 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
                     partialMatchFilters != null
                             && partialMatchFilters.values().stream().anyMatch(value -> value != null && !value.isEmpty());
 
-            // ✅ Apply filters only if filters exist
+            // Apply filters only if filters exist
             ArrayNode filteredDataArray = hasFilters ? filterDataArray(dataArray, filters, greaterFilters, lessFilters, partialMatchFilters) : dataArray;
 
-            // ✅ Apply pagination logic
+            // Apply pagination logic
             int count = getCount(pageSize, page, filteredDataArray);
             int totalPages = (int) Math.ceil((double) count / pageSize);
 
-            // ✅ Modify response JSON dynamically
+            // Modify response JSON dynamically
             ((ObjectNode) originalResponse).set(fieldKey, filteredDataArray);
-            ((ObjectNode) originalResponse).put("count", count);
-            ((ObjectNode) originalResponse).put("total_pages", totalPages);
+            ((ObjectNode) originalResponse).put(COUNT, count);
+            ((ObjectNode) originalResponse).put(TOTAL_PAGES, totalPages);
 
             return Response.response().body(objectMapper.writeValueAsString(originalResponse)).build();
 
@@ -140,17 +147,14 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
             String field = entry.getKey();
             String filterValue = entry.getValue();
 
-            if (filterValue != null && !filterValue.isEmpty()) {
-                if (item.has(field)) {
-                    String itemValue = item.get(field).asText().toLowerCase();
+            if (filterValue != null && !filterValue.isEmpty() && item.has(field)) {
+                String itemValue = item.get(field).asText().toLowerCase();
 
-                    if (itemValue.contains(filterValue.toLowerCase())) {
-                        return true;
-                    }
+                if (itemValue.contains(filterValue.toLowerCase())) {
+                    return true;
                 }
             }
         }
-
         return false;
     }
 

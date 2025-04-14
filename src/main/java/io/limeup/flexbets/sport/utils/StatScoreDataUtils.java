@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 public class StatScoreDataUtils {
 
+    private StatScoreDataUtils() {
+
+    }
+
     public static <D, E> void mergeAndSaveDTOs(
             List<D> fetchedDTOs,
             Function<D, Integer> dtoExternalIdExtractor,

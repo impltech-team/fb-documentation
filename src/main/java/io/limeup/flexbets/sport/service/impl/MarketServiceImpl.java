@@ -10,7 +10,6 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.MarketService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,16 +18,16 @@ import java.util.stream.Collectors;
 @Service
 public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketLiteDTO, Long> implements MarketService {
 
-    private final MarketRepository repository;
+    private final MarketRepository marketRepository;
 
     protected MarketServiceImpl(MarketRepository repository) {
         super(repository);
-        this.repository = repository;
+        this.marketRepository = repository;
     }
 
     @Override
     public List<MarketLiteDTO> listMarkets(Integer competitionId, MarketType marketType) {
-        return repository.findByCompetitionAndOptionalType(competitionId, marketType)
+        return marketRepository.findByCompetitionAndOptionalType(competitionId, marketType)
                 .stream()
                 .map(MarketMapper::toLiteDTO)
                 .collect(Collectors.toList());
@@ -36,7 +35,7 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
 
     @Override
     public List<Market> listMarketEntities(Integer competitionId, MarketType marketType) {
-        return repository.findByCompetitionAndOptionalType(competitionId, marketType);
+        return marketRepository.findByCompetitionAndOptionalType(competitionId, marketType);
     }
 
     @Override

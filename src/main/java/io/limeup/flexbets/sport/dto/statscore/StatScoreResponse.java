@@ -20,8 +20,8 @@ public class StatScoreResponse<T> {
         private String name;
         private String details;
         private Map<String, Object> parameters;
-        private Integer total_items;
-        private String previous_page;
-        private String next_page;
+        private Integer totalItems;
+        private String previousPage;
+        private String nextPage;
     }
 }
