@@ -36,7 +36,7 @@ public class AreaMapper {
 
         return areaList.stream().map(area -> {
             AreaDTO dto = new AreaDTO();
-            dto.setId(area.getId());
+            dto.setId(area.getExternalId());
             dto.setName(area.getName());
             dto.setCountryCode(area.getAreaCode());
             return dto;

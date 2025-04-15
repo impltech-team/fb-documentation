@@ -113,6 +113,9 @@ public class PaginationUtils {
     public static PageRequest getPageRequest(RequestQueryDTO requestQuery) {
         PageRequest pageRequest;
         if (StringUtils.isNotBlank(requestQuery.getSortBy())) {
+            if (requestQuery.getSortBy().equals("id")) {
+                requestQuery.setSortBy("external_id");
+            }
             Sort sort = Sort.by(Sort.Direction.fromString(requestQuery.getSortOrder()), requestQuery.getSortBy());
             pageRequest = PageRequest.of(requestQuery.getPage() - 1, requestQuery.getPageSize(), sort);
         } else {
