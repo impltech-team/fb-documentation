@@ -7,7 +7,6 @@ import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
-import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.repository.projection.SubParticipantStatRow;
 import org.springframework.stereotype.Component;
@@ -26,14 +25,14 @@ import java.util.stream.Collectors;
 @Component
 public class SubParticipantMapper {
 
-    public SubParticipant toEntity(StatScoreSubParticipantDTO dto, Area area, Participant participant, Competition competition) {
+    public SubParticipant toEntity(StatScoreSubParticipantDTO dto, Area area, Competition competition) {
         if (dto == null) return null;
 
         SubParticipant entity = new SubParticipant();
-        return updateEntity(entity, dto, area, participant, competition);
+        return updateEntity(entity, dto, area, competition);
     }
 
-    public SubParticipant updateEntity(SubParticipant entity, StatScoreSubParticipantDTO dto, Area area, Participant participant, Competition competition) {
+    public SubParticipant updateEntity(SubParticipant entity, StatScoreSubParticipantDTO dto, Area area, Competition competition) {
         if (dto == null || entity == null) return entity;
         entity.setExternalId(dto.getId());
         entity.setPlayerName(dto.getName());
@@ -56,9 +55,6 @@ public class SubParticipantMapper {
         }
 
         entity.setArea(area);
-        if (participant != null) {
-            entity.setParticipant(participant);
-        }
         entity.setCompetition(competition);
         return entity;
     }

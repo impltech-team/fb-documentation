@@ -36,7 +36,6 @@ public class EventMapper {
 
         entity.setCompetition(competition);
         entity.setVenue(venue);
-        entity.setParticipants(new ArrayList<>());
         entity.setSeasonExternalId(season.getId());
         entity.setSeasonName(season.getName());
         return entity;

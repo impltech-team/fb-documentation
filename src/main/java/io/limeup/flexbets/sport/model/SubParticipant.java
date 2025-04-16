@@ -52,9 +52,8 @@ public class SubParticipant {
     @JoinColumn(name = "area_id", referencedColumnName = "id")
     private Area area;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "participant_id", referencedColumnName = "id")
-    private Participant participant;
+    @OneToMany(mappedBy = "subParticipant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<EventSubParticipant> participations;
 
     @OneToMany(mappedBy = "targetId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EventStat> historicalStats;
