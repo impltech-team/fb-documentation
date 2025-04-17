@@ -211,7 +211,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
     
     appeared_events AS (
 		SELECT
-			ranked.sub_participant_id,
+			ranked.id AS sub_participant_id,
 			ranked.event_id,
 			ranked.start_date,
 			ranked.name,
@@ -219,17 +219,17 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			ep.event_acronyms
 		FROM (
 			SELECT
-				pp.sub_participant_id,
+				pp.id,
 				es.event_id,
 				e.start_date,
 				e.name,
 				ROW_NUMBER() OVER (
-					PARTITION BY pp.sub_participant_id
+					PARTITION BY pp.id
 					ORDER BY e.start_date DESC
 				) AS rn
-			FROM paged_players pp
+			FROM sub_participant pp
 			LEFT JOIN sport.event_stat es
-				ON es.target_id = pp.sub_participant_id
+				ON es.target_id = pp.id
 			   AND es.stat_name = 'Appearance'
 			   AND es.value_raw = '1'
 			   AND es.value_numeric = 1.0
