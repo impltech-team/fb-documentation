@@ -227,7 +227,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 					PARTITION BY pp.id
 					ORDER BY e.start_date DESC
 				) AS rn
-			FROM sub_participant pp
+			FROM sport.sub_participant pp
 			LEFT JOIN sport.event_stat es
 				ON es.target_id = pp.id
 			   AND es.stat_name = 'Appearance'
