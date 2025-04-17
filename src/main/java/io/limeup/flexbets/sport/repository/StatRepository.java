@@ -279,9 +279,9 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 	JOIN sport.competition comp ON comp.id = sp.competition_id
 	JOIN sport.area a ON a.id = sp.area_id
 	LEFT JOIN future_event_map fem ON fem.sub_participant_id = sp.id
-	LEFT JOIN sport.event_sub_participant esp ON esp.sub_participant_id = sp.id AND esp.event_id = fem.future_event_id
-	LEFT JOIN sport.participant p ON p.id = esp.participant_id
 	LEFT JOIN appeared_events ae ON ae.sub_participant_id = sp.id
+	LEFT JOIN sport.event_sub_participant esp ON esp.sub_participant_id = sp.id AND esp.event_id = ae.event_id
+	LEFT JOIN sport.participant p ON p.id = esp.participant_id
 	LEFT JOIN sport.event_stat es
 	  ON es.event_id = ae.event_id
 	 AND es.target_id = ae.sub_participant_id
