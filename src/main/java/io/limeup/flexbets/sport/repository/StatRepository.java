@@ -122,7 +122,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
             es.stat_name AS stat_name,
             es.value_raw AS value_raw,
             es.value_numeric AS value_numeric,
-            es.event_id AS event_id,
+            ev.external_id AS event_id,
             ae.name AS event_name,
             ae.start_date AS event_start_date,
             sp.external_id AS id,
@@ -156,10 +156,11 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
             LEFT JOIN appeared_events ae ON ae.sub_participant_id = sp.id
             LEFT JOIN sport.event_stat es
               ON es.event_id = ae.event_id
-             AND es.target_id = ae.sub_participant_id
-             AND es.target_type = 'SUBPARTICIPANT'
-             AND (:statNames IS NULL OR es.stat_name IN (:statNames))
-             ORDER BY
+              AND es.target_id = ae.sub_participant_id
+              AND es.target_type = 'SUBPARTICIPANT'
+              AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+            LEFT JOIN sport.event ev ON ev.id = es.event_id
+            ORDER BY
                 CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'asc' THEN sp.player_name END ASC,
                 CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'desc' THEN sp.player_name END DESC,
                 CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN p.team_name END ASC,
@@ -245,13 +246,24 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			GROUP BY esp.event_id
 		) ep ON ep.event_id = ranked.event_id
 		WHERE ranked.rn <= 5
+	),
+	
+	last_participant AS (
+		SELECT esp.sub_participant_id, esp.participant_id
+		FROM sport.event_sub_participant esp
+		JOIN sport.event e ON e.id = esp.event_id
+		WHERE esp.sub_participant_id = (
+			SELECT id FROM sport.sub_participant WHERE external_id = :subParticipantId
+		)
+		ORDER BY e.start_date DESC
+		LIMIT 1
 	)
 	
 	SELECT
 		es.stat_name AS stat_name,
 		es.value_raw AS value_raw,
 		es.value_numeric AS value_numeric,
-		es.event_id AS event_id,
+		ev.external_id AS event_id,
 		ae.name AS event_name,
 		ae.start_date AS event_start_date,
 		sp.external_id AS id,
@@ -280,14 +292,15 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 	JOIN sport.area a ON a.id = sp.area_id
 	LEFT JOIN future_event_map fem ON fem.sub_participant_id = sp.id
 	LEFT JOIN appeared_events ae ON ae.sub_participant_id = sp.id
-	LEFT JOIN sport.event_sub_participant esp ON esp.sub_participant_id = sp.id AND esp.event_id = ae.event_id
-	LEFT JOIN sport.participant p ON p.id = esp.participant_id
+	LEFT JOIN last_participant lp ON lp.sub_participant_id = sp.id
+	LEFT JOIN sport.participant p ON p.id = lp.participant_id
 	LEFT JOIN sport.event_stat es
 	  ON es.event_id = ae.event_id
-	 AND es.target_id = ae.sub_participant_id
-	 AND es.target_type = 'SUBPARTICIPANT'
-	 AND (:statNames IS NULL OR es.stat_name IN (:statNames))
-	 WHERE sp.external_id = :subParticipantId
+	  AND es.target_id = ae.sub_participant_id
+	  AND es.target_type = 'SUBPARTICIPANT'
+	  AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+	LEFT JOIN sport.event ev ON ev.id = es.event_id
+	WHERE sp.external_id = :subParticipantId
     """, nativeQuery = true)
     List<SubParticipantStatRow> getSubParticipantStatsDetails(
             @Param("subParticipantId") Integer subParticipantId,
@@ -348,7 +361,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			LIMIT :limit
 		),
 		
-		top_5_played_events AS (
+		top_played_events AS (
 			SELECT *
 				FROM (
 					SELECT
@@ -376,9 +389,9 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			es.stat_name AS stat_name,
 			es.value_raw AS value_raw,
 			es.value_numeric AS value_numeric,
-			es.event_id AS event_id,
-			t5.name AS event_name,
-			t5.start_date AS event_start_date,
+			ev.external_id AS event_id,
+			t.name AS event_name,
+			t.start_date AS event_start_date,
 			p.external_id AS id,
 			p.team_name AS team_name,
 			p.acronym AS acronym,
@@ -387,18 +400,19 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			fem.future_event_external_id AS future_event_id,
 			fem.future_event_name AS future_event_name,
 			fem.future_event_start_date AS future_event_start_date,
-			t5.event_acronyms AS event_participant_acronyms,
+			t.event_acronyms AS event_participant_acronyms,
 			fem.future_event_acronyms
 		FROM paged_participants pp
 		JOIN sport.participant p ON p.id = pp.participant_id
 		JOIN sport.competition comp ON comp.id = p.competition_id
 		LEFT JOIN future_event_map fem ON fem.participant_id = p.id
-		LEFT JOIN top_5_played_events t5 ON t5.participant_id = p.id
+		LEFT JOIN top_played_events t ON t.participant_id = p.id
 		LEFT JOIN sport.event_stat es
-		  ON es.event_id = t5.event_id
-		 AND es.target_id = t5.participant_id
-		 AND es.target_type = 'PARTICIPANT'
-		 AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+		  ON es.event_id = t.event_id
+		  AND es.target_id = t.participant_id
+		  AND es.target_type = 'PARTICIPANT'
+		  AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+		LEFT JOIN sport.event ev ON ev.id = es.event_id
 		ORDER BY
 			CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN p.team_name END ASC,
 			CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'desc' THEN p.team_name END DESC,
@@ -439,7 +453,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			ORDER BY p.id, fe.start_date
 		),
 		
-		top_5_played_events AS (
+		top_played_events AS (
 			SELECT *
 			FROM (
 				SELECT
@@ -467,9 +481,9 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			es.stat_name AS stat_name,
 			es.value_raw AS value_raw,
 			es.value_numeric AS value_numeric,
-			es.event_id AS event_id,
-			t5.name AS event_name,
-			t5.start_date AS event_start_date,
+			ev.external_id AS event_id,
+			t.name AS event_name,
+			t.start_date AS event_start_date,
 			p.external_id AS id,
 			p.team_name AS team_name,
 			p.acronym AS acronym,
@@ -478,17 +492,18 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			fem.future_event_external_id AS future_event_id,
 			fem.future_event_name AS future_event_name,
 			fem.future_event_start_date AS future_event_start_date,
-			t5.event_acronyms AS event_participant_acronyms,
+			t.event_acronyms AS event_participant_acronyms,
 			fem.future_event_acronyms
 		FROM sport.participant p
 		JOIN sport.competition comp ON comp.id = p.competition_id
 		LEFT JOIN future_event_map fem ON fem.participant_id = p.id
-		LEFT JOIN top_5_played_events t5 ON t5.participant_id = p.id
+		LEFT JOIN top_played_events t ON t.participant_id = p.id
 		LEFT JOIN sport.event_stat es
-		  ON es.event_id = t5.event_id
-		 AND es.target_id = p.id
-		 AND es.target_type = 'PARTICIPANT'
-		 AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+		  ON es.event_id = t.event_id
+		  AND es.target_id = p.id
+		  AND es.target_type = 'PARTICIPANT'
+		  AND (:statNames IS NULL OR es.stat_name IN (:statNames))
+		LEFT JOIN sport.event ev ON ev.id = es.event_id
 		WHERE p.external_id = :participantId
     """, nativeQuery = true)
     List<ParticipantStatRow> getParticipantStatsDetails(
