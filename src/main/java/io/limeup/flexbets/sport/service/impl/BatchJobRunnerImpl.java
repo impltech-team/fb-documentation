@@ -15,6 +15,7 @@ import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +33,15 @@ public class BatchJobRunnerImpl implements BatchJobRunner {
 
     private final CompetitionService competitionService;
 
-    public BatchJobRunnerImpl(PrefetchLogRepository prefetchLogRepository, JobRegistry jobRegistry, JobLauncher jobLauncher, CompetitionService competitionService) {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public BatchJobRunnerImpl(PrefetchLogRepository prefetchLogRepository, JobRegistry jobRegistry, JobLauncher jobLauncher,
+                              CompetitionService competitionService, ApplicationEventPublisher eventPublisher) {
         this.prefetchLogRepository = prefetchLogRepository;
         this.jobRegistry = jobRegistry;
         this.jobLauncher = jobLauncher;
         this.competitionService = competitionService;
+        this.eventPublisher = eventPublisher;
     }
 
 
@@ -61,17 +66,7 @@ public class BatchJobRunnerImpl implements BatchJobRunner {
             }
         }
 
-        JobParameters params = new JobParametersBuilder()
-                .addLong("runTime", System.currentTimeMillis())
-                .toJobParameters();
-        Job prefetchJob = null;
-        try {
-            prefetchJob = jobRegistry.getJob(ConstantUtils.Batch.PRE_FETCH_STAT_SCORE_DATA_JOB);
-            jobLauncher.run(prefetchJob, params);
-        } catch (NoSuchJobException | JobInstanceAlreadyCompleteException | JobRestartException | JobParametersInvalidException | JobExecutionAlreadyRunningException e) {
-            e.printStackTrace();
-        }
-
+        eventPublisher.publishEvent(ConstantUtils.Batch.PRE_FETCH_STAT_SCORE_DATA_JOB);
         return ResponseEntity.ok("Prefetch job triggered for next " + days + " days.");
     }
 }
