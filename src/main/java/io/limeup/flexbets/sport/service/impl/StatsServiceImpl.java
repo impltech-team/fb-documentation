@@ -1,6 +1,5 @@
 package io.limeup.flexbets.sport.service.impl;
 
-import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
@@ -18,12 +17,14 @@ import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.EventStat;
 import io.limeup.flexbets.sport.model.EventSubParticipant;
 import io.limeup.flexbets.sport.model.Participant;
+import io.limeup.flexbets.sport.model.PrefetchLog;
 import io.limeup.flexbets.sport.model.StatTargetType;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.EventSubParticipantRepository;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
+import io.limeup.flexbets.sport.repository.PrefetchLogRepository;
 import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.SubParticipantRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
@@ -35,14 +36,24 @@ import io.limeup.flexbets.sport.dto.StatsResponseDTO;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
-import org.springframework.scheduling.annotation.Async;
+import io.limeup.flexbets.sport.utils.ConstantUtils;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,6 +66,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Transactional
 @Service
 public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, StatsResponseDTO, Long> implements StatsService {
 
@@ -118,15 +130,14 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
     record ParticipantEventSeasonCompetition(Participant participant, Event event, int seasonId,
                                              Competition competition, StatScoreEventParticipantDTO participantDTO) {}
 
-    @Async
-    @Transactional
     @Override
-    public void fetchStatData(int durationDays) {
+    public void fetchStatDataForCompetitionAndDate(Integer competitionId, LocalDate prefetchDate) {
         List<StatScoreDataService.EventContext> eventContexts = statScoreDataService.getAllEventsWithContext(EventQueryParams
                 .builder()
                 .limit(150)
-                .dateFrom(LocalDateTime.now())
-                .dateTo(LocalDateTime.now().plusDays(durationDays))
+                .dateFrom(prefetchDate.atStartOfDay())
+                .dateTo(prefetchDate.atStartOfDay().plusDays(1))
+                .competitionId(competitionId)
                 .build());
 
         Map<Integer, Participant> participantsToSave = new HashMap<>();
@@ -216,8 +227,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
             Competition competition = competitionService.readByExternalId(competitionDTO.getId())
                     .orElseGet(() -> competitionService.create(competitionDTO));
-            Venue venue = venueService.readByExternalId(ctx.event().getVenueId())
-                    .orElseGet(() -> venueService.create(statScoreProxyService.getVenueById(ctx.event().getVenueId(), true)));
+            Venue venue = venueService.readByExternalId(ctx.event().getVenueId()).orElse(null);
 
             Event event = existingEvents.get(eventDTO.getId());
             if (event == null) {

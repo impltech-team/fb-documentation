@@ -51,5 +51,7 @@ public class Market {
     @Column(name = "stat_name")
     private List<String> linkedStats = new ArrayList<>();
 
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 }
 

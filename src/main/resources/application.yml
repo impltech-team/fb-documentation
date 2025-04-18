@@ -8,6 +8,8 @@ wiremock:
 statscore:
   client: ${STATSCORE_CLIENT}
   secret: ${STATSCORE_SECRET}
+convert:
+  imperial: true
 
 spring:
   application:
@@ -24,7 +26,6 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        default_schema: sport
         jdbc:
           batch_size: 50
         order_inserts: true
@@ -34,6 +35,11 @@ spring:
     enabled: true
     schemas: sport
     locations: classpath:db/migration
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: false
   docker:
     compose:
       enabled: false

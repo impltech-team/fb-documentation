@@ -41,7 +41,8 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
 
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
-                                                                          List<Integer> participantIds, Integer marketId, RequestQueryDTO requestQuery) {
+                                                                    List<Integer> participantIds, Integer marketId,
+                                                                    Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
 
         Set<String> statNames = marketService.getStatsByMarket(competitionId, marketId, MarketType.SUB_PARTICIPANT);
@@ -60,6 +61,7 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 positions == null ? Collections.emptyList() : positions,
                 participantIds == null ? Collections.emptyList() : participantIds,
                 marketId,
+                maxHistoricalDataCount,
                 requestQuery.getFilter(),
                 requestQuery.getSortBy(),
                 requestQuery.getSortOrder(),
@@ -68,17 +70,18 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 statNames
         );
 
-        return PaginationUtils.buildPaginatedResponse(SubParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(
+                SubParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @Override
-    public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId) {
+    public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
         SubParticipant rawSubParticipant = externalIdRepository.findByExternalId(subParticipantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));
         Set<String> statNames = marketService.getStatsByMarket(
                 rawSubParticipant.getCompetition().getExternalId(), marketId, MarketType.SUB_PARTICIPANT);
         List<SubParticipantStatRow> subParticipantStatsDetails = statRepository.getSubParticipantStatsDetails(
-                subParticipantId, statNames);
+                subParticipantId, maxHistoricalDataCount, statNames);
         return SubParticipantMapper.toDTO(subParticipantStatsDetails)
                 .stream()
                 .findFirst()

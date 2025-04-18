@@ -530,8 +530,11 @@ public class StatScoreClientImpl implements StatScoreClient {
                     try {
                         JsonNode root = objectMapper.readTree(json);
                         methodNode = root.path("api").path("method");
-                        JsonNode node = root.path("api").path("data").path(listNodeName);
-                        items = objectMapper.readerFor(itemType).readValue(node);
+                        JsonNode dataNode = root.path("api").path("data");
+                        JsonNode listNode = dataNode.path(listNodeName);
+                        if (listNode.isArray()) {
+                            items = objectMapper.readerFor(itemType).readValue(listNode);
+                        }
                     } catch (IOException e) {
                         log.warn("Empty or malformed response from Sports-API ({})", url, e);
                         throw new RuntimeException("Malformed response from Sports-API", e);

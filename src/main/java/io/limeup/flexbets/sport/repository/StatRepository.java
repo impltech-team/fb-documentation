@@ -115,7 +115,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 				JOIN sport.participant p ON p.id = esp.participant_id
 				GROUP BY esp.event_id
 			) ep ON ep.event_id = ranked.event_id
-			WHERE ranked.rn <= 5
+			WHERE ranked.rn <= :maxHistoricalDataCount
 		)
         
         SELECT
@@ -176,6 +176,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
             @Param("positions") Collection<String> positions,
             @Param("participantIds") Collection<Integer> participantIds,
             @Param("marketId") Integer marketId,
+			@Param("maxHistoricalDataCount") Integer maxHistoricalDataCount,
             @Param("filter") String filter,
             @Param("sortBy") String sortBy,
             @Param("sortOrder") String sortOrder,
@@ -245,7 +246,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 			JOIN sport.participant p ON p.id = esp.participant_id
 			GROUP BY esp.event_id
 		) ep ON ep.event_id = ranked.event_id
-		WHERE ranked.rn <= 5
+		WHERE ranked.rn <= :maxHistoricalDataCount
 	),
 	
 	last_participant AS (
@@ -304,6 +305,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
     """, nativeQuery = true)
     List<SubParticipantStatRow> getSubParticipantStatsDetails(
             @Param("subParticipantId") Integer subParticipantId,
+            @Param("maxHistoricalDataCount") Integer maxHistoricalDataCount,
             @Param("statNames") Collection<String> statNames
     );
 
@@ -382,7 +384,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 					WHERE e.start_date < NOW()
 					GROUP BY pp.participant_id, e.id, e.name, e.start_date
 				) filtered
-				WHERE rn <= 5
+				WHERE rn <= :maxHistoricalDataCount
         )
 		
 		SELECT
@@ -426,6 +428,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
             @Param("competitionId") Integer competitionId,
             @Param("participantIds") List<Integer> participantIds,
             @Param("marketId") Integer marketId,
+			@Param("maxHistoricalDataCount") Integer maxHistoricalDataCount,
             @Param("filter") String filter,
             @Param("sortBy") String sortBy,
             @Param("sortOrder") String sortOrder,
@@ -474,7 +477,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
 				WHERE p.external_id = :participantId
 				GROUP BY p.id, e.id, e.name, e.start_date
 			) filtered
-			WHERE rn <= 5
+			WHERE rn <= :maxHistoricalDataCount
 		)
 		
 		SELECT
@@ -508,6 +511,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
     """, nativeQuery = true)
     List<ParticipantStatRow> getParticipantStatsDetails(
             @Param("participantId") Integer participantId,
+			@Param("maxHistoricalDataCount") Integer maxHistoricalDataCount,
             @Param("statNames") Collection<String> statNames
     );
 

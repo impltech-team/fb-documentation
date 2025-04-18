@@ -14,10 +14,12 @@ public class FlexBetsSportConfiguration {
     @Value("${wiremock.port}")
     private String wireMockPort;
 
-    //Will be moved to AWS secret manager
     @Value("${statscore.client}")
     private Integer statScoreClient;
 
     @Value("${statscore.secret}")
     private String statScoreSecret;
+
+    @Value("${convert.imperial}")
+    private boolean convertToImperial;
 }
