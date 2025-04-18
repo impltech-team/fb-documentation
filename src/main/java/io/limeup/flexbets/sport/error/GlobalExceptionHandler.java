@@ -6,6 +6,7 @@ import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -90,6 +91,14 @@ public class GlobalExceptionHandler {
         body.put(ConstantUtils.Common.STATUS, HttpStatus.BAD_REQUEST.value());
         body.put(ConstantUtils.Common.ERROR, "Validation Failed");
         body.put(ConstantUtils.Common.MESSAGE, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put(ConstantUtils.Common.STATUS, HttpStatus.BAD_REQUEST.value());
+        body.put(ConstantUtils.Common.ERROR, String.format("Missing required parameter: %s", ex.getParameterName()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 

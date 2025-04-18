@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.mapper;
 
+import io.limeup.flexbets.sport.config.FlexBetsSportConfiguration;
 import io.limeup.flexbets.sport.dto.EventLiteDTO;
 import io.limeup.flexbets.sport.dto.EventStatisticDTO;
 import io.limeup.flexbets.sport.dto.HistoricalStatDTO;
@@ -9,7 +10,11 @@ import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.repository.projection.SubParticipantStatRow;
+import io.limeup.flexbets.sport.utils.UnitConversionUtils;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import systems.uom.common.USCustomary;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -22,8 +27,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Component
 public class SubParticipantMapper {
+
+    private final FlexBetsSportConfiguration configuration;
 
     public SubParticipant toEntity(StatScoreSubParticipantDTO dto, Area area, Competition competition) {
         if (dto == null) return null;
@@ -41,8 +49,14 @@ public class SubParticipantMapper {
         entity.setGender(dto.getGender());
 
         if (dto.getDetails() != null) {
-            entity.setWeight(dto.getDetails().getWeight());
-            entity.setHeight(dto.getDetails().getHeight());
+            if (StringUtils.isNotBlank(dto.getDetails().getWeight())) {
+                entity.setWeight(UnitConversionUtils.convertWeightToPreferredUnit(Double.parseDouble(dto.getDetails().getWeight()),
+                        configuration.isConvertToImperial(), USCustomary.POUND));
+            }
+            if (StringUtils.isNotBlank(dto.getDetails().getHeight())) {
+                entity.setHeight(UnitConversionUtils.convertHeightToPreferredUnit(Double.parseDouble(dto.getDetails().getHeight()),
+                        configuration.isConvertToImperial(), USCustomary.INCH));
+            }
             entity.setPosition(dto.getDetails().getPositionName());
 
             if (dto.getDetails().getBirthdate() != null) {

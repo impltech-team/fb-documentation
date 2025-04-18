@@ -8,4 +8,6 @@ public interface ExternalIdReadService<T, D, I> extends ReadService<T, D, I> {
     Optional<T> readByExternalId(Integer externalId);
 
     List<T> readByExternalIdIn(List<Integer> externalIds);
+
+    List<Integer> findAllExternalIds();
 }

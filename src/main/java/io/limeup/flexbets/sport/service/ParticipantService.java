@@ -8,7 +8,8 @@ import java.util.List;
 
 public interface ParticipantService {
     PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
-                                                       Integer marketId, RequestQueryDTO requestQuery);
+                                                       Integer marketId, Integer maxHistoricalDataCount,
+                                                       RequestQueryDTO requestQuery);
 
-    ParticipantDTO getParticipantById(Integer participantId, Integer marketId);
+    ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount);
 }

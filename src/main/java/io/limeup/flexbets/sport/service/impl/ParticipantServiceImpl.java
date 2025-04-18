@@ -41,7 +41,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
 
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
-                                                              Integer marketId, RequestQueryDTO requestQuery) {
+                                                              Integer marketId, Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
 
         Set<String> statNames = marketService.getStatsByMarket(competitionId, marketId, MarketType.PARTICIPANT);
@@ -58,6 +58,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                 competitionId,
                 participantIds == null ? Collections.emptyList() : participantIds,
                 marketId,
+                maxHistoricalDataCount,
                 requestQuery.getFilter(),
                 requestQuery.getSortBy(),
                 requestQuery.getSortOrder(),
@@ -70,12 +71,12 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     }
 
     @Override
-    public ParticipantDTO getParticipantById(Integer participantId, Integer marketId) {
+    public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
         Participant rawParticipant = participantRepository.findByExternalId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
         Set<String> statNames = marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
         List<ParticipantStatRow> participantStatsDetails = statRepository.getParticipantStatsDetails(
-                participantId, statNames);
+                participantId, maxHistoricalDataCount, statNames);
         return ParticipantMapper.toDTO(participantStatsDetails)
                 .stream()
                 .findFirst()

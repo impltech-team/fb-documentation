@@ -46,4 +46,10 @@ public class ConstantUtils {
         public static final String PAGE = "page";
         public static final String LANG = "lang";
     }
+
+    public static final class Batch {
+        private Batch() {
+        }
+        public static final String PRE_FETCH_STAT_SCORE_DATA_JOB = "prefetchJob";
+    }
 }

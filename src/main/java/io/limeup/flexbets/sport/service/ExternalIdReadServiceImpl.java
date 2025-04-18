@@ -23,4 +23,9 @@ public class ExternalIdReadServiceImpl<T, D, I> extends ReadServiceImpl<T, D, I>
     public List<T> readByExternalIdIn(List<Integer> externalIds) {
         return externalIdRepository.findByExternalIdIn(externalIds);
     }
+
+    @Override
+    public List<Integer> findAllExternalIds() {
+        return externalIdRepository.findAllExternalIds();
+    }
 }
