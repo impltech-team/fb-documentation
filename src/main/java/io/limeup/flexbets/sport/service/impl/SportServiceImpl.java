@@ -18,12 +18,14 @@ import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+@Transactional
 @Service
 public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO, Long> implements SportService {
 

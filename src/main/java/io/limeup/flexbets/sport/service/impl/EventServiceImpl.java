@@ -7,9 +7,11 @@ import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.EventService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Transactional
 @Service
 public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO, Long> implements EventService {
 

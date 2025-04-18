@@ -16,11 +16,13 @@ import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+@Transactional
 @Service
 public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participant, ParticipantDTO, Long> implements ParticipantService {
 
