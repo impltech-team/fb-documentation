@@ -12,11 +12,13 @@ import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+@Transactional
 @Service
 public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO, Long> implements VenueService {
 
