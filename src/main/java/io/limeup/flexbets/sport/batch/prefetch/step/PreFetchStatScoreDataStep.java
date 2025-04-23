@@ -36,8 +36,6 @@ public class PreFetchStatScoreDataStep {
                 .processor(prefetchProcessor())
                 .writer(prefetchWriter())
                 .faultTolerant()
-                .retry(Exception.class)
-                .retryLimit(3)
                 .skip(Exception.class)
                 .listener(markAsFailedSkipListener())
                 .build();

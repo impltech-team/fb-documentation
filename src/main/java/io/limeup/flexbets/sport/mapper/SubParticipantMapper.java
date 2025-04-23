@@ -49,14 +49,8 @@ public class SubParticipantMapper {
         entity.setGender(dto.getGender());
 
         if (dto.getDetails() != null) {
-            if (StringUtils.isNotBlank(dto.getDetails().getWeight())) {
-                entity.setWeight(UnitConversionUtils.convertWeightToPreferredUnit(Double.parseDouble(dto.getDetails().getWeight()),
-                        configuration.isConvertToImperial(), USCustomary.POUND));
-            }
-            if (StringUtils.isNotBlank(dto.getDetails().getHeight())) {
-                entity.setHeight(UnitConversionUtils.convertHeightToPreferredUnit(Double.parseDouble(dto.getDetails().getHeight()),
-                        configuration.isConvertToImperial(), USCustomary.INCH));
-            }
+            entity.setWeight(dto.getDetails().getWeight());
+            entity.setHeight(dto.getDetails().getHeight());
             entity.setPosition(dto.getDetails().getPositionName());
 
             if (dto.getDetails().getBirthdate() != null) {
@@ -73,7 +67,7 @@ public class SubParticipantMapper {
         return entity;
     }
 
-    public static List<SubParticipantDTO> toDTO(List<SubParticipantStatRow> statRowsRaw) {
+    public List<SubParticipantDTO> toDTO(List<SubParticipantStatRow> statRowsRaw) {
         Map<Integer, List<SubParticipantStatRow>> groupedByPlayer = statRowsRaw.stream()
                 .filter(row -> row.getId() != null)
                 .collect(Collectors.groupingBy(
@@ -134,6 +128,17 @@ public class SubParticipantMapper {
                     extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getCurrentTeamAcronym())
             ) : null;
 
+            String weight = StringUtils.EMPTY;
+            String height = StringUtils.EMPTY;
+            if (StringUtils.isNotBlank(first.getWeight())) {
+                weight = UnitConversionUtils.convertWeightToPreferredUnit(Double.parseDouble(first.getWeight()),
+                        configuration.isConvertToImperial(), USCustomary.POUND);
+            }
+            if (StringUtils.isNotBlank(first.getHeight())) {
+                height = UnitConversionUtils.convertHeightToPreferredUnit(Double.parseDouble(first.getHeight()),
+                        configuration.isConvertToImperial(), USCustomary.INCH);
+            }
+
             SubParticipantDTO dto = new SubParticipantDTO(
                     first.getId(),
                     first.getPlayerName(),
@@ -148,8 +153,8 @@ public class SubParticipantMapper {
                     first.getAreaId(),
                     first.getAreaName(),
                     first.getGender(),
-                    first.getWeight(),
-                    first.getHeight(),
+                    weight,
+                    height,
                     first.getBirthDate(),
                     historicalStats,
                     new ArrayList<>()  // empty until trade360 integration
