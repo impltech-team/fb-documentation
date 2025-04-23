@@ -34,11 +34,15 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
 
     private final MarketService marketService;
 
-    protected SubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository, MarketService marketService) {
+    private final SubParticipantMapper mapper;
+
+    protected SubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository,
+                                        MarketService marketService, SubParticipantMapper mapper) {
         super(subParticipantRepository);
         this.statRepository = statRepository;
         this.subParticipantRepository = subParticipantRepository;
         this.marketService = marketService;
+        this.mapper = mapper;
     }
 
     @Override
@@ -73,7 +77,7 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
         );
 
         return PaginationUtils.buildPaginatedResponse(
-                SubParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
+                mapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @Override
@@ -84,7 +88,7 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 rawSubParticipant.getCompetition().getExternalId(), marketId, MarketType.SUB_PARTICIPANT);
         List<SubParticipantStatRow> subParticipantStatsDetails = statRepository.getSubParticipantStatsDetails(
                 subParticipantId, maxHistoricalDataCount, statNames);
-        return SubParticipantMapper.toDTO(subParticipantStatsDetails)
+        return mapper.toDTO(subParticipantStatsDetails)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));

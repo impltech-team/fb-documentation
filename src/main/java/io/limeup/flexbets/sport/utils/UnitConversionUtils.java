@@ -18,32 +18,36 @@ public class UnitConversionUtils {
 
     private UnitConversionUtils(){}
 
-    private static final DecimalFormat US_DECIMAL_FORMAT;
-
-    static {
-        DecimalFormatSymbols usSymbols = new DecimalFormatSymbols(Locale.US);
-        usSymbols.setDecimalSeparator('.');
-        US_DECIMAL_FORMAT = new DecimalFormat("#0.00", usSymbols);
-    }
-
     public static String convertWeightToPreferredUnit(double weightInKg, boolean convertToImperial, Unit<Mass> unit) {
         if (!convertToImperial) {
-            return US_DECIMAL_FORMAT.format(weightInKg);
+            return String.valueOf(weightInKg);
         }
 
         Quantity<Mass> weightMetric = Quantities.getQuantity(weightInKg, Units.KILOGRAM);
         Quantity<Mass> weightImperial = weightMetric.to(unit);
-        return US_DECIMAL_FORMAT.format(weightImperial.getValue().doubleValue());
+        return formatNumber(weightImperial.getValue().doubleValue(), 1);
     }
 
     public static String convertHeightToPreferredUnit(double heightInCm, boolean convertToImperial, Unit<Length> unit) {
         if (!convertToImperial) {
-            return US_DECIMAL_FORMAT.format(heightInCm);
+            return String.valueOf(heightInCm);
         }
 
         Quantity<Length> heightMetric = Quantities.getQuantity(heightInCm, CENTI(Units.METRE));
         Quantity<Length> heightImperial = heightMetric.to(unit);
-        return US_DECIMAL_FORMAT.format(heightImperial.getValue().doubleValue());
+        return formatNumber(heightImperial.getValue().doubleValue(), 2);
+    }
+
+    private static String formatNumber(double value, int fractionDigits) {
+        DecimalFormatSymbols usSymbols = new DecimalFormatSymbols(Locale.US);
+        usSymbols.setDecimalSeparator('.');
+        StringBuilder pattern = new StringBuilder("0");
+        if (fractionDigits > 0) {
+            pattern.append(".");
+            pattern.append("0".repeat(fractionDigits));
+        }
+        DecimalFormat decimalFormat = new DecimalFormat(pattern.toString(), usSymbols);
+        return decimalFormat.format(value);
     }
 
 }
