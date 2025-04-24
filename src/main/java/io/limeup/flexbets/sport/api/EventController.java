@@ -25,7 +25,7 @@ public class EventController {
 
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<EventDTO>> listEvents(
-            @RequestParam Integer competitionId,
+            @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "date_from") LocalDateTime dateFrom,
             @RequestParam(required = false, name = "date_to") LocalDateTime dateTo,
             @RequestParam(required = false, name = "venue_ids") List<Integer> venueIds,
