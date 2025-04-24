@@ -66,9 +66,6 @@ public class CompetitionMapper {
             dto.setStatusType(c.getStatusType() != null ? c.getStatusType().name() : null);
             dto.setGender(c.getGender());
 
-            dto.setStartDate(null);
-            dto.setEndDate(null);
-
             return dto;
         }).collect(Collectors.toList());
     }

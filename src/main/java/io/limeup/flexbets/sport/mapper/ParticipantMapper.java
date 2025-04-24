@@ -94,7 +94,7 @@ public class ParticipantMapper {
                     ? new EventLiteDTO(
                     first.getFutureEventId(),
                     first.getFutureEventName(),
-                    first.getFutureEventStartDate().toString(),
+                    first.getFutureEventStartDate(),
                     extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getAcronym())
             ) : null;
 

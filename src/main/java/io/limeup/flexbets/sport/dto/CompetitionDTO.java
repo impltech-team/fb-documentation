@@ -17,6 +17,4 @@ public class CompetitionDTO {
     private String areaName;
     private String statusType;
     private String gender;
-    private String startDate;
-    private String endDate;
 }

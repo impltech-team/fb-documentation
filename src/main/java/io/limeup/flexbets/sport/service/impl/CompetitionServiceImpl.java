@@ -18,12 +18,15 @@ import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
+import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +60,8 @@ public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competitio
         this.areaService = areaService;
     }
 
+    @Cacheable(value = "longLivedCache",
+            key = "T(java.util.Objects).hash(#areaId, #sportId, #type, #gender, #statusType, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<CompetitionDTO> listCompetitions(Integer areaId, Integer sportId, CompetitionType type, String gender, StatusType statusType,
                                                               RequestQueryDTO requestQuery) {
@@ -91,20 +96,24 @@ public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competitio
                 .distinct()
                 .toList();
 
-        Map<Long, Sport> sportsMap = sportService.readByExternalIdIn(sportIds).stream()
-                .collect(Collectors.toMap(Sport::getId, Function.identity()));
+        Map<Integer, Sport> sportsMap = sportService.readByExternalIdIn(sportIds).stream()
+                .collect(Collectors.toMap(Sport::getExternalId, Function.identity()));
 
-        Map<Long, Area> areasMap = areaService.readByExternalIdIn(areaIds).stream()
-                .collect(Collectors.toMap(Area::getId, Function.identity()));
+        Map<Integer, Area> areasMap = areaService.readByExternalIdIn(areaIds).stream()
+                .collect(Collectors.toMap(Area::getExternalId, Function.identity()));
 
-        List<Competition> competitions = competitionDTOs.stream()
-                .map(dto -> {
-                    Sport sport = sportsMap.get((long) dto.getSportId());
-                    Area area = areasMap.get((long) dto.getAreaId());
-                    return competitionMapper.toEntity(dto, sport, area);
-                })
-                .toList();
-
-        competitionRepository.saveAllAndFlush(competitions);
+        StatScoreDataUtils.mergeAndSaveDTOs(
+                competitionDTOs,
+                StatScoreCompetitionDTO::getId,
+                ids -> competitionRepository.findByExternalIdIn(new ArrayList<>(ids)),
+                (dto, existing) -> competitionMapper.updateEntity(existing, dto,
+                        sportsMap.get(dto.getSportId()),
+                        areasMap.get(dto.getAreaId())),
+                dto -> competitionMapper.toEntity(dto,
+                        sportsMap.get(dto.getSportId()),
+                        areasMap.get(dto.getAreaId())),
+                Competition::getExternalId,
+                competitionRepository::saveAllAndFlush
+        );
     }
 }

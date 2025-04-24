@@ -42,8 +42,7 @@ public class StatScoreDataUtils {
             E existing = existingMap.get(id);
 
             if (existing != null) {
-                updateMapper.apply(dto, existing);
-                toSave.add(existing);
+                toSave.add(updateMapper.apply(dto, existing));
             } else {
                 E newEntity = createMapper.apply(dto);
                 toSave.add(newEntity);

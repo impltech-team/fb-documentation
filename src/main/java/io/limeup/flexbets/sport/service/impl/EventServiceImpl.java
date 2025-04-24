@@ -1,19 +1,16 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.EventDTO;
 import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.mapper.EventMapper;
-import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
-import io.limeup.flexbets.sport.repository.VenueRepository;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
-import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.service.VenueService;
@@ -44,6 +41,8 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
         this.venueService = venueService;
     }
 
+    @EventBasedCache(cacheName = "eventsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
@@ -69,6 +68,8 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
                 EventMapper.toDTO(eventRows), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
+    @EventBasedCache(cacheName = "eventDetailsCache",
+            key = "#eventId")
     @Override
     public FullEventDTO getEventById(Integer eventId) {
         StatScoreCompetitionDTO eventCompetition = statScoreClient.getEventById(eventId, false).block()
