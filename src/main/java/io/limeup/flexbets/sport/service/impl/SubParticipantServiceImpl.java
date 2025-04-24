@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
@@ -45,6 +46,8 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
         this.mapper = mapper;
     }
 
+    @EventBasedCache(cacheName = "subParticipantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
                                                                     List<Integer> participantIds, Integer marketId,
@@ -80,6 +83,8 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 mapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
+    @EventBasedCache(cacheName = "subParticipantDetailsCache",
+            key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
         SubParticipant rawSubParticipant = externalIdRepository.findByExternalId(subParticipantId)

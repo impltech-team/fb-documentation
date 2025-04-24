@@ -15,6 +15,7 @@ import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,8 @@ public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO,
         this.sportMapper = sportMapper;
     }
 
+    @Cacheable(value = "longLivedCache",
+            key = "T(java.util.Objects).hash(#sportIds, #name, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<SportLiteDTO> listSports(List<Integer> sportIds, String name,
                                                       RequestQueryDTO requestQuery) {
@@ -58,6 +61,8 @@ public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO,
                 requestQuery.getPage(), requestQuery.getPageSize());
     }
 
+    @Cacheable(value = "longLivedCache",
+            key = "T(java.util.Objects).hash(#sportId)")
     @Override
     public SportDTO getSportById(Integer sportId) {
         return SportMapper.statScoreToFlexBetsDTO(statScoreProxyService.getSportById(sportId, false));

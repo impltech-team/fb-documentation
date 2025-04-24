@@ -2,6 +2,7 @@ package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.service.BatchJobRunner;
+import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -21,6 +22,7 @@ public class SportDataPreFetchingController {
     private final AreaService areaService;
     private final SportService sportService;
     private final VenueService venueService;
+    private final CompetitionService competitionService;
 
     @Hidden
     @PostMapping("/stats/")
@@ -38,6 +40,7 @@ public class SportDataPreFetchingController {
         areaService.fetchAreaData();
         venueService.fetchVenueData();
         sportService.fetchSportData();
+        competitionService.fetchCompetitionData();
     }
 
 }

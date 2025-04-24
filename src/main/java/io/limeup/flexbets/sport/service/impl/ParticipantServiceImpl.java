@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
@@ -41,6 +42,8 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
         this.statRepository = statRepository;
     }
 
+    @EventBasedCache(cacheName = "participantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
                                                               Integer marketId, Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
@@ -72,6 +75,8 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
         return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
+    @EventBasedCache(cacheName = "participantDetailsCache",
+            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
         Participant rawParticipant = participantRepository.findByExternalId(participantId)

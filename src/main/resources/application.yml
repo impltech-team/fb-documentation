@@ -48,7 +48,11 @@ spring:
   profiles:
     active: mock
   cache:
-    type: simple
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
 
 scheduler:
   mock-live-update-interval: 30000
