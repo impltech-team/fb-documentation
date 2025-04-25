@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -11,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class HistoricalStatDTO {
     private String statName;
-    private Double average;
+    private BigDecimal average;
     private Integer count;
     private Integer maxValue;
     private Integer minValue;
