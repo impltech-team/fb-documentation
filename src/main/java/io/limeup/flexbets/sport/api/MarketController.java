@@ -5,6 +5,7 @@ import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.model.Market;
 import io.limeup.flexbets.sport.model.MarketType;
 import io.limeup.flexbets.sport.service.MarketService;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
@@ -35,31 +36,37 @@ public class MarketController {
         return ResponseEntity.ok(marketService.listMarkets(competitionId, marketType));
     }
 
+    @Hidden
     @GetMapping
     public List<MarketDTO> getAllMarketsFullDTO() {
         return marketService.getAllMarketsFullDTO();
     }
 
+    @Hidden
     @PostMapping
     public MarketDTO createMarket(@RequestBody MarketDTO dto) {
         return marketService.createMarket(dto);
     }
 
+    @Hidden
     @PutMapping("/{id}")
     public MarketDTO updateMarket(@PathVariable Integer id, @RequestBody MarketDTO dto) {
         return marketService.updateMarket(id, dto);
     }
 
+    @Hidden
     @DeleteMapping("/{id}")
     public void deleteMarket(@PathVariable Integer id) {
         marketService.deleteMarket(id);
     }
 
+    @Hidden
     @PostMapping("/{id}/enable")
     public void enableMarket(@PathVariable Integer id) {
         marketService.setMarketEnabled(id, true);
     }
 
+    @Hidden
     @PostMapping("/{id}/disable")
     public void disableMarket(@PathVariable Integer id) {
         marketService.setMarketEnabled(id, false);
