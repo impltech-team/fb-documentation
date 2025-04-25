@@ -16,5 +16,4 @@ public interface EventRow {
     Integer getVenueId();
     String getVenueLocation();
     String getVenueName();
-    Integer getVenueCapacity();
 }
