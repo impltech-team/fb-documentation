@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import systems.uom.common.USCustomary;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -112,7 +114,7 @@ public class SubParticipantMapper {
 
                 historicalStats.add(new HistoricalStatDTO(
                         statName,
-                        statsSummary.getAverage(),
+                        BigDecimal.valueOf(statsSummary.getAverage()).setScale(2, RoundingMode.HALF_UP),
                         count,
                         (int) statsSummary.getMax(),
                         (int) statsSummary.getMin(),

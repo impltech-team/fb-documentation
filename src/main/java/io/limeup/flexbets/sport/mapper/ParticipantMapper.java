@@ -10,6 +10,8 @@ import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
@@ -82,7 +84,7 @@ public class ParticipantMapper {
 
                 historicalStats.add(new HistoricalStatDTO(
                         statName,
-                        summary.getAverage(),
+                        BigDecimal.valueOf(summary.getAverage()).setScale(2, RoundingMode.HALF_UP),
                         statRows.size(),
                         (int) summary.getMax(),
                         (int) summary.getMin(),
