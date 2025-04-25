@@ -5,8 +5,11 @@ import io.limeup.flexbets.sport.converter.MarketTypeConverter;
 import io.limeup.flexbets.sport.converter.SnakeCaseToCamelCaseArgumentResolver;
 import io.limeup.flexbets.sport.converter.StatTargetTypeConverter;
 import io.limeup.flexbets.sport.converter.StatusTypeConverter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -31,5 +34,13 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addConverter(new StatTargetTypeConverter());
         registry.addConverter(new MarketTypeConverter());
         registry.addConverter(new CompetitionTypeConverter());
+    }
+
+    @Bean
+    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
+        FilterRegistrationBean<ForwardedHeaderFilter> filter = new FilterRegistrationBean<>();
+        filter.setFilter(new ForwardedHeaderFilter());
+        filter.setOrder(0);
+        return filter;
     }
 }
