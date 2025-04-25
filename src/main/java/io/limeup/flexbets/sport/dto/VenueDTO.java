@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class VenueDTO {
-    private int venueId;
+    private Integer venueId;
     private String venueName;
     private String location;
-    private int capacity;
 }
