@@ -69,13 +69,21 @@ public class EventBasedCacheAspect {
     }
 
     private List<LocalDateTime> extractAllEventDates(Object value) {
+        if (value == null) {
+            return List.of();
+        }
         if (value instanceof PaginatedResponse<?> paginated) {
-            return paginated.getItems().stream()
+            List<?> items = paginated.getItems();
+            if (items == null || items.isEmpty()) return List.of();
+
+            return items.stream()
                     .map(this::extractSingleEventDate)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         }
         if (value instanceof List<?> list) {
+            if (list.isEmpty()) return List.of();
+
             return list.stream()
                     .map(this::extractSingleEventDate)
                     .filter(Objects::nonNull)
