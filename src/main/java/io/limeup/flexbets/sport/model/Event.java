@@ -60,4 +60,7 @@ public class Event {
     @Convert(converter = EventStatusConverter.class)
     @Column(nullable = false)
     private EventStatus status;
+
+    @Column(unique = true)
+    private Long lsId;
 }
