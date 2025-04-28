@@ -53,6 +53,7 @@ public class EventMapper {
         entity.setSeasonExternalId(season.getId());
         entity.setSeasonName(season.getName());
         entity.setStatus(EventStatus.valueOf(dto.getStatusType().toUpperCase()));
+        entity.setLsId(dto.getLsId());
         return entity;
     }
 
