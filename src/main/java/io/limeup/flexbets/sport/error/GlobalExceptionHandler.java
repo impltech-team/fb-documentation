@@ -2,10 +2,12 @@ package io.limeup.flexbets.sport.error;
 
 import io.limeup.flexbets.sport.utils.ConstantUtils;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -100,6 +102,30 @@ public class GlobalExceptionHandler {
         body.put(ConstantUtils.Common.STATUS, HttpStatus.BAD_REQUEST.value());
         body.put(ConstantUtils.Common.ERROR, String.format("Missing required parameter: %s", ex.getParameterName()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(cv -> {
+            String propertyPath = cv.getPropertyPath().toString();
+            String message = cv.getMessage();
+            errors.put(propertyPath, message);
+        });
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String field = error.getField();
+            String message = error.getDefaultMessage();
+            errors.put(field, message);
+        });
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
 }

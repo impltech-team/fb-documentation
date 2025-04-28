@@ -15,7 +15,7 @@ public class RequestQueryDTO {
     private int page = 1;
 
     @Min(1)
-    @Max(50)
+    @Max(100)
     private int pageSize = 25;
 
     private String sortBy;
