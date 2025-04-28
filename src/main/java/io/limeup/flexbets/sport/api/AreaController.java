@@ -5,6 +5,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.AreaService;
 import io.limeup.flexbets.sport.validator.PositiveList;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class AreaController {
             @PositiveList
             @RequestParam(required = false, name = "area_ids") List<Integer> areaIds,
             @RequestParam(required = false) String name,
-            @ParameterObject RequestQueryDTO requestQuery) {
+            @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(areaService.listAreas(areaIds, name, requestQuery));
     }
 }
