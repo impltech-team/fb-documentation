@@ -11,15 +11,15 @@ import java.util.List;
 public interface SportRepository extends ExternalIdRepository<Sport, Long> {
 
     @Query(value = """
-        SELECT * FROM sport.sport s
-        WHERE (:sportIdsEmpty = TRUE OR s.external_id IN (:sportIds))
-          AND (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))
-        """,
+            SELECT * FROM sport.sport s
+            WHERE (:sportIdsEmpty = TRUE OR s.external_id IN (:sportIds))
+              AND (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            """,
             countQuery = """
-        SELECT COUNT(*) FROM sport.sport s
-        WHERE (:sportIdsEmpty = TRUE OR s.external_id IN (:sportIds))
-          AND (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))
-        """, nativeQuery = true)
+                    SELECT COUNT(*) FROM sport.sport s
+                    WHERE (:sportIdsEmpty = TRUE OR s.external_id IN (:sportIds))
+                      AND (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))
+                    """, nativeQuery = true)
     Page<Sport> listSports(
             @Param("sportIds") List<Integer> sportIds,
             @Param("sportIdsEmpty") boolean sportIdsEmpty,

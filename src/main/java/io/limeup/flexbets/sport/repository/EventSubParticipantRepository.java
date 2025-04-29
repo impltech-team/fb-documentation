@@ -10,11 +10,11 @@ import java.util.List;
 public interface EventSubParticipantRepository extends JpaRepository<EventSubParticipant, Long> {
 
     @Query("""
-        SELECT esp
-        FROM EventSubParticipant esp
-        WHERE esp.event.externalId = :eventExternalId
-          AND esp.subParticipant.externalId IN :subParticipantExternalIds
-    """)
+                SELECT esp
+                FROM EventSubParticipant esp
+                WHERE esp.event.externalId = :eventExternalId
+                  AND esp.subParticipant.externalId IN :subParticipantExternalIds
+            """)
     List<EventSubParticipant> findExistingByEventAndSubParticipantIds(@Param("eventExternalId") Integer eventExternalId,
                                                                       @Param("subParticipantExternalIds") List<Integer> subParticipantExternalIds);
 

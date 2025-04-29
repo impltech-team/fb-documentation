@@ -116,7 +116,7 @@ public class ParticipantMapper {
         return result;
     }
 
-    private static String extractOpponentFromAcronyms(String acronyms, String self) {
+    static String extractOpponentFromAcronyms(String acronyms, String self) {
         if (acronyms == null || self == null) return null;
         return Arrays.stream(acronyms.split(","))
                 .filter(a -> !a.equalsIgnoreCase(self))
