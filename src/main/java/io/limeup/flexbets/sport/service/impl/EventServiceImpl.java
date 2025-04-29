@@ -27,7 +27,7 @@ import java.util.List;
 @Service
 public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO, Long> implements EventService {
 
-    private final EventRepository repository;
+    private final EventRepository eventRepository;
 
     private final StatScoreClient statScoreClient;
 
@@ -36,7 +36,7 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
     protected EventServiceImpl(EventRepository repository, StatScoreClient statScoreClient,
                                VenueService venueService) {
         super(repository);
-        this.repository = repository;
+        this.eventRepository = repository;
         this.statScoreClient = statScoreClient;
         this.venueService = venueService;
     }
@@ -46,14 +46,14 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
-        long count = repository.countEvents(
+        long count = eventRepository.countEvents(
                 competitionId,
                 dateFrom,
                 dateTo,
                 status,
                 venueIds == null ? Collections.emptyList() : venueIds,
                 participantIds == null ? Collections.emptyList() : participantIds);
-        List<EventRow> eventRows = repository.listEvents(
+        List<EventRow> eventRows = eventRepository.listEvents(
                 competitionId,
                 dateFrom,
                 dateTo,

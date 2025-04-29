@@ -10,10 +10,10 @@ import java.util.List;
 public interface MarketRepository extends ExternalIdRepository<Market, Long> {
 
     @Query("""
-        SELECT m FROM Market m
-        WHERE m.competition.externalId = :competitionId
-          AND (:marketType IS NULL OR m.marketType = :marketType)
-    """)
+                SELECT m FROM Market m
+                WHERE m.competition.externalId = :competitionId
+                  AND (:marketType IS NULL OR m.marketType = :marketType)
+            """)
     List<Market> findByCompetitionAndOptionalType(
             @Param("competitionId") Integer competitionId,
             @Param("marketType") MarketType marketType

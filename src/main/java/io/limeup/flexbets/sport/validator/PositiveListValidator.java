@@ -31,7 +31,7 @@ public class PositiveListValidator implements ConstraintValidator<PositiveList, 
         }
 
         return value.stream()
-                .filter(item -> item instanceof Number)
+                .filter(Number.class::isInstance)
                 .allMatch(item -> ((Number) item).doubleValue() > 0);
     }
 }

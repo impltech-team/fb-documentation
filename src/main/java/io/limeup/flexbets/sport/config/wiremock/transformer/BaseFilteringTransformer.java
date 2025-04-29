@@ -203,38 +203,47 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
         for (Map.Entry<String, List<String>> entry : filters.entrySet()) {
             String fieldPath = entry.getKey();
             List<String> filterValues = entry.getValue();
-            if (!filterValues.isEmpty()) {
-                JsonNode fieldNode;
-                if (fieldPath.contains(".")) {
-                    fieldNode = getNestedField(item, fieldPath);
-                } else {
-                    fieldNode = item.has(fieldPath) ? item.get(fieldPath) : null;
-                }
-
-                if (fieldNode == null) {
-                    return false;
-                }
-
-                if (fieldNode.isArray()) {
-                    boolean match = false;
-                    for (JsonNode arrayElement : fieldNode) {
-                        String value = arrayElement.asText();
-                        if (filterValues.contains(value)) {
-                            match = true;
-                        }
-                    }
-                    if (!match) {
-                        return false;
-                    }
-                } else {
-                    String value = fieldNode.asText().toLowerCase();
-                    if (!filterValues.contains(value)) {
-                        return false;
-                    }
-                }
+            if (!filterValues.isEmpty() && isMatchesFilters(item, fieldPath, filterValues)) {
+                return false;
             }
         }
         return true;
+    }
+
+    private boolean isMatchesFilters(JsonNode item, String fieldPath, List<String> filterValues) {
+        JsonNode fieldNode;
+        if (fieldPath.contains(".")) {
+            fieldNode = getNestedField(item, fieldPath);
+        } else {
+            fieldNode = item.has(fieldPath) ? item.get(fieldPath) : null;
+        }
+
+        if (fieldNode == null) {
+            return true;
+        }
+
+        if (fieldNode.isArray()) {
+            if (isMatchArrayFilter(filterValues, fieldNode)) return true;
+        } else {
+            if (isMatchTextFilters(filterValues, fieldNode)) return true;
+        }
+        return false;
+    }
+
+    private boolean isMatchTextFilters(List<String> filterValues, JsonNode fieldNode) {
+        String value = fieldNode.asText().toLowerCase();
+        return !filterValues.contains(value);
+    }
+
+    private boolean isMatchArrayFilter(List<String> filterValues, JsonNode fieldNode) {
+        boolean match = false;
+        for (JsonNode arrayElement : fieldNode) {
+            String value = arrayElement.asText();
+            if (filterValues.contains(value)) {
+                match = true;
+            }
+        }
+        return !match;
     }
 
     private JsonNode getNestedField(JsonNode node, String fieldPath) {
@@ -245,16 +254,7 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
                 return null;
             }
             if (currentNode.isArray()) {
-                ArrayNode arrayNode = (ArrayNode) currentNode;
-                ArrayNode resultArray = objectMapper.createArrayNode();
-
-                for (JsonNode element : arrayNode) {
-                    JsonNode nestedField = getNestedField(element, field);
-                    if (nestedField != null) {
-                        resultArray.add(nestedField);
-                    }
-                }
-                return resultArray.isEmpty() ? null : resultArray;
+                return getJsonNodeArray((ArrayNode) currentNode, field);
             }
             if (!currentNode.has(field)) {
                 return null;
@@ -262,6 +262,19 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
             currentNode = currentNode.get(field);
         }
         return currentNode;
+    }
+
+    private JsonNode getJsonNodeArray(ArrayNode currentNode, String field) {
+        ArrayNode arrayNode = currentNode;
+        ArrayNode resultArray = objectMapper.createArrayNode();
+
+        for (JsonNode element : arrayNode) {
+            JsonNode nestedField = getNestedField(element, field);
+            if (nestedField != null) {
+                resultArray.add(nestedField);
+            }
+        }
+        return resultArray.isEmpty() ? null : resultArray;
     }
 
     protected String extractQueryParam(LoggedRequest request, String param) {

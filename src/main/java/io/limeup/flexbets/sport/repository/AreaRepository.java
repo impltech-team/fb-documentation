@@ -12,15 +12,15 @@ import java.util.List;
 public interface AreaRepository extends ExternalIdRepository<Area, Long> {
 
     @Query(value = """
-        SELECT * FROM sport.area a
-        WHERE (:areaIdsEmpty = TRUE OR a.external_id IN (:areaIds))
-          AND (:name IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')))
-        """,
-                countQuery = """
-        SELECT COUNT(*) FROM sport.area a
-        WHERE (:areaIdsEmpty = TRUE OR a.external_id IN (:areaIds))
-          AND (:name IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')))
-        """, nativeQuery = true)
+            SELECT * FROM sport.area a
+            WHERE (:areaIdsEmpty = TRUE OR a.external_id IN (:areaIds))
+              AND (:name IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            """,
+            countQuery = """
+                    SELECT COUNT(*) FROM sport.area a
+                    WHERE (:areaIdsEmpty = TRUE OR a.external_id IN (:areaIds))
+                      AND (:name IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')))
+                    """, nativeQuery = true)
     Page<Area> listAreas(
             @Param("areaIds") List<Integer> areaIds,
             @Param("areaIdsEmpty") boolean areaIdsEmpty,

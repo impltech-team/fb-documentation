@@ -52,4 +52,16 @@ public class ConstantUtils {
         }
         public static final String PRE_FETCH_STAT_SCORE_DATA_JOB = "prefetchJob";
     }
+
+    public static final class TestConstants {
+        private TestConstants() {
+        }
+
+        public static final String FOOTBALL = "Football";
+        public static final String PLAYER_ASSISTS_MARKET = "Under/Over Player Assists";
+        public static final String ASSISTS = "Assists";
+        public static final String REBOUNDS = "Rebounds";
+        public static final String FORWARD = "Forward";
+        public static final String USA = "USA";
+    }
 }

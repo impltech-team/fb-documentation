@@ -168,7 +168,7 @@ public class SubParticipantMapper {
         return result;
     }
 
-    private static String extractOpponentFromAcronyms(String acronymsCsv, String currentTeamAcronym) {
+    static String extractOpponentFromAcronyms(String acronymsCsv, String currentTeamAcronym) {
         if (acronymsCsv == null || currentTeamAcronym == null) return null;
         return Arrays.stream(acronymsCsv.split(":"))
                 .map(String::trim)
