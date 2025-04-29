@@ -22,7 +22,7 @@ public class PositiveListValidator implements ConstraintValidator<PositiveList, 
             return true;
         }
 
-        if (value.size() >= max) {
+        if (value.size() > max) {
             return false;
         }
 
