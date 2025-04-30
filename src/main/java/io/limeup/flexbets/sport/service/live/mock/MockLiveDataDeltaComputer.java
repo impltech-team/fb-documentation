@@ -63,14 +63,16 @@ public class MockLiveDataDeltaComputer {
         List<Map<String, Object>> newSubParticipants = (List<Map<String, Object>>) newParticipant.get(ConstantUtils.Mock.SUB_PARTICIPANTS);
         List<Map<String, Object>> lastSubParticipants = (List<Map<String, Object>>) lastParticipant.get(ConstantUtils.Mock.SUB_PARTICIPANTS);
 
-        List<Map<String, Object>> changedSubParticipants = new ArrayList<>();
+        if (newSubParticipants != null && lastSubParticipants != null) {
+            List<Map<String, Object>> changedSubParticipants = new ArrayList<>();
 
-        for (int j = 0; j < newSubParticipants.size(); j++) {
-            subParticipantChange(newSubParticipants, lastSubParticipants, changedSubParticipants, j);
-        }
+            for (int j = 0; j < newSubParticipants.size(); j++) {
+                subParticipantChange(newSubParticipants, lastSubParticipants, changedSubParticipants, j);
+            }
 
-        if (!changedSubParticipants.isEmpty()) {
-            participantDelta.put(ConstantUtils.Mock.SUB_PARTICIPANTS, changedSubParticipants);
+            if (!changedSubParticipants.isEmpty()) {
+                participantDelta.put(ConstantUtils.Mock.SUB_PARTICIPANTS, changedSubParticipants);
+            }
         }
 
         if (participantDelta.size() > 1) {

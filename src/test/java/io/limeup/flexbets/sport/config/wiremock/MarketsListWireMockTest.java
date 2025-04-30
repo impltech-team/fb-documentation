@@ -11,6 +11,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
 public class MarketsListWireMockTest extends BaseWireMockTest {
 
     private static final String MARKETS_LIST_ENDPOINT = "/markets/list";

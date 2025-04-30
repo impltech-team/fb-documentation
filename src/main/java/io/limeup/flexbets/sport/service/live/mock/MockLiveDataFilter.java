@@ -20,7 +20,7 @@ public class MockLiveDataFilter {
         if (clientSubscriptions.size() <= 1) {
             return fullEventData;
         }
-        filteredData.put("id", fullEventData.get("id"));
+        filteredData.put(ConstantUtils.Mock.ID, fullEventData.get(ConstantUtils.Mock.ID));
         filteredData.put(ConstantUtils.Mock.PARTICIPANTS, new ArrayList<>());
 
         List<Map<String, Object>> participants = (List<Map<String, Object>>) fullEventData.get(ConstantUtils.Mock.PARTICIPANTS);
@@ -55,14 +55,14 @@ public class MockLiveDataFilter {
             List<Map<String, Object>> markets = (List<Map<String, Object>>) subParticipant.get(ConstantUtils.Mock.MARKETS);
 
             for (Map<String, Object> market : markets) {
-                if (requestedMarkets.contains(market.get("market_id"))) {
+                if (requestedMarkets.contains(market.get(ConstantUtils.Mock.MARKET_ID))) {
                     filteredMarkets.add(market);
                 }
             }
 
             if (!filteredMarkets.isEmpty()) {
                 Map<String, Object> filteredSub = new HashMap<>(subParticipant);
-                filteredSub.put("markets", filteredMarkets);
+                filteredSub.put(ConstantUtils.Mock.MARKETS, filteredMarkets);
                 filteredSubParticipants.add(filteredSub);
             }
         }

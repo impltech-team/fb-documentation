@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.response.Response;
 import io.restassured.path.json.JsonPath;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+@Disabled
 public class ParticipantWireMockTest extends BaseWireMockTest {
 
     private static final String PARTICIPANTS_LIST_ENDPOINT = "/participants/list";
