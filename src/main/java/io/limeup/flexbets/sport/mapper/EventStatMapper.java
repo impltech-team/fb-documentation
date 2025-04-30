@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.mapper;
 
+import io.limeup.flexbets.sport.dto.statscore.StatScoreResultDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.EventStat;
@@ -13,28 +14,35 @@ import java.time.LocalDateTime;
 public class EventStatMapper {
 
     public EventStat toEntity(StatScoreStatDTO dto, Long targetId, StatTargetType type, Event event, Integer targetExternalId) {
-        EventStat stat = new EventStat();
+        return toEntityInternal(dto.getId(), dto.getName(), dto.getValue(), dto.getDataType(), targetId, type, event, targetExternalId);
+    }
 
-        stat.setExternalId(dto.getId());
+    public EventStat toEntity(StatScoreResultDTO dto, Long targetId, StatTargetType type, Event event, Integer targetExternalId) {
+        return toEntityInternal(dto.getId(), dto.getName(), dto.getValue(), dto.getDataType(), targetId, type, event, targetExternalId);
+    }
+
+    private EventStat toEntityInternal(Integer id, String name, String value, String dataTypeStr, Long targetId, StatTargetType type, Event event, Integer targetExternalId) {
+        EventStat stat = new EventStat();
+        stat.setExternalId(id);
         stat.setTargetExternalId(targetExternalId);
-        stat.setStatName(dto.getName());
+        stat.setStatName(name);
         stat.setTargetId(targetId);
         stat.setTargetType(type);
         stat.setCreatedAt(LocalDateTime.now());
         stat.setEvent(event);
+        stat.setValueRaw(value);
 
-        stat.setValueRaw(dto.getValue());
         StatDataType dataType = StatDataType.DECIMAL;
-        if (dto.getDataType() != null) {
-            dataType = StatDataType.valueOf(dto.getDataType().toUpperCase());
+        if (dataTypeStr != null) {
+            try {
+                dataType = StatDataType.valueOf(dataTypeStr.toUpperCase());
+            } catch (IllegalArgumentException ignored) {}
         }
         stat.setDataType(dataType);
 
         try {
             if (dataType == StatDataType.INTEGER || dataType == StatDataType.BINARY || dataType == StatDataType.DECIMAL) {
-                stat.setValueNumeric(Double.parseDouble(dto.getValue()));
-            } else {
-                stat.setValueNumeric(null);
+                stat.setValueNumeric(Double.parseDouble(value));
             }
         } catch (Exception e) {
             stat.setValueNumeric(null);

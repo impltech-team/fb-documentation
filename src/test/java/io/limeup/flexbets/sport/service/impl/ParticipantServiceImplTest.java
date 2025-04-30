@@ -68,7 +68,7 @@ class ParticipantServiceImplTest {
                 .thenReturn(List.of(statRow));
 
         PaginatedResponse<ParticipantDTO> response = participantService.listParticipants(
-                1, null, 1, 5, requestQuery);
+                1, null, 1, 5, showAllStats, requestQuery);
 
         assertThat(response).isNotNull();
         assertThat(response.getItems()).isNotEmpty();
@@ -88,7 +88,7 @@ class ParticipantServiceImplTest {
                 .thenReturn(0L);
 
         PaginatedResponse<ParticipantDTO> response = participantService.listParticipants(
-                1, null, 1, 5, requestQuery);
+                1, null, 1, 5, showAllStats, requestQuery);
 
         assertThat(response.getItems()).isNull();
         assertThat(response.getCount()).isEqualTo(0);
@@ -111,7 +111,7 @@ class ParticipantServiceImplTest {
         when(statRepository.getParticipantStatsDetails(eq(1), any(), anySet()))
                 .thenReturn(List.of(statRow));
 
-        ParticipantDTO dto = participantService.getParticipantById(1, 1, 5);
+        ParticipantDTO dto = participantService.getParticipantById(1, 1, 5, showAllStats);
 
         assertThat(dto).isNotNull();
         verify(participantRepository).findByExternalId(eq(1));
@@ -125,7 +125,7 @@ class ParticipantServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(FlexBetsSportNotFoundException.class,
-                () -> participantService.getParticipantById(1, 1, 5));
+                () -> participantService.getParticipantById(1, 1, 5, showAllStats));
     }
 
     @Test
@@ -144,7 +144,7 @@ class ParticipantServiceImplTest {
                 .thenReturn(Collections.emptyList());
 
         assertThrows(FlexBetsSportNotFoundException.class,
-                () -> participantService.getParticipantById(1, 1, 5));
+                () -> participantService.getParticipantById(1, 1, 5, showAllStats));
     }
 }
 

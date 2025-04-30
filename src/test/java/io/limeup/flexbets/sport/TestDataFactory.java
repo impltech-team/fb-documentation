@@ -2,10 +2,15 @@ package io.limeup.flexbets.sport;
 
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
+import io.limeup.flexbets.sport.model.Event;
+import io.limeup.flexbets.sport.model.EventStatus;
 import io.limeup.flexbets.sport.model.Market;
 import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.model.Sport;
 import io.limeup.flexbets.sport.model.Venue;
+
+import java.time.LocalDateTime;
 
 public class TestDataFactory {
 
@@ -47,5 +52,29 @@ public class TestDataFactory {
         venue.setExternalId(id);
         venue.setName(name);
         return venue;
+    }
+
+    public static Event createTestEvent(Integer id, String name, EventStatus eventStatus, Competition competition, LocalDateTime start, Venue venue) {
+        Event event = new Event();
+        event.setExternalId(id);
+        event.setName(name);
+        event.setStatus(eventStatus);
+        event.setCompetition(competition);
+        event.setStartDate(start);
+        event.setVenue(venue);
+        event.setSeasonExternalId(1);
+        event.setLsId(1L);
+        event.setSeasonName("Season 1");
+        return event;
+    }
+
+    public static Participant createTestParticipant(Integer id, String acronym, String teamName, String type, Competition competition) {
+        Participant participant = new Participant();
+        participant.setExternalId(id);
+        participant.setAcronym(acronym);
+        participant.setTeamName(teamName);
+        participant.setType(type);
+        participant.setCompetition(competition);
+        return participant;
     }
 }

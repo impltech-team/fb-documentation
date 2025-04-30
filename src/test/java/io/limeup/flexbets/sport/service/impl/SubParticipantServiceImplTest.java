@@ -81,7 +81,7 @@ class SubParticipantServiceImplTest {
         )).thenReturn(List.of(mock(SubParticipantStatRow.class), mock(SubParticipantStatRow.class)));
         when(mapper.toDTO(anyList()))
                 .thenReturn(List.of(mock(SubParticipantDTO.class), mock(SubParticipantDTO.class)));
-        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, 5, requestQuery);
+        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, 5, showAllStats, requestQuery);
         assertThat(response.getItems()).hasSize(2);
         assertThat(response.getCount()).isEqualTo(2);
     }
@@ -98,7 +98,7 @@ class SubParticipantServiceImplTest {
         when(statRepository.getSubParticipantStatsDetails(anyInt(), any(), anySet())).thenReturn(List.of(mock(SubParticipantStatRow.class)));
         when(mapper.toDTO(anyList())).thenReturn(List.of(mock(SubParticipantDTO.class)));
 
-        SubParticipantDTO dto = subParticipantService.getSubParticipantById(1, 1, 5);
+        SubParticipantDTO dto = subParticipantService.getSubParticipantById(1, 1, 5, showAllStats);
 
         assertThat(dto).isNotNull();
     }
@@ -108,7 +108,7 @@ class SubParticipantServiceImplTest {
         when(subParticipantRepository.findByExternalId(anyInt())).thenReturn(Optional.empty());
 
         FlexBetsSportNotFoundException exception = assertThrows(FlexBetsSportNotFoundException.class, () ->
-                subParticipantService.getSubParticipantById(1, 1, 5)
+                subParticipantService.getSubParticipantById(1, 1, 5, showAllStats)
         );
 
         assertThat(exception.getMessage()).contains("SubParticipant 1 Not Found");
@@ -125,9 +125,41 @@ class SubParticipantServiceImplTest {
         when(statRepository.getSubParticipantStatsDetails(anyInt(), any(), anySet())).thenReturn(Collections.emptyList());
 
         FlexBetsSportNotFoundException exception = assertThrows(FlexBetsSportNotFoundException.class, () ->
-                subParticipantService.getSubParticipantById(1, 1, 5)
+                subParticipantService.getSubParticipantById(1, 1, 5, showAllStats)
         );
 
         assertThat(exception.getMessage()).contains("SubParticipant 1 Not Found");
+    }
+
+    @Test
+    void listSubParticipantsShouldReturnEmptyPaginatedResponseWhenCountIsZero() {
+        Integer competitionId = 1;
+        Integer marketId = 10;
+        List<String> positions = null;
+        List<Integer> participantIds = null;
+        RequestQueryDTO requestQuery = new RequestQueryDTO();
+        requestQuery.setPage(1);
+        requestQuery.setPageSize(20);
+        requestQuery.setSortBy("player_name");
+        requestQuery.setSortOrder("asc");
+
+        when(marketService.getStatsByMarket(competitionId, marketId, MarketType.SUB_PARTICIPANT))
+                .thenReturn(Set.of("Goals", "Assists"));
+        when(subParticipantRepository.countSubParticipants(
+                eq(competitionId),
+                anyList(),
+                anyList(),
+                any()
+        )).thenReturn(0L);
+
+        PaginatedResponse<SubParticipantDTO> result = subParticipantService.listSubParticipants(
+                competitionId, positions, participantIds, marketId, 5, showAllStats, requestQuery
+        );
+
+        assertThat(result).isNotNull();
+        assertThat(result.getItems()).isNull();
+        assertThat(result.getCount()).isEqualTo(0L);
+        assertThat(result.getPage()).isEqualTo(1);
+        assertThat(result.getPageSize()).isEqualTo(20);
     }
 }
