@@ -47,7 +47,9 @@ public class CacheConfig {
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
 
         Map<String, RedisCacheConfiguration> customConfigs = new HashMap<>();
-        customConfigs.put("longLivedCache", defaultConfig.entryTtl(Duration.ofHours(1)));
+        customConfigs.put("areaCache", defaultConfig.entryTtl(Duration.ofHours(1)));
+        customConfigs.put("sportCache", defaultConfig.entryTtl(Duration.ofHours(1)));
+        customConfigs.put("competitionCache", defaultConfig.entryTtl(Duration.ofHours(1)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)

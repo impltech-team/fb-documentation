@@ -46,7 +46,7 @@ public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO,
         this.sportMapper = sportMapper;
     }
 
-    @Cacheable(value = "longLivedCache",
+    @Cacheable(value = "sportCache",
             key = "T(java.util.Objects).hash(#sportIds, #name, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<SportLiteDTO> listSports(List<Integer> sportIds, String name,
@@ -61,7 +61,7 @@ public class SportServiceImpl extends ExternalIdReadServiceImpl<Sport, SportDTO,
                 requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-    @Cacheable(value = "longLivedCache",
+    @Cacheable(value = "sportCache",
             key = "T(java.util.Objects).hash(#sportId)")
     @Override
     public SportDTO getSportById(Integer sportId) {
