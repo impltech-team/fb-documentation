@@ -13,13 +13,16 @@ public class ConstantUtils {
 
     public static final class Mock {
         private Mock() { }
+        public static final String ID = "id";
         public static final String PARTICIPANTS = "participants";
         public static final String SUB_PARTICIPANTS = "subparticipants";
         public static final String TEAM_FORMATION = "team_formation";
+        public static final String FORMATION = "formation";
         public static final String MARKETS = "markets";
         public static final String PRICE = "price";
         public static final String STAT_VALUE = "stat_value";
         public static final String MARKET_IDS = "market_ids";
+        public static final String MARKET_ID = "market_id";
         public static final String SUB_PARTICIPANT_ID = "sub_participant_id";
     }
 
