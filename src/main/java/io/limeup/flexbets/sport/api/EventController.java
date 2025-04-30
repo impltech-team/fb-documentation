@@ -6,6 +6,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.validator.PositiveList;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class EventController {
             @PositiveList
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "status") String status,
-            @ParameterObject RequestQueryDTO requestQuery) {
+            @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(eventService.listEvents(
                 competitionId, dateFrom, dateTo, venueIds, participantIds, status, requestQuery));
     }
