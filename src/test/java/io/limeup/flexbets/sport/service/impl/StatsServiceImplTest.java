@@ -1,5 +1,11 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import static io.limeup.flexbets.sport.TestDataFactory.createTestArea;
+import static io.limeup.flexbets.sport.TestDataFactory.createTestCompetition;
+import static io.limeup.flexbets.sport.TestDataFactory.createTestSport;
+import static io.limeup.flexbets.sport.TestDataFactory.createTestVenue;
+import static io.limeup.flexbets.sport.TestDataFactory.createTestEvent;
+import static io.limeup.flexbets.sport.TestDataFactory.createTestParticipant;
 import static io.limeup.flexbets.sport.model.EventStatus.SCHEDULED;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -17,14 +23,21 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreGroupDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStageDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.mapper.EventMapper;
+import io.limeup.flexbets.sport.mapper.EventStatMapper;
 import io.limeup.flexbets.sport.mapper.ParticipantMapper;
 import io.limeup.flexbets.sport.mapper.SubParticipantMapper;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
+import io.limeup.flexbets.sport.model.EventStat;
+import io.limeup.flexbets.sport.model.EventStatus;
+import io.limeup.flexbets.sport.model.EventSubParticipant;
 import io.limeup.flexbets.sport.model.Participant;
+import io.limeup.flexbets.sport.model.Sport;
+import io.limeup.flexbets.sport.model.StatDataType;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
@@ -85,6 +98,9 @@ class StatsServiceImplTest {
 
     @Mock
     private AreaService areaService;
+
+    @Mock
+    private EventStatMapper eventStatMapper;
 
     private StatScoreDataService.EventContext eventContext;
 
@@ -162,9 +178,80 @@ class StatsServiceImplTest {
 
         statsService.fetchStatDataForCompetitionAndDate(20, LocalDate.now());
 
-        //verify(statScoreDataService, times(2)).getAllEventsWithContext(any());
         verify(participantRepository, times(2)).saveAllAndFlush(any());
         verify(eventRepository, times(2)).saveAllAndFlush(any());
         verify(statScoreProxyService, atLeastOnce()).listSquadSubParticipants(any(), anyInt(), eq(true));
     }
+
+    @Test
+    void fetchStatDataForCompetitionAndDateShouldCoverHistoricalStats() {
+        StatScoreEventParticipantDTO participantDTO = new StatScoreEventParticipantDTO();
+        participantDTO.setId(1);
+        participantDTO.setName("Team A");
+        participantDTO.setCounter(1);
+        participantDTO.setStats(List.of(new StatScoreStatDTO(1, "Possession", "Possession", "60", StatDataType.DECIMAL.toString().toUpperCase())));
+
+        StatScoreGroupDTO group = new StatScoreGroupDTO();
+        StatScoreStageDTO stage = new StatScoreStageDTO();
+        StatScoreSeasonDTO season = new StatScoreSeasonDTO();
+        season.setId(10);
+
+        StatScoreEventDTO event = new StatScoreEventDTO();
+        event.setId(100);
+        event.setVenueId(5);
+        event.setParticipants(List.of(participantDTO));
+        event.setStartDate(LocalDateTime.now().minusDays(1).toString());
+
+        StatScoreCompetitionDTO competitionDTO = new StatScoreCompetitionDTO();
+        competitionDTO.setId(20);
+
+        StatScoreDataService.EventContext context = new StatScoreDataService.EventContext(event, group, stage, season, competitionDTO);
+
+        when(statScoreDataService.getAllEventsWithContext(any()))
+                .thenReturn(List.of(context));
+
+        Sport sport = createTestSport(8, "American Football");
+        Area area = createTestArea(1, "Ukraine");
+        Competition competition = createTestCompetition(100, "NFL", sport, area);
+        Venue venue = createTestVenue( 1, "Olympic Stadium");
+        Event mappedEvent = createTestEvent(1, "event", EventStatus.FINISHED, competition, LocalDateTime.now().minusDays(1), venue);
+        Participant participant = createTestParticipant(2, "2", "team2", "typeA", competition);
+
+        when(competitionService.readByExternalId(20)).thenReturn(Optional.of(competition));
+        when(venueService.readByExternalId(anyInt())).thenReturn(Optional.of(venue));
+        when(participantRepository.findByExternalIdIn(anyList())).thenReturn(List.of());
+        when(eventRepository.findByExternalIdIn(anyList())).thenReturn(List.of());
+        when(eventMapper.toEntity(any(), any(), any(), any())).thenReturn(mappedEvent);
+        when(participantMapper.toEntity(any(), any())).thenReturn(participant);
+        when(eventStatMapper.toEntity(any(), anyLong(), any(), any(), any()))
+                .thenReturn(new EventStat());
+
+        StatScoreSubParticipantDTO sub = new StatScoreSubParticipantDTO();
+        sub.setId(300);
+        sub.setTeamId(1);
+        sub.setPosition("Midfield");
+        sub.setPositionReason(null);
+        sub.setTeamConnection("current");
+        sub.setStats(List.of(new StatScoreStatDTO(1, "Possession", "Possession", "60", StatDataType.DECIMAL.toString().toUpperCase())));
+
+        SubParticipant existingSub = new SubParticipant(10L, 300, "Player A", "Midfield", 1, null, "male", "75", "175", LocalDate.of(1995, 5, 5), null, null, null, null);
+
+        when(statScoreProxyService.listSquadSubParticipants(anyInt(), anyInt(), eq(true)))
+                .thenReturn(PaginatedResponse.<StatScoreSubParticipantDTO>builder().items(List.of(sub)).build());
+        when(statScoreProxyService.listEventSubParticipants(anyInt(), eq(true)))
+                .thenReturn(PaginatedResponse.<StatScoreSubParticipantDTO>builder().items(List.of(sub)).build());
+
+        when(subParticipantRepository.findByExternalIdIn(anyList())).thenReturn(List.of(existingSub));
+        when(eventSubParticipantRepository.findExistingByEventAndSubParticipantIds(anyInt(), anyList())).thenReturn(List.of(
+                new EventSubParticipant(1L, mappedEvent, participant, existingSub, "in play", null, true)
+        ));
+
+        doNothing().when(statRepository).deleteByEventIdIn(anyList());
+
+        statsService.fetchStatDataForCompetitionAndDate(20, LocalDate.now());
+
+        verify(statRepository).saveAllAndFlush(anySet());
+        verify(eventSubParticipantRepository, times(2)).saveAllAndFlush(anyList());
+    }
+
 }

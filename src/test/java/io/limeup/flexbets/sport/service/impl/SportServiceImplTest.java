@@ -123,5 +123,22 @@ class SportServiceImplTest {
 
         verify(sportRepository).saveAllAndFlush(anyList());
     }
+
+    @Test
+    void listSportsWhenSportIdsPresentShouldUseProvidedList() {
+        Sport sport = createTestSport(3, "Hockey");
+        Page<Sport> page = new PageImpl<>(List.of(sport));
+        List<Integer> sportIds = List.of(3);
+
+        when(sportRepository.listSports(eq(sportIds), eq(false), any(), any(PageRequest.class)))
+                .thenReturn(page);
+
+        PaginatedResponse<SportLiteDTO> response = sportService.listSports(sportIds, null, requestQuery);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getItems()).hasSize(1);
+        verify(sportRepository).listSports(eq(sportIds), eq(false), any(), any(PageRequest.class));
+    }
+
 }
 

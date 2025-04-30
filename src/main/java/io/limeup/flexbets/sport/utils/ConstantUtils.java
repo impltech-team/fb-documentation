@@ -66,5 +66,6 @@ public class ConstantUtils {
         public static final String REBOUNDS = "Rebounds";
         public static final String FORWARD = "Forward";
         public static final String USA = "USA";
+        public static final String WASHINGTON = "Washington";
     }
 }

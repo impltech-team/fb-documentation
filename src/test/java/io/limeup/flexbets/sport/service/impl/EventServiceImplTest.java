@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -136,5 +137,26 @@ class EventServiceImplTest {
         verify(statScoreClient).getEventById(anyInt(), eq(false));
         verify(venueService).readByExternalId(eq(10));
     }
+
+    @Test
+    void listEventsShouldUseEmptyListsWhenVenueAndParticipantIdsAreNull() {
+        RequestQueryDTO query = new RequestQueryDTO();
+        query.setPage(1);
+        query.setPageSize(10);
+        query.setSortBy("startDate");
+        query.setSortOrder("asc");
+
+        when(eventRepository.countEvents(any(), any(), any(), any(), eq(Collections.emptyList()), eq(Collections.emptyList())))
+                .thenReturn(0);
+        when(eventRepository.listEvents(any(), any(), any(), any(), eq(Collections.emptyList()), eq(Collections.emptyList()), any(), any(), anyInt(), anyInt()))
+                .thenReturn(Collections.emptyList());
+
+        PaginatedResponse<EventDTO> response = eventService.listEvents(1, null, null, null, null, "scheduled", query);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getItems()).isEmpty();
+        assertThat(response.getCount()).isZero();
+    }
+
 }
 
