@@ -223,7 +223,7 @@ class StatsServiceImplTest {
         when(eventRepository.findByExternalIdIn(anyList())).thenReturn(List.of());
         when(eventMapper.toEntity(any(), any(), any(), any())).thenReturn(mappedEvent);
         when(participantMapper.toEntity(any(), any())).thenReturn(participant);
-        when(eventStatMapper.toEntity(any(), anyLong(), any(), any(), any()))
+        when(eventStatMapper.toEntity(any(StatScoreStatDTO.class), anyLong(), any(), any(), any()))
                 .thenReturn(new EventStat());
 
         StatScoreSubParticipantDTO sub = new StatScoreSubParticipantDTO();

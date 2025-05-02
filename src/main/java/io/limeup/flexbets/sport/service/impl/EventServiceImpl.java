@@ -16,16 +16,20 @@ import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Transactional
 @Service
 public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO, Long> implements EventService {
+
+    private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("event_name", "event_date");
 
     private final EventRepository eventRepository;
 
@@ -46,6 +50,8 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
+
         long count = eventRepository.countEvents(
                 competitionId,
                 dateFrom,
@@ -53,6 +59,11 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
                 status,
                 venueIds == null ? Collections.emptyList() : venueIds,
                 participantIds == null ? Collections.emptyList() : participantIds);
+
+        if (count == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
+        }
+
         List<EventRow> eventRows = eventRepository.listEvents(
                 competitionId,
                 dateFrom,
