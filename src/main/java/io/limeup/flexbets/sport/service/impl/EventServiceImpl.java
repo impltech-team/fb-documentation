@@ -8,6 +8,7 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.mapper.EventMapper;
 import io.limeup.flexbets.sport.model.Event;
+import io.limeup.flexbets.sport.model.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
@@ -23,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -46,7 +49,7 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
     }
 
     @EventBasedCache(cacheName = "eventsListCache",
-            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
+            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
@@ -75,8 +78,26 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
                 requestQuery.getSortOrder(),
                 requestQuery.getPageSize(),
                 (requestQuery.getPage() - 1) * requestQuery.getPageSize());
-        return PaginationUtils.buildPaginatedResponse(
+
+        PaginatedResponse<EventDTO> eventDTOPaginatedResponse = PaginationUtils.buildPaginatedResponse(
                 EventMapper.toDTO(eventRows), count, requestQuery.getPage(), requestQuery.getPageSize());
+
+        //tmp updating status here, TBD update status and start_date in db according to AMPQ queues (as it could be rescheduled)
+        calculateStatus(eventRows, eventDTOPaginatedResponse);
+
+        return eventDTOPaginatedResponse;
+    }
+
+    private void calculateStatus(List<EventRow> eventRows, PaginatedResponse<EventDTO> eventDTOPaginatedResponse) {
+        List<Event> events = eventRepository.findByExternalIdIn(eventRows.stream()
+                .map(EventRow::getExternalId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        events.forEach(event -> event.setStatus(event.getStartDate().isBefore(LocalDateTime.now()) ? EventStatus.FINISHED : EventStatus.SCHEDULED));
+        eventRepository.saveAllAndFlush(events);
+
+        eventDTOPaginatedResponse.getItems()
+                .forEach(eventDTO -> eventDTO.setStatus(eventDTO.getEventDate().isBefore(LocalDateTime.now()) ? EventStatus.FINISHED.toString() : EventStatus.SCHEDULED.toString()));
     }
 
     @EventBasedCache(cacheName = "eventDetailsCache",
