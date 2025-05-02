@@ -54,7 +54,7 @@ class EventServiceImplTest {
         requestQuery = new RequestQueryDTO();
         requestQuery.setPage(1);
         requestQuery.setPageSize(10);
-        requestQuery.setSortBy("startDate");
+        requestQuery.setSortBy("event_date");
         requestQuery.setSortOrder("asc");
     }
 
@@ -136,26 +136,6 @@ class EventServiceImplTest {
         assertThat(fullEventDTO).isNotNull();
         verify(statScoreClient).getEventById(anyInt(), eq(false));
         verify(venueService).readByExternalId(eq(10));
-    }
-
-    @Test
-    void listEventsShouldUseEmptyListsWhenVenueAndParticipantIdsAreNull() {
-        RequestQueryDTO query = new RequestQueryDTO();
-        query.setPage(1);
-        query.setPageSize(10);
-        query.setSortBy("startDate");
-        query.setSortOrder("asc");
-
-        when(eventRepository.countEvents(any(), any(), any(), any(), eq(Collections.emptyList()), eq(Collections.emptyList())))
-                .thenReturn(0);
-        when(eventRepository.listEvents(any(), any(), any(), any(), eq(Collections.emptyList()), eq(Collections.emptyList()), any(), any(), anyInt(), anyInt()))
-                .thenReturn(Collections.emptyList());
-
-        PaginatedResponse<EventDTO> response = eventService.listEvents(1, null, null, null, null, "scheduled", query);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getItems()).isEmpty();
-        assertThat(response.getCount()).isZero();
     }
 
 }

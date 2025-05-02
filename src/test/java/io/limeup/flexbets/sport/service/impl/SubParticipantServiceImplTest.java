@@ -81,7 +81,7 @@ class SubParticipantServiceImplTest {
         )).thenReturn(List.of(mock(SubParticipantStatRow.class), mock(SubParticipantStatRow.class)));
         when(mapper.toDTO(anyList()))
                 .thenReturn(List.of(mock(SubParticipantDTO.class), mock(SubParticipantDTO.class)));
-        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, 5, showAllStats, requestQuery);
+        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, 5, requestQuery);
         assertThat(response.getItems()).hasSize(2);
         assertThat(response.getCount()).isEqualTo(2);
     }
@@ -98,7 +98,7 @@ class SubParticipantServiceImplTest {
         when(statRepository.getSubParticipantStatsDetails(anyInt(), any(), anySet())).thenReturn(List.of(mock(SubParticipantStatRow.class)));
         when(mapper.toDTO(anyList())).thenReturn(List.of(mock(SubParticipantDTO.class)));
 
-        SubParticipantDTO dto = subParticipantService.getSubParticipantById(1, 1, 5, showAllStats);
+        SubParticipantDTO dto = subParticipantService.getSubParticipantById(1, 1, 5);
 
         assertThat(dto).isNotNull();
     }
@@ -108,7 +108,7 @@ class SubParticipantServiceImplTest {
         when(subParticipantRepository.findByExternalId(anyInt())).thenReturn(Optional.empty());
 
         FlexBetsSportNotFoundException exception = assertThrows(FlexBetsSportNotFoundException.class, () ->
-                subParticipantService.getSubParticipantById(1, 1, 5, showAllStats)
+                subParticipantService.getSubParticipantById(1, 1, 5)
         );
 
         assertThat(exception.getMessage()).contains("SubParticipant 1 Not Found");
@@ -125,7 +125,7 @@ class SubParticipantServiceImplTest {
         when(statRepository.getSubParticipantStatsDetails(anyInt(), any(), anySet())).thenReturn(Collections.emptyList());
 
         FlexBetsSportNotFoundException exception = assertThrows(FlexBetsSportNotFoundException.class, () ->
-                subParticipantService.getSubParticipantById(1, 1, 5, showAllStats)
+                subParticipantService.getSubParticipantById(1, 1, 5)
         );
 
         assertThat(exception.getMessage()).contains("SubParticipant 1 Not Found");
@@ -153,7 +153,7 @@ class SubParticipantServiceImplTest {
         )).thenReturn(0L);
 
         PaginatedResponse<SubParticipantDTO> result = subParticipantService.listSubParticipants(
-                competitionId, positions, participantIds, marketId, 5, showAllStats, requestQuery
+                competitionId, positions, participantIds, marketId, 5, requestQuery
         );
 
         assertThat(result).isNotNull();

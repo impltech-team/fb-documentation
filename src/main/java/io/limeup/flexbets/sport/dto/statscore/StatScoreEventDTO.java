@@ -38,5 +38,5 @@ public class StatScoreEventDTO {
     private int venueId;
     private List<StatScoreEventParticipantDTO> participants;
     private List<StatScoreIncidentDTO> eventIncidents;
-    private long lsId;
+    private Long lsId;
 }

@@ -382,7 +382,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
     private void fillParticipantStats(Set<EventStat> eventStats, Event event, List<StatScoreStatDTO> stats,
                                       Long id, StatTargetType type, Integer targetExternalId, List<StatScoreResultDTO> results) {
-        if (!results.isEmpty()) {
+        if (results != null && !results.isEmpty()) {
             results.stream()
                     .filter(r -> r.getName().equalsIgnoreCase("Result"))
                     .forEach(result -> eventStats.add(eventStatMapper.toEntity(result, id, type, event, targetExternalId)));
