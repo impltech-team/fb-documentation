@@ -5,9 +5,12 @@ import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.EventService;
+import io.limeup.flexbets.sport.validator.PositiveList;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/events")
 @RequiredArgsConstructor
+@Validated
 public class EventController {
     private final EventService eventService;
 
@@ -28,10 +32,12 @@ public class EventController {
             @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "date_from") LocalDateTime dateFrom,
             @RequestParam(required = false, name = "date_to") LocalDateTime dateTo,
+            @PositiveList
             @RequestParam(required = false, name = "venue_ids") List<Integer> venueIds,
+            @PositiveList
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "status") String status,
-            @ParameterObject RequestQueryDTO requestQuery) {
+            @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(eventService.listEvents(
                 competitionId, dateFrom, dateTo, venueIds, participantIds, status, requestQuery));
     }

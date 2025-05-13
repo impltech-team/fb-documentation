@@ -46,7 +46,7 @@ public class AreaServiceImpl extends ExternalIdReadServiceImpl<Area, AreaDTO, Lo
         this.areaRepository = repository;
     }
 
-    @Cacheable(value = "longLivedCache",
+    @Cacheable(value = "areaCache",
             key = "T(java.util.Objects).hash(#areaIds, #name, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<AreaDTO> listAreas(List<Integer> areaIds, String name, RequestQueryDTO requestQuery) {

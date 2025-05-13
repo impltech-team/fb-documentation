@@ -4,9 +4,12 @@ import io.limeup.flexbets.sport.dto.AreaDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.AreaService;
+import io.limeup.flexbets.sport.validator.PositiveList;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,14 +20,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/areas")
 @RequiredArgsConstructor
+@Validated
 public class AreaController {
     private final AreaService areaService;
 
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<AreaDTO>> listAreas(
+            @PositiveList
             @RequestParam(required = false, name = "area_ids") List<Integer> areaIds,
             @RequestParam(required = false) String name,
-            @ParameterObject RequestQueryDTO requestQuery) {
+            @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(areaService.listAreas(areaIds, name, requestQuery));
     }
 }

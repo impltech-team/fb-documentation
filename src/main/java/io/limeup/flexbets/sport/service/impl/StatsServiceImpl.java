@@ -3,6 +3,7 @@ package io.limeup.flexbets.sport.service.impl;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreResultDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
@@ -311,8 +312,9 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         fillEventSubParticipants(statScoreSubParticipants, existingSubsMap, eventStats, pescList, true);
 
         for (ParticipantEventSeasonCompetition pesc : pescList) {
-            fillStats(eventStats, event, pesc.participantDTO.getStats(),
-                    pesc.participant.getId(), StatTargetType.PARTICIPANT, pesc.participantDTO.getId());
+            fillParticipantStats(eventStats, event, pesc.participantDTO.getStats(),
+                    pesc.participant.getId(), StatTargetType.PARTICIPANT, pesc.participantDTO.getId(),
+                    pescList.get(0).participantDTO.getResults());
         }
         statRepository.saveAllAndFlush(eventStats);
     }
@@ -378,10 +380,20 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         return eventId + "-" + participantId + "-" + subId;
     }
 
+    private void fillParticipantStats(Set<EventStat> eventStats, Event event, List<StatScoreStatDTO> stats,
+                                      Long id, StatTargetType type, Integer targetExternalId, List<StatScoreResultDTO> results) {
+        if (results != null && !results.isEmpty()) {
+            results.stream()
+                    .filter(r -> r.getName().equalsIgnoreCase("Result"))
+                    .forEach(result -> eventStats.add(eventStatMapper.toEntity(result, id, type, event, targetExternalId)));
+        }
+        fillStats(eventStats, event, stats, id, type, targetExternalId);
+    }
+
     private void fillStats(Set<EventStat> eventStats, Event event, List<StatScoreStatDTO> stats,
-                           Long id, StatTargetType subparticipant, Integer targetExternalId) {
+                           Long id, StatTargetType type, Integer targetExternalId) {
         for (StatScoreStatDTO statDTO : stats) {
-            eventStats.add(eventStatMapper.toEntity(statDTO, id, subparticipant, event, targetExternalId));
+            eventStats.add(eventStatMapper.toEntity(statDTO, id, type, event, targetExternalId));
         }
     }
 

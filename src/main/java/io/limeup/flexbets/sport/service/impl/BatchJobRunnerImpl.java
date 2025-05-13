@@ -6,8 +6,6 @@ import io.limeup.flexbets.sport.repository.PrefetchLogRepository;
 import io.limeup.flexbets.sport.service.BatchJobRunner;
 import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
-import org.springframework.batch.core.configuration.JobRegistry;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,19 +20,13 @@ public class BatchJobRunnerImpl implements BatchJobRunner {
 
     private final PrefetchLogRepository prefetchLogRepository;
 
-    private final JobRegistry jobRegistry;
-
-    private final JobLauncher jobLauncher;
-
     private final CompetitionService competitionService;
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public BatchJobRunnerImpl(PrefetchLogRepository prefetchLogRepository, JobRegistry jobRegistry, JobLauncher jobLauncher,
+    public BatchJobRunnerImpl(PrefetchLogRepository prefetchLogRepository,
                               CompetitionService competitionService, ApplicationEventPublisher eventPublisher) {
         this.prefetchLogRepository = prefetchLogRepository;
-        this.jobRegistry = jobRegistry;
-        this.jobLauncher = jobLauncher;
         this.competitionService = competitionService;
         this.eventPublisher = eventPublisher;
     }

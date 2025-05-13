@@ -43,7 +43,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     }
 
     @EventBasedCache(cacheName = "participantsListCache",
-            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
+            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
                                                               Integer marketId, Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {

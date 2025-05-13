@@ -60,7 +60,7 @@ public class CompetitionServiceImpl extends ExternalIdReadServiceImpl<Competitio
         this.areaService = areaService;
     }
 
-    @Cacheable(value = "longLivedCache",
+    @Cacheable(value = "competitionCache",
             key = "T(java.util.Objects).hash(#areaId, #sportId, #type, #gender, #statusType, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy)")
     @Override
     public PaginatedResponse<CompetitionDTO> listCompetitions(Integer areaId, Integer sportId, CompetitionType type, String gender, StatusType statusType,

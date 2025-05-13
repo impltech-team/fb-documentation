@@ -5,6 +5,7 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SportDTO;
 import io.limeup.flexbets.sport.dto.SportLiteDTO;
 import io.limeup.flexbets.sport.service.SportService;
+import io.limeup.flexbets.sport.validator.PositiveList;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -27,6 +28,7 @@ public class SportController {
 
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<SportLiteDTO>> listSports(
+            @PositiveList
             @RequestParam(required = false, name = "sport_ids") List<Integer> sportIds,
             @RequestParam(required = false) String name,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
