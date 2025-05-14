@@ -131,7 +131,7 @@ jobs:
         contents: read
       strategy:
         matrix:
-          env: [dev,stage]
+          env: [dev,stage,prd]
       env:
         ecs_cluster: ${{ matrix.env }}
         ecs_service: ${{ matrix.env }}
