@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.service.SubParticipantService;
+import io.limeup.flexbets.sport.validator.PositiveList;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,18 +30,22 @@ public class SubParticipantController {
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<SubParticipantDTO>> listSubParticipants(
             @RequestParam(name = "competition_id") Integer competitionId,
+            @PositiveList(checkPositive = false)
             @RequestParam(required = false) List<String> positions,
+            @PositiveList
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "market_id") Integer marketId,
+            @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(subParticipantService.listSubParticipants(
-                competitionId, positions, participantIds, marketId, requestQuery));
+                competitionId, positions, participantIds, marketId, maxHistoricalDataCount, requestQuery));
     }
 
     @GetMapping("/{sub-participant_id}")
     public ResponseEntity<SubParticipantDTO> getSubParticipantById(
             @PathVariable("sub-participant_id") Integer subParticipantId,
-            @RequestParam(required = false, name = "market_id") Integer marketId) {
-        return ResponseEntity.ok(subParticipantService.getSubParticipantById(subParticipantId, marketId));
+            @RequestParam(required = false, name = "market_id") Integer marketId,
+            @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount) {
+        return ResponseEntity.ok(subParticipantService.getSubParticipantById(subParticipantId, marketId, maxHistoricalDataCount));
     }
 }

@@ -11,8 +11,8 @@ public interface SubParticipantService extends ExternalIdReadService<SubParticip
 
     PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
                                                              List<Integer> participantIds, Integer marketId,
-                                                             RequestQueryDTO requestQuery);
+                                                             Integer maxHistoricalDataCount, RequestQueryDTO requestQuery);
 
-    SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId);
+    SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount);
 
 }

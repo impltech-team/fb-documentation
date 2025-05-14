@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
@@ -14,20 +15,21 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
-import io.micrometer.common.util.StringUtils;
-import jakarta.validation.ValidationException;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+@Transactional
 @Service
 public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participant, ParticipantDTO, Long> implements ParticipantService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("team_name", "acronym");
 
-    private final ParticipantRepository repository;
+    private final ParticipantRepository participantRepository;
 
     private final MarketService marketService;
 
@@ -35,22 +37,33 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
 
     protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository) {
         super(repository);
-        this.repository = repository;
+        this.participantRepository = repository;
         this.marketService = marketService;
         this.statRepository = statRepository;
     }
 
+    @EventBasedCache(cacheName = "participantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId, List<Integer> participantIds,
-                                                              Integer marketId, RequestQueryDTO requestQuery) {
-        validateRequest(requestQuery);
+                                                              Integer marketId, Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
 
-        Set<String> statNames = Set.of("3pt jump shot attempts", "Turnovers", "Points", "Blocks");
-                //marketService.getStatsByMarket(competitionId, marketId, MarketType.PARTICIPANT);
+        Set<String> statNames = marketService.getStatsByMarket(competitionId, marketId, MarketType.PARTICIPANT);
+
+        Long count = participantRepository.countParticipants(competitionId,
+                participantIds == null ? Collections.emptyList() : participantIds,
+                requestQuery.getFilter());
+
+        if (count == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
+        }
+
         List<ParticipantStatRow> stats = statRepository.listParticipantStats(
                 competitionId,
                 participantIds == null ? Collections.emptyList() : participantIds,
                 marketId,
+                maxHistoricalDataCount,
                 requestQuery.getFilter(),
                 requestQuery.getSortBy(),
                 requestQuery.getSortOrder(),
@@ -58,30 +71,23 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                 requestQuery.getPageSize(),
                 statNames
         );
-        Integer count = repository.countParticipants(competitionId,
-                participantIds == null ? Collections.emptyList() : participantIds,
-                requestQuery.getFilter());
 
         return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
+    @EventBasedCache(cacheName = "participantDetailsCache",
+            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
-    public ParticipantDTO getParticipantById(Integer participantId, Integer marketId) {
-        Participant rawParticipant = repository.findByExternalId(participantId)
+    public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
+        Participant rawParticipant = participantRepository.findByExternalId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
-        Set<String> statNames = Set.of("3pt jump shot attempts", "Turnovers", "Points", "Blocks");
-                //marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
+        Set<String> statNames = marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
         List<ParticipantStatRow> participantStatsDetails = statRepository.getParticipantStatsDetails(
-                participantId, statNames);
+                participantId, maxHistoricalDataCount, statNames);
         return ParticipantMapper.toDTO(participantStatsDetails)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
     }
 
-    private void validateRequest(RequestQueryDTO requestQuery) {
-        if (StringUtils.isNotBlank(requestQuery.getSortBy()) && !SUPPORTED_SORT_FIELDS.contains(requestQuery.getSortBy())) {
-            throw new ValidationException(String.format("Invalid sortBy: %s. Available options: %s", requestQuery.getSortBy(), SUPPORTED_SORT_FIELDS));
-        }
-    }
 }

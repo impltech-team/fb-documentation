@@ -14,14 +14,14 @@ public class SportDTO {
     private String name;
     private List<Status> statuses;
     private List<ResultType> resultTypes;
-    private List<EventStatistic> eventStatistics;
+    private List<EventDetails> eventDetails;
     private List<TeamStatistic> teamStatistics;
     private List<PlayerStatistic> playerStatistics;
     private List<Incident> incidents;
 
     @Data
     public static class Status {
-        private String status;
+        private String statusName;
         private String description;
     }
 
@@ -32,8 +32,8 @@ public class SportDTO {
     }
 
     @Data
-    public static class EventStatistic {
-        private String statName;
+    public static class EventDetails {
+        private String name;
         private String description;
     }
 

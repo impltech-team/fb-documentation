@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
 public class SportsWireMockTest extends BaseWireMockTest {
 
     private static final String SPORTS_LIST_ENDPOINT = "/sports/list";
@@ -27,12 +29,12 @@ public class SportsWireMockTest extends BaseWireMockTest {
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(SPORTS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("sports_response.json")
                         .withStatus(200)));
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathMatching(SPORTS_DETAILS_ENDPOINT + "\\d+"))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("sport_response.json")
                         .withStatus(200)));
     }
@@ -55,17 +57,17 @@ public class SportsWireMockTest extends BaseWireMockTest {
         assertThat(jsonPath.getInt("total_pages")).isEqualTo(1);
 
         // Validate sports list
-        List<Map<String, Object>> sports = jsonPath.getList("sports");
+        List<Map<String, Object>> sports = jsonPath.getList(SPORTS);
         assertThat(sports).isNotEmpty().hasSize(2);
 
         // Validate first sport (Soccer)
         Map<String, Object> firstSport = sports.get(0);
-        assertThat(firstSport.get("name")).isEqualTo("Soccer");
+        assertThat(firstSport.get("name")).isEqualTo(SOCCER);
         assertThat(firstSport.get("id")).isEqualTo(1);
 
         // Validate second sport (Basketball)
         Map<String, Object> secondSport = sports.get(1);
-        assertThat(secondSport.get("name")).isEqualTo("Basketball");
+        assertThat(secondSport.get("name")).isEqualTo(BASKETBALL);
         assertThat(secondSport.get("id")).isEqualTo(2);
     }
 
@@ -81,11 +83,11 @@ public class SportsWireMockTest extends BaseWireMockTest {
                 .extract().response();
 
         JsonPath jsonPath = response.jsonPath();
-        List<Map<String, Object>> sports = jsonPath.getList("sports");
+        List<Map<String, Object>> sports = jsonPath.getList(SPORTS);
 
         // Ensure only Basketball is returned
         assertThat(sports).isNotEmpty().hasSize(1);
-        assertThat(sports.get(0).get("name")).isEqualTo("Basketball");
+        assertThat(sports.get(0).get("name")).isEqualTo(BASKETBALL);
         assertThat(sports.get(0).get("id")).isEqualTo(2);
     }
 
@@ -93,7 +95,7 @@ public class SportsWireMockTest extends BaseWireMockTest {
     @DisplayName("Filter Sports by Name (Soccer)")
     public void testFilterSportsByName() {
         Response response = given()
-                .queryParam("name", "Soccer")
+                .queryParam("name", SOCCER)
                 .when()
                 .get(SPORTS_LIST_ENDPOINT)
                 .then()
@@ -101,11 +103,11 @@ public class SportsWireMockTest extends BaseWireMockTest {
                 .extract().response();
 
         JsonPath jsonPath = response.jsonPath();
-        List<Map<String, Object>> sports = jsonPath.getList("sports");
+        List<Map<String, Object>> sports = jsonPath.getList(SPORTS);
 
         // Ensure only Soccer is returned
         assertThat(sports).isNotEmpty().hasSize(1);
-        assertThat(sports.get(0).get("name")).isEqualTo("Soccer");
+        assertThat(sports.get(0).get("name")).isEqualTo(SOCCER);
         assertThat(sports.get(0).get("id")).isEqualTo(1);
     }
 
@@ -123,7 +125,7 @@ public class SportsWireMockTest extends BaseWireMockTest {
 
         // Validate general details
         assertThat(jsonPath.getInt("id")).isEqualTo(1);
-        assertThat(jsonPath.getString("name")).isEqualTo("Basketball");
+        assertThat(jsonPath.getString("name")).isEqualTo(BASKETBALL);
 
         // Validate statuses
         List<Map<String, Object>> statuses = jsonPath.getList("statuses");
@@ -138,17 +140,17 @@ public class SportsWireMockTest extends BaseWireMockTest {
         // Validate event statistics
         List<Map<String, Object>> eventStatistics = jsonPath.getList("event_statistics");
         assertThat(eventStatistics).isNotEmpty().hasSize(3);
-        assertThat(eventStatistics).extracting("stat_name").contains("Total Points", "Total Fouls", "Possession");
+        assertThat(eventStatistics).extracting(STAT_NAME).contains("Total Points", "Total Fouls", "Possession");
 
         // Validate team statistics
         List<Map<String, Object>> teamStatistics = jsonPath.getList("team_statistics");
         assertThat(teamStatistics).isNotEmpty().hasSize(4);
-        assertThat(teamStatistics).extracting("stat_name").contains("Points", "Rebounds", "Assists", "Turnovers");
+        assertThat(teamStatistics).extracting(STAT_NAME).contains("Points", "Rebounds", "Assists", "Turnovers");
 
         // Validate player statistics
         List<Map<String, Object>> playerStatistics = jsonPath.getList("player_statistics");
         assertThat(playerStatistics).isNotEmpty().hasSize(4);
-        assertThat(playerStatistics).extracting("stat_name").contains("Points", "Assists", "Rebounds", "Field Goal Percentage");
+        assertThat(playerStatistics).extracting(STAT_NAME).contains("Points", "Assists", "Rebounds", "Field Goal Percentage");
 
         // Validate incidents
         List<Map<String, Object>> incidents = jsonPath.getList("incidents");

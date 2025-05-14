@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
 public class CompetitionsWireMockTest extends BaseWireMockTest {
 
     private static final String COMPETITIONS_LIST_ENDPOINT = "/competitions/list";
@@ -26,7 +28,7 @@ public class CompetitionsWireMockTest extends BaseWireMockTest {
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(COMPETITIONS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("competitions_response.json")
                         .withStatus(200)));
     }

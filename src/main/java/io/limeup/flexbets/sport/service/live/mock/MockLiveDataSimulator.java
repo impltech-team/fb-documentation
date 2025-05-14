@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.live.mock;
 
+import io.limeup.flexbets.sport.utils.ConstantUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -42,27 +43,27 @@ public class MockLiveDataSimulator {
         int playedTime = 10 + random.nextInt(35);
 
         Map<String, Object> update = new HashMap<>();
-        update.put("id", eventId);
+        update.put(ConstantUtils.Mock.ID, eventId);
 
         List<Map<String, Object>> participants = new ArrayList<>();
 
         // First Participant
         Map<String, Object> participant1 = new HashMap<>();
-        participant1.put("id", 136929);
+        participant1.put(ConstantUtils.Mock.ID, 136929);
         participant1.put("name", "Los Angeles Lakers");
         participant1.put("played_time", playedTime);
-        participant1.put("team_formation", createFormation());
+        participant1.put(ConstantUtils.Mock.TEAM_FORMATION, createFormation());
 
         List<Map<String, Object>> subParticipants1 = new ArrayList<>();
         subParticipants1.add(createSubParticipant(1, "LeBron James"));
         subParticipants1.add(createSubParticipant(2, "Anthony Davis"));
 
-        participant1.put("subparticipants", subParticipants1);
+        participant1.put(ConstantUtils.Mock.SUB_PARTICIPANTS, subParticipants1);
         participants.add(participant1);
 
         // Second Participant
         Map<String, Object> participant2 = new HashMap<>();
-        participant2.put("id", 1507);
+        participant2.put(ConstantUtils.Mock.ID, 1507);
         participant2.put("name", "Phoenix Suns");
         participant2.put("played_time", playedTime);
 
@@ -71,16 +72,16 @@ public class MockLiveDataSimulator {
         subParticipants2.add(createSubParticipant(4, "Devin Booker"));
         subParticipants2.add(createSubParticipant(5, "Bradley Beal"));
 
-        participant2.put("subparticipants", subParticipants2);
+        participant2.put(ConstantUtils.Mock.SUB_PARTICIPANTS, subParticipants2);
         participants.add(participant2);
 
-        update.put("participants", participants);
+        update.put(ConstantUtils.Mock.PARTICIPANTS, participants);
         return update;
     }
 
     private Map<String, Object> createFormation() {
         Map<String, Object> formation = new HashMap<>();
-        List<String> BASKETBALL_FORMATIONS = List.of(
+        List<String> basketballFormations = List.of(
                 "1-2-2",
                 "2-1-2",
                 "3-2",
@@ -90,8 +91,8 @@ public class MockLiveDataSimulator {
 
         formation.put("id", 50000 + random.nextInt(10000));
 
-        String oldFormation = BASKETBALL_FORMATIONS.get(random.nextInt(BASKETBALL_FORMATIONS.size()));
-        String newFormation = BASKETBALL_FORMATIONS.get(random.nextInt(BASKETBALL_FORMATIONS.size()));
+        String oldFormation = basketballFormations.get(random.nextInt(basketballFormations.size()));
+        String newFormation = basketballFormations.get(random.nextInt(basketballFormations.size()));
 
 
         formation.put("old_formation", oldFormation);
@@ -102,14 +103,14 @@ public class MockLiveDataSimulator {
 
     private Map<String, Object> createSubParticipant(int subParticipantId, String name) {
         Map<String, Object> subParticipant = new HashMap<>();
-        subParticipant.put("sub_participant_id", subParticipantId);
+        subParticipant.put(ConstantUtils.Mock.SUB_PARTICIPANT_ID, subParticipantId);
         subParticipant.put("player_name", name);
 
         List<Map<String, Object>> markets = new ArrayList<>();
         markets.add(createMarket(1, "Under/Over Player Points", 30.5));
         markets.add(createMarket(2, "Under/Over Player Rebounds", 4.5));
         markets.add(createMarket(3, "Under/Over Player Blocks", 3.5));
-        subParticipant.put("markets", markets);
+        subParticipant.put(ConstantUtils.Mock.MARKETS, markets);
 
         return subParticipant;
     }

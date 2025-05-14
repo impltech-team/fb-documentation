@@ -12,11 +12,13 @@ import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.StatScoreDataUtils;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+@Transactional
 @Service
 public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO, Long> implements VenueService {
 
@@ -32,7 +34,7 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
 
     @Override
     public Venue create(StatScoreVenueDTO venueDTO) {
-        return repository.save(venueMapper.toEntity(venueDTO));
+        return externalIdRepository.save(venueMapper.toEntity(venueDTO));
     }
 
     @Override
@@ -50,11 +52,11 @@ public class VenueServiceImpl extends ExternalIdReadServiceImpl<Venue, VenueDTO,
         StatScoreDataUtils.mergeAndSaveDTOs(
                 fetchedVenues,
                 StatScoreVenueDTO::getId,
-                ids -> repository.findByExternalIdIn(new ArrayList<>(ids)),
+                ids -> externalIdRepository.findByExternalIdIn(new ArrayList<>(ids)),
                 (dto, existing) -> venueMapper.updateEntity(existing, dto),
                 venueMapper::toEntity,
                 Venue::getExternalId,
-                repository::saveAllAndFlush
+                externalIdRepository::saveAllAndFlush
         );
     }
 }

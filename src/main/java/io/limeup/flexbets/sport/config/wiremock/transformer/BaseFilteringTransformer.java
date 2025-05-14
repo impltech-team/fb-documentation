@@ -26,6 +26,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class BaseFilteringTransformer implements ResponseTransformerV2 {
 
+    public static final String PAGE = "page";
+    public static final String PAGE_SIZE = "page_size";
+    public static final String COUNT = "count";
+    public static final String TOTAL_PAGES = "total_pages";
+    public static final String CURRENT_PAGE_COUNT = "current_page_count";
+    public static final String FILTER = "filter";
+
     protected final ObjectMapper objectMapper = new ObjectMapper();
     private static final Random RANDOM = new Random();
 
@@ -35,8 +42,8 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
             LoggedRequest request = serveEvent.getRequest();
 
             // Extract pagination parameters
-            int pageSize = Integer.parseInt(extractQueryParam(request, "page_size", "50"));
-            int page = Integer.parseInt(extractQueryParam(request, "page", "1"));
+            int pageSize = Integer.parseInt(extractQueryParam(request, PAGE_SIZE, "50"));
+            int page = Integer.parseInt(extractQueryParam(request, PAGE, "1"));
 
             // Read response JSON
             JsonNode originalResponse = objectMapper.readTree(response.getBody());
@@ -49,7 +56,7 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
 
             ArrayNode dataArray = (ArrayNode) originalResponse.get(fieldKey);
 
-            // ✅ Extract filters based on the specific API implementation
+            // Extract filters based on the specific API implementation
             Map<String, List<String>> filters = extractFilters(request);
             Map<String, String> greaterFilters = extractGreaterFilters(request);
             Map<String, String> lessFilters = extractLessFilters(request);
@@ -60,17 +67,17 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
                     partialMatchFilters != null
                             && partialMatchFilters.values().stream().anyMatch(value -> value != null && !value.isEmpty());
 
-            // ✅ Apply filters only if filters exist
+            // Apply filters only if filters exist
             ArrayNode filteredDataArray = hasFilters ? filterDataArray(dataArray, filters, greaterFilters, lessFilters, partialMatchFilters) : dataArray;
 
-            // ✅ Apply pagination logic
+            // Apply pagination logic
             int count = getCount(pageSize, page, filteredDataArray);
             int totalPages = (int) Math.ceil((double) count / pageSize);
 
-            // ✅ Modify response JSON dynamically
+            // Modify response JSON dynamically
             ((ObjectNode) originalResponse).set(fieldKey, filteredDataArray);
-            ((ObjectNode) originalResponse).put("count", count);
-            ((ObjectNode) originalResponse).put("total_pages", totalPages);
+            ((ObjectNode) originalResponse).put(COUNT, count);
+            ((ObjectNode) originalResponse).put(TOTAL_PAGES, totalPages);
 
             return Response.response().body(objectMapper.writeValueAsString(originalResponse)).build();
 
@@ -140,17 +147,14 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
             String field = entry.getKey();
             String filterValue = entry.getValue();
 
-            if (filterValue != null && !filterValue.isEmpty()) {
-                if (item.has(field)) {
-                    String itemValue = item.get(field).asText().toLowerCase();
+            if (filterValue != null && !filterValue.isEmpty() && item.has(field)) {
+                String itemValue = item.get(field).asText().toLowerCase();
 
-                    if (itemValue.contains(filterValue.toLowerCase())) {
-                        return true;
-                    }
+                if (itemValue.contains(filterValue.toLowerCase())) {
+                    return true;
                 }
             }
         }
-
         return false;
     }
 
@@ -199,38 +203,47 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
         for (Map.Entry<String, List<String>> entry : filters.entrySet()) {
             String fieldPath = entry.getKey();
             List<String> filterValues = entry.getValue();
-            if (!filterValues.isEmpty()) {
-                JsonNode fieldNode;
-                if (fieldPath.contains(".")) {
-                    fieldNode = getNestedField(item, fieldPath);
-                } else {
-                    fieldNode = item.has(fieldPath) ? item.get(fieldPath) : null;
-                }
-
-                if (fieldNode == null) {
-                    return false;
-                }
-
-                if (fieldNode.isArray()) {
-                    boolean match = false;
-                    for (JsonNode arrayElement : fieldNode) {
-                        String value = arrayElement.asText();
-                        if (filterValues.contains(value)) {
-                            match = true;
-                        }
-                    }
-                    if (!match) {
-                        return false;
-                    }
-                } else {
-                    String value = fieldNode.asText().toLowerCase();
-                    if (!filterValues.contains(value)) {
-                        return false;
-                    }
-                }
+            if (!filterValues.isEmpty() && isMatchesFilters(item, fieldPath, filterValues)) {
+                return false;
             }
         }
         return true;
+    }
+
+    private boolean isMatchesFilters(JsonNode item, String fieldPath, List<String> filterValues) {
+        JsonNode fieldNode;
+        if (fieldPath.contains(".")) {
+            fieldNode = getNestedField(item, fieldPath);
+        } else {
+            fieldNode = item.has(fieldPath) ? item.get(fieldPath) : null;
+        }
+
+        if (fieldNode == null) {
+            return true;
+        }
+
+        if (fieldNode.isArray()) {
+            if (isMatchArrayFilter(filterValues, fieldNode)) return true;
+        } else {
+            if (isMatchTextFilters(filterValues, fieldNode)) return true;
+        }
+        return false;
+    }
+
+    private boolean isMatchTextFilters(List<String> filterValues, JsonNode fieldNode) {
+        String value = fieldNode.asText().toLowerCase();
+        return !filterValues.contains(value);
+    }
+
+    private boolean isMatchArrayFilter(List<String> filterValues, JsonNode fieldNode) {
+        boolean match = false;
+        for (JsonNode arrayElement : fieldNode) {
+            String value = arrayElement.asText();
+            if (filterValues.contains(value)) {
+                match = true;
+            }
+        }
+        return !match;
     }
 
     private JsonNode getNestedField(JsonNode node, String fieldPath) {
@@ -241,16 +254,7 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
                 return null;
             }
             if (currentNode.isArray()) {
-                ArrayNode arrayNode = (ArrayNode) currentNode;
-                ArrayNode resultArray = objectMapper.createArrayNode();
-
-                for (JsonNode element : arrayNode) {
-                    JsonNode nestedField = getNestedField(element, field);
-                    if (nestedField != null) {
-                        resultArray.add(nestedField);
-                    }
-                }
-                return resultArray.isEmpty() ? null : resultArray;
+                return getJsonNodeArray((ArrayNode) currentNode, field);
             }
             if (!currentNode.has(field)) {
                 return null;
@@ -258,6 +262,19 @@ public abstract class BaseFilteringTransformer implements ResponseTransformerV2 
             currentNode = currentNode.get(field);
         }
         return currentNode;
+    }
+
+    private JsonNode getJsonNodeArray(ArrayNode currentNode, String field) {
+        ArrayNode arrayNode = currentNode;
+        ArrayNode resultArray = objectMapper.createArrayNode();
+
+        for (JsonNode element : arrayNode) {
+            JsonNode nestedField = getNestedField(element, field);
+            if (nestedField != null) {
+                resultArray.add(nestedField);
+            }
+        }
+        return resultArray.isEmpty() ? null : resultArray;
     }
 
     protected String extractQueryParam(LoggedRequest request, String param) {

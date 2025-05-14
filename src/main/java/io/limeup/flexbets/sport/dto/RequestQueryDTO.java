@@ -11,16 +11,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestQueryDTO {
-    @Min(1)
+    @Min(value = 1)
     private int page = 1;
 
-    @Min(1)
-    @Max(100)
-    private int pageSize = 50;
+    @Min(value = 1)
+    @Max(value = 100)
+    private int pageSize = 25;
 
     private String sortBy;
 
-    @Pattern(regexp = "asc|desc", flags = Pattern.Flag.CASE_INSENSITIVE, message = "sortOrder must be 'asc' or 'desc'")
+    @Pattern(regexp = "asc|desc", flags = Pattern.Flag.CASE_INSENSITIVE, message = "parameter sort_order must be 'asc' or 'desc'")
     private String sortOrder = "asc";
 
     private String filter;

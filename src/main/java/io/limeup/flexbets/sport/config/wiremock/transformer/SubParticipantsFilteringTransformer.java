@@ -30,9 +30,9 @@ public class SubParticipantsFilteringTransformer extends BaseFilteringTransforme
     @Override
     protected Map<String, String> extractPartialMatchFilters(LoggedRequest request) {
         Map<String, String> filters = new HashMap<>();
-        filters.put("position", extractQueryParam(request, "filter", null));
-        filters.put("team_name", extractQueryParam(request, "filter", null));
-        filters.put("player_name", extractQueryParam(request, "filter", null));
+        filters.put("position", extractQueryParam(request, BaseFilteringTransformer.FILTER, null));
+        filters.put("team_name", extractQueryParam(request, BaseFilteringTransformer.FILTER, null));
+        filters.put("player_name", extractQueryParam(request, BaseFilteringTransformer.FILTER, null));
         return filters;
     }
 }

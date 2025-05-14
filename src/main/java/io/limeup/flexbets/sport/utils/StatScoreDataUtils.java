@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 public class StatScoreDataUtils {
 
+    private StatScoreDataUtils() {
+
+    }
+
     public static <D, E> void mergeAndSaveDTOs(
             List<D> fetchedDTOs,
             Function<D, Integer> dtoExternalIdExtractor,
@@ -38,8 +42,7 @@ public class StatScoreDataUtils {
             E existing = existingMap.get(id);
 
             if (existing != null) {
-                updateMapper.apply(dto, existing);
-                toSave.add(existing);
+                toSave.add(updateMapper.apply(dto, existing));
             } else {
                 E newEntity = createMapper.apply(dto);
                 toSave.add(newEntity);

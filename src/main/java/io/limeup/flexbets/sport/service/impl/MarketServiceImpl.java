@@ -1,34 +1,43 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import com.github.tomakehurst.wiremock.admin.NotFoundException;
+import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.mapper.MarketMapper;
+import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Market;
 import io.limeup.flexbets.sport.model.MarketType;
 import io.limeup.flexbets.sport.repository.MarketRepository;
+import io.limeup.flexbets.sport.service.CompetitionService;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.MarketService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Transactional
 @Service
 public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketLiteDTO, Long> implements MarketService {
 
-    private final MarketRepository repository;
+    private final MarketRepository marketRepository;
 
-    protected MarketServiceImpl(MarketRepository repository) {
+    private final CompetitionService competitionService;
+
+    protected MarketServiceImpl(MarketRepository repository, CompetitionService competitionService) {
         super(repository);
-        this.repository = repository;
+        this.marketRepository = repository;
+        this.competitionService = competitionService;
     }
 
     @Override
     public List<MarketLiteDTO> listMarkets(Integer competitionId, MarketType marketType) {
-        return repository.findByCompetitionAndOptionalType(competitionId, marketType)
+        return marketRepository.findByCompetitionAndOptionalType(competitionId, marketType)
                 .stream()
                 .map(MarketMapper::toLiteDTO)
                 .collect(Collectors.toList());
@@ -36,7 +45,45 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
 
     @Override
     public List<Market> listMarketEntities(Integer competitionId, MarketType marketType) {
-        return repository.findByCompetitionAndOptionalType(competitionId, marketType);
+        return marketRepository.findByCompetitionAndOptionalType(competitionId, marketType);
+    }
+
+    @Override
+    public List<MarketDTO> getAllMarketsFullDTO() {
+        return marketRepository.findAll().stream()
+                .map(MarketMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public MarketDTO createMarket(MarketDTO dto) {
+
+        Market market = MarketMapper.toEntity(dto,
+                competitionService.readByExternalId(dto.getCompetitionId())
+                        .orElseThrow(() -> new NotFoundException("Competition not found")));
+        return MarketMapper.toDTO(marketRepository.save(market));
+    }
+
+    @Override
+    public MarketDTO updateMarket(Integer id, MarketDTO dto) {
+        Market market = marketRepository.findByExternalId(id)
+                .orElseThrow(() -> new EntityNotFoundException("Market not found"));
+        Competition competition = competitionService.readByExternalId(dto.getCompetitionId())
+                .orElseThrow(() -> new NotFoundException("Competition not found"));
+        return MarketMapper.toDTO(marketRepository.save(MarketMapper.updateEntity(market, dto, competition)));
+    }
+
+    @Override
+    public void deleteMarket(Integer id) {
+        marketRepository.deleteByExternalId(id);
+    }
+
+    @Override
+    public void setMarketEnabled(Integer id, boolean enabled) {
+        Market market = marketRepository.findByExternalId(id)
+                .orElseThrow(() -> new EntityNotFoundException("Market not found"));
+        market.setEnabled(enabled);
+        marketRepository.save(market);
     }
 
     @Override

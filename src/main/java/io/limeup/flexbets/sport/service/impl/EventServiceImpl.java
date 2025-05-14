@@ -1,30 +1,112 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.EventDTO;
+import io.limeup.flexbets.sport.dto.FullEventDTO;
+import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
+import io.limeup.flexbets.sport.mapper.EventMapper;
 import io.limeup.flexbets.sport.model.Event;
+import io.limeup.flexbets.sport.model.EventStatus;
+import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
+import io.limeup.flexbets.sport.repository.projection.EventRow;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.EventService;
+import io.limeup.flexbets.sport.service.VenueService;
+import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
+import io.limeup.flexbets.sport.utils.PaginationUtils;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Transactional
 @Service
 public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO, Long> implements EventService {
 
-    protected EventServiceImpl(EventRepository repository) {
+    private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("event_name", "event_date");
+
+    private final EventRepository eventRepository;
+
+    private final StatScoreClient statScoreClient;
+
+    private final VenueService venueService;
+
+    protected EventServiceImpl(EventRepository repository, StatScoreClient statScoreClient,
+                               VenueService venueService) {
         super(repository);
+        this.eventRepository = repository;
+        this.statScoreClient = statScoreClient;
+        this.venueService = venueService;
     }
 
+    @EventBasedCache(cacheName = "eventsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
-    public List<EventDTO> listEvents(Integer competitionId, String dateFrom, String dateTo, List<Integer> venueIds
+    public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
-        return null;
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
+
+        long count = eventRepository.countEvents(
+                competitionId,
+                dateFrom,
+                dateTo,
+                status,
+                venueIds == null ? Collections.emptyList() : venueIds,
+                participantIds == null ? Collections.emptyList() : participantIds);
+
+        if (count == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
+        }
+
+        List<EventRow> eventRows = eventRepository.listEvents(
+                competitionId,
+                dateFrom,
+                dateTo,
+                status,
+                venueIds == null ? Collections.emptyList() : venueIds,
+                participantIds == null ? Collections.emptyList() : participantIds,
+                requestQuery.getSortBy(),
+                requestQuery.getSortOrder(),
+                requestQuery.getPageSize(),
+                (requestQuery.getPage() - 1) * requestQuery.getPageSize());
+
+        PaginatedResponse<EventDTO> eventDTOPaginatedResponse = PaginationUtils.buildPaginatedResponse(
+                EventMapper.toDTO(eventRows), count, requestQuery.getPage(), requestQuery.getPageSize());
+
+        //tmp updating status here, TBD update status and start_date in db according to AMPQ queues (as it could be rescheduled)
+        calculateStatus(eventRows, eventDTOPaginatedResponse);
+
+        return eventDTOPaginatedResponse;
     }
 
+    private void calculateStatus(List<EventRow> eventRows, PaginatedResponse<EventDTO> eventDTOPaginatedResponse) {
+        List<Event> events = eventRepository.findByExternalIdIn(eventRows.stream()
+                .map(EventRow::getExternalId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        events.forEach(event -> event.setStatus(event.getStartDate().isBefore(LocalDateTime.now()) ? EventStatus.FINISHED : EventStatus.SCHEDULED));
+        eventRepository.saveAllAndFlush(events);
+
+        eventDTOPaginatedResponse.getItems()
+                .forEach(eventDTO -> eventDTO.setStatus(eventDTO.getEventDate().isBefore(LocalDateTime.now()) ? EventStatus.FINISHED.toString() : EventStatus.SCHEDULED.toString()));
+    }
+
+    @EventBasedCache(cacheName = "eventDetailsCache",
+            key = "#eventId")
     @Override
-    public EventDTO getEventById(Long eventId) {
-        return null;
+    public FullEventDTO getEventById(Integer eventId) {
+        StatScoreCompetitionDTO eventCompetition = statScoreClient.getEventById(eventId, false).block()
+                .getApi().getData();
+        Venue venue = venueService.readByExternalId(eventCompetition.getSeason().getStage().getGroup().getEvent().getVenueId()).orElse(null);
+        return EventMapper.mapToFullEventDTO(eventCompetition, venue);
     }
 }

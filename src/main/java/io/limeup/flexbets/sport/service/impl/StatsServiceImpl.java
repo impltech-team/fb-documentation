@@ -3,6 +3,7 @@ package io.limeup.flexbets.sport.service.impl;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
+import io.limeup.flexbets.sport.dto.statscore.StatScoreResultDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
@@ -15,12 +16,16 @@ import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.EventStat;
+import io.limeup.flexbets.sport.model.EventSubParticipant;
 import io.limeup.flexbets.sport.model.Participant;
+import io.limeup.flexbets.sport.model.PrefetchLog;
 import io.limeup.flexbets.sport.model.StatTargetType;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
+import io.limeup.flexbets.sport.repository.EventSubParticipantRepository;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
+import io.limeup.flexbets.sport.repository.PrefetchLogRepository;
 import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.SubParticipantRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
@@ -32,12 +37,26 @@ import io.limeup.flexbets.sport.dto.StatsResponseDTO;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
+import io.limeup.flexbets.sport.utils.ConstantUtils;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +67,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Transactional
 @Service
 public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, StatsResponseDTO, Long> implements StatsService {
 
@@ -77,12 +97,15 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
     private final StatRepository statRepository;
 
+    private final EventSubParticipantRepository eventSubParticipantRepository;
+
     protected StatsServiceImpl(StatRepository repository, StatScoreDataService statScoreDataService,
                                StatScoreProxyService statScoreProxyService, ParticipantMapper participantMapper,
                                ParticipantRepository participantRepository, CompetitionService competitionService,
                                VenueService venueService, SubParticipantMapper subParticipantMapper, AreaService areaService,
                                SubParticipantRepository subParticipantRepository, EventMapper eventMapper,
-                               EventRepository eventRepository, EventStatMapper eventStatMapper, StatRepository statRepository) {
+                               EventRepository eventRepository, EventStatMapper eventStatMapper, StatRepository statRepository,
+                               EventSubParticipantRepository eventSubParticipantRepository) {
         super(repository);
         this.statScoreDataService = statScoreDataService;
         this.statScoreProxyService = statScoreProxyService;
@@ -97,6 +120,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         this.eventRepository = eventRepository;
         this.eventStatMapper = eventStatMapper;
         this.statRepository = statRepository;
+        this.eventSubParticipantRepository = eventSubParticipantRepository;
     }
 
     @Override
@@ -107,26 +131,23 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
     record ParticipantEventSeasonCompetition(Participant participant, Event event, int seasonId,
                                              Competition competition, StatScoreEventParticipantDTO participantDTO) {}
 
-    @Transactional
     @Override
-    public void fetchStatData(int durationDays) {
+    public void fetchStatDataForCompetitionAndDate(Integer competitionId, LocalDate prefetchDate) {
         List<StatScoreDataService.EventContext> eventContexts = statScoreDataService.getAllEventsWithContext(EventQueryParams
                 .builder()
                 .limit(150)
-                .dateFrom(LocalDateTime.now())
-                .dateTo(LocalDateTime.now().plusDays(durationDays))
+                .dateFrom(prefetchDate.atStartOfDay())
+                .dateTo(prefetchDate.atStartOfDay().plusDays(1))
+                .competitionId(competitionId)
                 .build());
 
         Map<Integer, Participant> participantsToSave = new HashMap<>();
         Map<Integer, Event> eventsToSave = new HashMap<>();
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
-        Map<Integer, Set<Participant>> eventParticipantsMap = new HashMap<>();
 
-        extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
-                eventParticipantsMap, false);
+        extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, false);
 
         participantRepository.saveAllAndFlush(participantsToSave.values());
-        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap);
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
@@ -143,6 +164,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                 statScoreProxyService.listSquadSubParticipants(participant.getExternalId(), pesc.seasonId(), true)
                         .getItems().stream()
                         .filter(dto -> dto.getTeamConnection().equals("current"))
+                        .peek(dto -> dto.setTeamId(participant.getExternalId()))
                         .collect(Collectors.toList());
 
         List<SubParticipant> existingSubs = subParticipantRepository
@@ -150,16 +172,15 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Map<Integer, SubParticipant> existingSubsMap = existingSubs.stream()
                 .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
 
-        List<SubParticipant> toSave = syncSubParticipants(subParticipantDTOs, existingSubsMap, participant, pesc.competition);
+        List<SubParticipant> toSave = syncSubParticipants(subParticipantDTOs, existingSubsMap, pesc.competition);
 
-        if (!toSave.isEmpty()) {
-            subParticipantRepository.saveAllAndFlush(toSave);
-        }
+        subParticipantRepository.saveAllAndFlush(toSave);
+
+        fillEventSubParticipants(subParticipantDTOs, existingSubsMap, null, Collections.singletonList(pesc), false);
     }
 
     private List<SubParticipant> syncSubParticipants(List<StatScoreSubParticipantDTO> dtos,
                                                      Map<Integer, SubParticipant> existingSubsMap,
-                                                     Participant participant,
                                                      Competition competition) {
         List<SubParticipant> toSave = new ArrayList<>();
         for (StatScoreSubParticipantDTO dto : dtos) {
@@ -167,39 +188,21 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             SubParticipant existing = existingSubsMap.get(dto.getId());
 
             if (existing == null) {
-                if (participant == null) {
-                    participant = participantRepository.findByExternalId(dto.getTeamId()).orElse(null);
-                }
-                SubParticipant sub = subParticipantMapper.toEntity(dto, area, participant, competition);
+                SubParticipant sub = subParticipantMapper.toEntity(dto, area, competition);
                 existingSubsMap.put(dto.getId(), sub);
                 toSave.add(sub);
             } else {
-                subParticipantMapper.updateEntity(existing, dto, area, participant, competition);
+                subParticipantMapper.updateEntity(existing, dto, area, competition);
                 toSave.add(existing);
             }
         }
         return toSave;
     }
 
-    private void updateEventsWithParticipants(Collection<Event> events,
-                                              Map<Integer, Set<Participant>> eventParticipantsMap) {
-        for (Event event : events) {
-            Set<Participant> linkedParticipants = eventParticipantsMap.getOrDefault(event.getExternalId(), Set.of());
-            event.setParticipants(new ArrayList<>(linkedParticipants));
-        }
-    }
-
-    private Map<Long, Participant> mapParticipantsById(List<Participant> participants) {
-        return participants.stream()
-                .collect(Collectors.toMap(Participant::getId, Function.identity()));
-    }
-
-
     private void extractEventParticipantsData(List<StatScoreDataService.EventContext> eventContexts,
                                               Map<Integer, Participant> participantsToSave,
                                               Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp,
                                               Map<Integer, Event> eventsToSave,
-                                              Map<Integer, Set<Participant>> eventParticipantsMap,
                                               boolean isHistoricalData) {
 
         Set<Integer> allParticipantIds = eventContexts.stream()
@@ -225,8 +228,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
             Competition competition = competitionService.readByExternalId(competitionDTO.getId())
                     .orElseGet(() -> competitionService.create(competitionDTO));
-            Venue venue = venueService.readByExternalId(ctx.event().getVenueId())
-                    .orElseGet(() -> venueService.create(statScoreProxyService.getVenueById(ctx.event().getVenueId(), true)));
+            Venue venue = venueService.readByExternalId(ctx.event().getVenueId()).orElse(null);
 
             Event event = existingEvents.get(eventDTO.getId());
             if (event == null) {
@@ -241,9 +243,6 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             List<StatScoreEventParticipantDTO> eventParticipantDTOs =
                     Optional.ofNullable(eventDTO.getParticipants()).orElse(List.of());
 
-            Set<Participant> eventParticipants = eventParticipantsMap
-                    .computeIfAbsent(eventDTO.getId(), k -> new HashSet<>());
-
             for (StatScoreEventParticipantDTO dto : eventParticipantDTOs) {
                 Participant participant = existingParticipants.get(dto.getId());
 
@@ -255,7 +254,6 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                     participantMapper.updateEntity(participant, dto, competition);
                     participantsToSave.put(dto.getId(), participant);
                 }
-                eventParticipants.add(participant);
                 uniqueParticipantEventSeasonComp.add(new ParticipantEventSeasonCompetition(
                         participant, event, seasonDTO.getId(), competition, dto));
             }
@@ -266,7 +264,6 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Map<Integer, Participant> participantsToSave = new HashMap<>();
         Map<Integer, Event> eventsToSave = new HashMap<>();
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
-        Map<Integer, Set<Participant>> eventParticipantsMap = new HashMap<>();
 
         List<StatScoreDataService.EventContext> historicalEvents = statScoreDataService.getAllEventsWithContext(
                 EventQueryParams.builder()
@@ -277,11 +274,9 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                         .sortOrder("desc")
                         .build());
 
-        extractEventParticipantsData(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave,
-                eventParticipantsMap, true);
+        extractEventParticipantsData(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, true);
 
         participantRepository.saveAllAndFlush(new ArrayList<>(participantsToSave.values()));
-        updateEventsWithParticipants(eventsToSave.values(), eventParticipantsMap);
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         //refetch all stats for historical events per participant
@@ -294,10 +289,11 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
         byEvent.entrySet().stream()
                 .sorted(Comparator.comparing(e -> e.getKey().getStartDate()))
-                .forEach(entry -> processHistoricalStatsPerEvent(entry.getKey(), entry.getValue()));
+                .forEach(entry -> processHistoricalStatsPerEvent(entry.getValue()));
     }
 
-    private void processHistoricalStatsPerEvent(Event event, List<ParticipantEventSeasonCompetition> pescList) {
+    private void processHistoricalStatsPerEvent(List<ParticipantEventSeasonCompetition> pescList) {
+        Event event = pescList.getFirst().event;
         Set<EventStat> eventStats = new HashSet<>();
         List<SubParticipant> toSave;
 
@@ -310,26 +306,94 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Map<Integer, SubParticipant> existingSubsMap = subParticipantRepository
                 .findByExternalIdIn(subParticipantExternalIds).stream()
                 .collect(Collectors.toMap(SubParticipant::getExternalId, Function.identity()));
-        toSave = syncSubParticipants(statScoreSubParticipants, existingSubsMap, null, pescList.get(0).competition);
-
-        for (ParticipantEventSeasonCompetition pesc : pescList) {
-            fillStats(eventStats, event, pesc.participantDTO.getStats(),
-                    pesc.participant.getId(), StatTargetType.PARTICIPANT, pesc.participantDTO.getId());
-        }
-
+        toSave = syncSubParticipants(statScoreSubParticipants, existingSubsMap, pescList.get(0).competition);
         subParticipantRepository.saveAllAndFlush(toSave);
 
-        for (StatScoreSubParticipantDTO dto : statScoreSubParticipants) {
-            SubParticipant sub = existingSubsMap.get(dto.getId());
-            fillStats(eventStats, event, dto.getStats(), sub.getId(), StatTargetType.SUBPARTICIPANT, sub.getExternalId());
+        fillEventSubParticipants(statScoreSubParticipants, existingSubsMap, eventStats, pescList, true);
+
+        for (ParticipantEventSeasonCompetition pesc : pescList) {
+            fillParticipantStats(eventStats, event, pesc.participantDTO.getStats(),
+                    pesc.participant.getId(), StatTargetType.PARTICIPANT, pesc.participantDTO.getId(),
+                    pescList.get(0).participantDTO.getResults());
         }
         statRepository.saveAllAndFlush(eventStats);
     }
 
+    private void fillEventSubParticipants(Collection<StatScoreSubParticipantDTO> subParticipantsDTO,
+                                          Map<Integer, SubParticipant> existingSubsMap,
+                                          Set<EventStat> eventStats,
+                                          List<ParticipantEventSeasonCompetition> pescList,
+                                          boolean isHistoricalData) {
+        List<Integer> subParticipantIds = subParticipantsDTO.stream()
+                .map(StatScoreSubParticipantDTO::getId)
+                .toList();
+        Event event = pescList.getFirst().event;
+
+        List<EventSubParticipant> existingESPs = eventSubParticipantRepository
+                .findExistingByEventAndSubParticipantIds(event.getExternalId(), subParticipantIds);
+
+        Map<String, EventSubParticipant> existingMap = existingESPs.stream()
+                .collect(Collectors.toMap(
+                        esp -> key(esp.getEvent().getExternalId(), esp.getParticipant().getExternalId(), esp.getSubParticipant().getExternalId()),
+                        Function.identity()
+                ));
+
+        List<EventSubParticipant> toSave = new ArrayList<>();
+
+        for (StatScoreSubParticipantDTO dto : subParticipantsDTO) {
+            SubParticipant sub = existingSubsMap.get(dto.getId());
+            if (sub == null) continue;
+
+            Integer teamId = dto.getTeamId();
+            ParticipantEventSeasonCompetition participantEventSeasonCompetition = pescList.stream()
+                    .filter(p -> p.participant.getExternalId().equals(teamId))
+                    .findFirst()
+                    .orElseThrow(NullPointerException::new);
+            Participant resolvedParticipant = participantEventSeasonCompetition.participant;
+            String mapKey = key(event.getExternalId(), resolvedParticipant.getExternalId(), sub.getExternalId());
+
+            EventSubParticipant esp = existingMap.get(mapKey);
+            if (esp != null) {
+                esp.setPosition(dto.getPosition());
+                esp.setPositionReason(dto.getPositionReason());
+            } else {
+                esp = new EventSubParticipant();
+                esp.setHomeTeam(participantEventSeasonCompetition.participantDTO.getCounter() == 1);
+                esp.setEvent(event);
+                esp.setParticipant(resolvedParticipant);
+                esp.setSubParticipant(sub);
+                esp.setPosition(dto.getPosition());
+                esp.setPositionReason(dto.getPositionReason());
+            }
+
+            toSave.add(esp);
+
+            if (isHistoricalData) {
+                fillStats(eventStats, event, dto.getStats(), sub.getId(), StatTargetType.SUBPARTICIPANT, sub.getExternalId());
+            }
+        }
+
+        eventSubParticipantRepository.saveAllAndFlush(toSave);
+    }
+
+    private String key(Integer eventId, Integer participantId, Integer subId) {
+        return eventId + "-" + participantId + "-" + subId;
+    }
+
+    private void fillParticipantStats(Set<EventStat> eventStats, Event event, List<StatScoreStatDTO> stats,
+                                      Long id, StatTargetType type, Integer targetExternalId, List<StatScoreResultDTO> results) {
+        if (results != null && !results.isEmpty()) {
+            results.stream()
+                    .filter(r -> r.getName().equalsIgnoreCase("Result"))
+                    .forEach(result -> eventStats.add(eventStatMapper.toEntity(result, id, type, event, targetExternalId)));
+        }
+        fillStats(eventStats, event, stats, id, type, targetExternalId);
+    }
+
     private void fillStats(Set<EventStat> eventStats, Event event, List<StatScoreStatDTO> stats,
-                           Long id, StatTargetType subparticipant, Integer targetExternalId) {
+                           Long id, StatTargetType type, Integer targetExternalId) {
         for (StatScoreStatDTO statDTO : stats) {
-            eventStats.add(eventStatMapper.toEntity(statDTO, id, subparticipant, event, targetExternalId));
+            eventStats.add(eventStatMapper.toEntity(statDTO, id, type, event, targetExternalId));
         }
     }
 

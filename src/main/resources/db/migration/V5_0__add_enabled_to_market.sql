@@ -1,0 +1,4 @@
+SET search_path TO sport;
+
+ALTER TABLE market
+ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE;

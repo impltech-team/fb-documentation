@@ -26,7 +26,7 @@ public class AreasWireMockTest extends BaseWireMockTest {
 
         getWireMockServer().stubFor(WireMock.get(WireMock.urlPathEqualTo(AREAS_LIST_ENDPOINT))
                 .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .withBodyFile("areas_response.json")
                         .withStatus(200)));
     }

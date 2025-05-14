@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.mapper;
 
+import io.limeup.flexbets.sport.config.FlexBetsSportConfiguration;
 import io.limeup.flexbets.sport.dto.EventLiteDTO;
 import io.limeup.flexbets.sport.dto.EventStatisticDTO;
 import io.limeup.flexbets.sport.dto.HistoricalStatDTO;
@@ -7,11 +8,16 @@ import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
-import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.repository.projection.SubParticipantStatRow;
+import io.limeup.flexbets.sport.utils.UnitConversionUtils;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import systems.uom.common.USCustomary;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -23,17 +29,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Component
 public class SubParticipantMapper {
 
-    public SubParticipant toEntity(StatScoreSubParticipantDTO dto, Area area, Participant participant, Competition competition) {
+    private final FlexBetsSportConfiguration configuration;
+
+    public SubParticipant toEntity(StatScoreSubParticipantDTO dto, Area area, Competition competition) {
         if (dto == null) return null;
 
         SubParticipant entity = new SubParticipant();
-        return updateEntity(entity, dto, area, participant, competition);
+        return updateEntity(entity, dto, area, competition);
     }
 
-    public SubParticipant updateEntity(SubParticipant entity, StatScoreSubParticipantDTO dto, Area area, Participant participant, Competition competition) {
+    public SubParticipant updateEntity(SubParticipant entity, StatScoreSubParticipantDTO dto, Area area, Competition competition) {
         if (dto == null || entity == null) return entity;
         entity.setExternalId(dto.getId());
         entity.setPlayerName(dto.getName());
@@ -56,14 +65,11 @@ public class SubParticipantMapper {
         }
 
         entity.setArea(area);
-        if (participant != null) {
-            entity.setParticipant(participant);
-        }
         entity.setCompetition(competition);
         return entity;
     }
 
-    public static List<SubParticipantDTO> toDTO(List<SubParticipantStatRow> statRowsRaw) {
+    public List<SubParticipantDTO> toDTO(List<SubParticipantStatRow> statRowsRaw) {
         Map<Integer, List<SubParticipantStatRow>> groupedByPlayer = statRowsRaw.stream()
                 .filter(row -> row.getId() != null)
                 .collect(Collectors.groupingBy(
@@ -96,7 +102,7 @@ public class SubParticipantMapper {
                                 row.getEventStartDate(),
                                 Optional.ofNullable(row.getValueNumeric()).orElse(0.0),
                                 row.getValueRaw(),
-                                extractOpponentFromAcronyms(row.getEventParticipantAcronyms(), row.getTeamName())
+                                extractOpponentFromAcronyms(row.getEventParticipantAcronyms(), row.getCurrentTeamAcronym())
                         ))
                         .collect(Collectors.toList());
 
@@ -108,7 +114,7 @@ public class SubParticipantMapper {
 
                 historicalStats.add(new HistoricalStatDTO(
                         statName,
-                        statsSummary.getAverage(),
+                        BigDecimal.valueOf(statsSummary.getAverage()).setScale(2, RoundingMode.HALF_UP),
                         count,
                         (int) statsSummary.getMax(),
                         (int) statsSummary.getMin(),
@@ -120,9 +126,20 @@ public class SubParticipantMapper {
                     ? new EventLiteDTO(
                     first.getFutureEventId(),
                     first.getFutureEventName(),
-                    first.getFutureEventStartDate().toString(),
-                    extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getTeamName())
+                    first.getFutureEventStartDate(),
+                    extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getCurrentTeamAcronym())
             ) : null;
+
+            String weight = StringUtils.EMPTY;
+            String height = StringUtils.EMPTY;
+            if (StringUtils.isNotBlank(first.getWeight())) {
+                weight = UnitConversionUtils.convertWeightToPreferredUnit(Double.parseDouble(first.getWeight()),
+                        configuration.isConvertToImperial(), USCustomary.POUND);
+            }
+            if (StringUtils.isNotBlank(first.getHeight())) {
+                height = UnitConversionUtils.convertHeightToPreferredUnit(Double.parseDouble(first.getHeight()),
+                        configuration.isConvertToImperial(), USCustomary.INCH);
+            }
 
             SubParticipantDTO dto = new SubParticipantDTO(
                     first.getId(),
@@ -138,8 +155,8 @@ public class SubParticipantMapper {
                     first.getAreaId(),
                     first.getAreaName(),
                     first.getGender(),
-                    first.getWeight(),
-                    first.getHeight(),
+                    weight,
+                    height,
                     first.getBirthDate(),
                     historicalStats,
                     new ArrayList<>()  // empty until trade360 integration
@@ -151,11 +168,11 @@ public class SubParticipantMapper {
         return result;
     }
 
-    private static String extractOpponentFromAcronyms(String acronymsCsv, String playerAcronym) {
-        if (acronymsCsv == null || playerAcronym == null) return null;
-        return Arrays.stream(acronymsCsv.split(","))
+    static String extractOpponentFromAcronyms(String acronymsCsv, String currentTeamAcronym) {
+        if (acronymsCsv == null || currentTeamAcronym == null) return null;
+        return Arrays.stream(acronymsCsv.split(":"))
                 .map(String::trim)
-                .filter(acr -> !acr.equalsIgnoreCase(playerAcronym))
+                .filter(acr -> !acr.equalsIgnoreCase(currentTeamAcronym))
                 .findFirst()
                 .orElse(null);
     }

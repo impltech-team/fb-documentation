@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
@@ -14,14 +15,15 @@ import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
-import io.micrometer.common.util.StringUtils;
-import jakarta.validation.ValidationException;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+@Transactional
 @Service
 public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubParticipant, SubParticipantDTO, Long> implements SubParticipantService {
 
@@ -33,24 +35,42 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
 
     private final MarketService marketService;
 
-    protected SubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository, MarketService marketService) {
+    private final SubParticipantMapper mapper;
+
+    protected SubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository,
+                                        MarketService marketService, SubParticipantMapper mapper) {
         super(subParticipantRepository);
         this.statRepository = statRepository;
         this.subParticipantRepository = subParticipantRepository;
         this.marketService = marketService;
+        this.mapper = mapper;
     }
 
+    @EventBasedCache(cacheName = "subParticipantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
-                                                                          List<Integer> participantIds, Integer marketId, RequestQueryDTO requestQuery) {
-        validateRequest(requestQuery);
+                                                                    List<Integer> participantIds, Integer marketId,
+                                                                    Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
 
         Set<String> statNames = marketService.getStatsByMarket(competitionId, marketId, MarketType.SUB_PARTICIPANT);
+
+        Long count = subParticipantRepository.countSubParticipants(competitionId,
+                positions == null ? Collections.emptyList() : positions,
+                participantIds == null ? Collections.emptyList() : participantIds,
+                requestQuery.getFilter());
+
+        if (count == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
+        }
+
         List<SubParticipantStatRow> stats = statRepository.listSubParticipantStats(
                 competitionId,
                 positions == null ? Collections.emptyList() : positions,
                 participantIds == null ? Collections.emptyList() : participantIds,
                 marketId,
+                maxHistoricalDataCount,
                 requestQuery.getFilter(),
                 requestQuery.getSortBy(),
                 requestQuery.getSortOrder(),
@@ -58,32 +78,25 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 requestQuery.getPageSize(),
                 statNames
         );
-        Integer count = subParticipantRepository.countSubParticipants(competitionId,
-                positions == null ? Collections.emptyList() : positions,
-                participantIds == null ? Collections.emptyList() : participantIds,
-                requestQuery.getFilter());
 
-        return PaginationUtils.buildPaginatedResponse(SubParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(
+                mapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
+    @EventBasedCache(cacheName = "subParticipantDetailsCache",
+            key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
     @Override
-    public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId) {
-        SubParticipant rawParticipant = repository.findByExternalId(subParticipantId)
+    public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
+        SubParticipant rawSubParticipant = externalIdRepository.findByExternalId(subParticipantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));
         Set<String> statNames = marketService.getStatsByMarket(
-                rawParticipant.getCompetition().getExternalId(), marketId, MarketType.SUB_PARTICIPANT);
+                rawSubParticipant.getCompetition().getExternalId(), marketId, MarketType.SUB_PARTICIPANT);
         List<SubParticipantStatRow> subParticipantStatsDetails = statRepository.getSubParticipantStatsDetails(
-                subParticipantId, statNames);
-        return SubParticipantMapper.toDTO(subParticipantStatsDetails)
+                subParticipantId, maxHistoricalDataCount, statNames);
+        return mapper.toDTO(subParticipantStatsDetails)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));
-    }
-
-    private void validateRequest(RequestQueryDTO requestQuery) {
-        if (StringUtils.isNotBlank(requestQuery.getSortBy()) && !SUPPORTED_SORT_FIELDS.contains(requestQuery.getSortBy())) {
-            throw new ValidationException(String.format("Invalid sortBy: %s. Available options: %s", requestQuery.getSortBy(), SUPPORTED_SORT_FIELDS));
-        }
     }
 
 }

@@ -4,12 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventLiteDTO {
     private int eventId;
     private String eventName;
-    private String eventDate;
+    private LocalDateTime eventDate;
     private String opponent;
 }

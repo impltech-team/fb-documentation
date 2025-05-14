@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.ParticipantService;
+import io.limeup.flexbets.sport.validator.PositiveList;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -27,16 +28,20 @@ public class ParticipantController {
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<ParticipantDTO>> listParticipants(
             @RequestParam(name = "competition_id") Integer competitionId,
+            @PositiveList
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
-            @RequestParam(required = false, name = "market_id") Integer market_id,
+            @RequestParam(required = false, name = "market_id") Integer marketId,
+            @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
         return ResponseEntity.ok(participantService.listParticipants(
-                competitionId, participantIds, market_id, requestQuery));
+                competitionId, participantIds, marketId, maxHistoricalDataCount, requestQuery));
     }
 
     @GetMapping("/{participant_id}")
-    public ResponseEntity<ParticipantDTO> getParticipantById(@PathVariable("participant_id") Integer participantId,
-                                                             @RequestParam(required = false, name = "market_id") Integer marketId) {
-        return ResponseEntity.ok(participantService.getParticipantById(participantId, marketId));
+    public ResponseEntity<ParticipantDTO> getParticipantById(
+            @PathVariable("participant_id") Integer participantId,
+            @RequestParam(required = false, name = "market_id") Integer marketId,
+            @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount) {
+        return ResponseEntity.ok(participantService.getParticipantById(participantId, marketId, maxHistoricalDataCount));
     }
 }

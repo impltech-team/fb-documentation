@@ -10,6 +10,8 @@ import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
@@ -82,7 +84,7 @@ public class ParticipantMapper {
 
                 historicalStats.add(new HistoricalStatDTO(
                         statName,
-                        summary.getAverage(),
+                        BigDecimal.valueOf(summary.getAverage()).setScale(2, RoundingMode.HALF_UP),
                         statRows.size(),
                         (int) summary.getMax(),
                         (int) summary.getMin(),
@@ -94,7 +96,7 @@ public class ParticipantMapper {
                     ? new EventLiteDTO(
                     first.getFutureEventId(),
                     first.getFutureEventName(),
-                    first.getFutureEventStartDate().toString(),
+                    first.getFutureEventStartDate(),
                     extractOpponentFromAcronyms(first.getFutureEventAcronyms(), first.getAcronym())
             ) : null;
 
@@ -114,7 +116,7 @@ public class ParticipantMapper {
         return result;
     }
 
-    private static String extractOpponentFromAcronyms(String acronyms, String self) {
+    static String extractOpponentFromAcronyms(String acronyms, String self) {
         if (acronyms == null || self == null) return null;
         return Arrays.stream(acronyms.split(","))
                 .filter(a -> !a.equalsIgnoreCase(self))

@@ -5,6 +5,10 @@ import java.time.format.DateTimeFormatter;
 
 public class StatScoreDateTimeUtils {
 
+    private StatScoreDateTimeUtils() {
+
+    }
+
     public static String formatDateTime(LocalDateTime time) {
         if (time == null) {
             return null;
