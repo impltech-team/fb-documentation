@@ -7,6 +7,7 @@ import io.limeup.flexbets.sport.service.SportService;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/data/fetch")
 @RequiredArgsConstructor
+@Slf4j
 public class SportDataPreFetchingController {
 
     private final BatchJobRunner batchJobRunner;
@@ -27,6 +29,7 @@ public class SportDataPreFetchingController {
     @Hidden
     @PostMapping("/stats/")
     public ResponseEntity<String> statsFetchScheduled(@RequestParam(value = "days", required = false, defaultValue = "5") Integer days) {
+        log.info("Fetching stats for days {} API called", days);
         return batchJobRunner.runStatsPreFetchingJob(days);
     }
 
