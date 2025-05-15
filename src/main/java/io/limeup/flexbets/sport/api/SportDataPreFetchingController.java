@@ -29,7 +29,7 @@ public class SportDataPreFetchingController {
     @Hidden
     @PostMapping("/stats/")
     public ResponseEntity<String> statsFetchScheduled(@RequestParam(value = "days", required = false, defaultValue = "5") Integer days) {
-        log.info("Fetching stats for days {} API called", days);
+        System.out.printf("Fetching stats for " + days +  "API called");
         return batchJobRunner.runStatsPreFetchingJob(days);
     }
 

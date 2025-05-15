@@ -142,21 +142,20 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                 .dateTo(prefetchDate.atStartOfDay().plusDays(1))
                 .competitionId(competitionId)
                 .build());
-        log.info("eventContexts from stat score service: {}", eventContexts);
+        System.out.printf("eventContexts from stat score service: %s%n", eventContexts);
 
         Map<Integer, Participant> participantsToSave = new HashMap<>();
         Map<Integer, Event> eventsToSave = new HashMap<>();
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
 
         extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, false);
-
-        log.info("Participants to save: {}", participantsToSave.values());
+        System.out.printf("Participants to save: %s%n", participantsToSave.values());
         participantRepository.saveAllAndFlush(participantsToSave.values());
-        log.info("Events to save: {}", eventsToSave.values());
+        System.out.printf("Events to save: %s%n", eventsToSave.values());
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
-            log.info("ParticipantEventSeasonCompetition to process: {}", pesc);
+            System.out.printf("ParticipantEventSeasonCompetition to process: %s%n", pesc);
             processSquadSubParticipants(pesc);
             fetchHistoricalStats(pesc.participant().getExternalId());
         }
