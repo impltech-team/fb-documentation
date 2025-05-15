@@ -48,6 +48,7 @@ public class PreFetchStatScoreDataStep {
 
     @Bean
     public ItemReader<PrefetchLog> prefetchLogReader() {
+        log.info("prefetchLogReader started");
         return new JpaPagingItemReaderBuilder<PrefetchLog>()
                 .name("prefetchLogReader")
                 .entityManagerFactory(entityManagerFactory)
@@ -58,6 +59,7 @@ public class PreFetchStatScoreDataStep {
 
     @Bean
     public ItemProcessor<PrefetchLog, PrefetchLog> prefetchProcessor() {
+        log.info("prefetchProcessor started");
         return log -> {
             statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             log.setStatus(PrefetchLog.Status.SUCCESS);
