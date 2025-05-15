@@ -38,6 +38,7 @@ import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -69,6 +70,7 @@ import java.util.stream.Collectors;
 
 @Transactional
 @Service
+@Slf4j
 public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, StatsResponseDTO, Long> implements StatsService {
 
     private final StatScoreDataService statScoreDataService;
@@ -140,6 +142,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                 .dateTo(prefetchDate.atStartOfDay().plusDays(1))
                 .competitionId(competitionId)
                 .build());
+        log.info("eventContexts from stat score service: {}", eventContexts);
 
         Map<Integer, Participant> participantsToSave = new HashMap<>();
         Map<Integer, Event> eventsToSave = new HashMap<>();
@@ -147,10 +150,13 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
         extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, false);
 
+        log.info("Participants to save: {}", participantsToSave.values());
         participantRepository.saveAllAndFlush(participantsToSave.values());
+        log.info("Events to save: {}", eventsToSave.values());
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
+            log.info("ParticipantEventSeasonCompetition to process: {}", pesc);
             processSquadSubParticipants(pesc);
             fetchHistoricalStats(pesc.participant().getExternalId());
         }
