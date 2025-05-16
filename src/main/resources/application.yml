@@ -46,7 +46,7 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
   profiles:
-    active: mock
+    active: live
   cache:
     type: redis
   data:
