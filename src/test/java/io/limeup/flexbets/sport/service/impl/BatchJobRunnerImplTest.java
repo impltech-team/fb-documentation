@@ -44,8 +44,6 @@ class BatchJobRunnerImplTest {
     @Test
     void runStatsPreFetchingJobShouldCreateLogsAndPublishEvent() {
         when(competitionService.findAllExternalIds()).thenReturn(List.of(1, 2));
-        when(prefetchLogRepository.existsByPrefetchDateAndCompetitionId(any(LocalDate.class), anyInt()))
-                .thenReturn(false);
 
         ResponseEntity<String> response = batchJobRunner.runStatsPreFetchingJob(2);
 
@@ -59,8 +57,6 @@ class BatchJobRunnerImplTest {
     @Test
     void runStatsPreFetchingJobWhenLogsAlreadyExistShouldNotSave() {
         when(competitionService.findAllExternalIds()).thenReturn(List.of(1));
-        when(prefetchLogRepository.existsByPrefetchDateAndCompetitionId(any(LocalDate.class), anyInt()))
-                .thenReturn(true);
 
         ResponseEntity<String> response = batchJobRunner.runStatsPreFetchingJob(1);
 
@@ -75,8 +71,6 @@ class BatchJobRunnerImplTest {
     @Test
     void runStatsPreFetchingJobShouldSaveCorrectPrefetchLogFields() {
         when(competitionService.findAllExternalIds()).thenReturn(List.of(42));
-        when(prefetchLogRepository.existsByPrefetchDateAndCompetitionId(any(LocalDate.class), anyInt()))
-                .thenReturn(false);
 
         batchJobRunner.runStatsPreFetchingJob(1);
 
