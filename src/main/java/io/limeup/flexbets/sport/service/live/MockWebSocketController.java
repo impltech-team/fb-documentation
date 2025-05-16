@@ -20,7 +20,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@Profile("live")
 @Component
 @RequiredArgsConstructor
 public class MockWebSocketController extends TextWebSocketHandler {

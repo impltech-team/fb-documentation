@@ -103,7 +103,7 @@ public class RedisEventMessageListener implements MessageListener {
             log.info("✅ Saved live_event {}", id);
 
             JsonNode details = ev.path("details");
-            int detailId = details.get("id").asInt();
+            int detailId = details.get("id").asInt(-1);
             if (!detailRepository.existsByEventAndDetailId(liveEvent, detailId)) {
                 detailRepository.save(LiveEventDetail.builder()
                         .event(liveEvent)
@@ -147,7 +147,7 @@ public class RedisEventMessageListener implements MessageListener {
                     JsonNode results = p.path("results");
                     if (results.isArray()) {
                         for (JsonNode result : results) {
-                            int resultId = result.get("id").asInt();
+                            int resultId = result.get("id").asInt(-1);
                             if (!resultRepository.existsByParticipantAndResultId(participant, resultId)) {
                                 resultRepository.save(LiveParticipantResult.builder()
                                         .participant(participant)
