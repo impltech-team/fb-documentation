@@ -41,15 +41,12 @@ public class BatchJobRunnerImpl implements BatchJobRunner {
             LocalDate targetDate = now.plusDays(i);
 
             for (Integer compId : competitionIds) {
-                boolean exists = prefetchLogRepository.existsByPrefetchDateAndCompetitionId(targetDate, compId);
-                if (!exists) {
-                    PrefetchLog log = PrefetchLog.builder()
-                            .prefetchDate(targetDate)
-                            .competitionId(compId)
-                            .status(PrefetchLog.Status.PENDING)
-                            .build();
-                    prefetchLogRepository.save(log);
-                }
+                PrefetchLog log = PrefetchLog.builder()
+                        .prefetchDate(targetDate)
+                        .competitionId(compId)
+                        .status(PrefetchLog.Status.PENDING)
+                        .build();
+                prefetchLogRepository.save(log);
             }
         }
 
