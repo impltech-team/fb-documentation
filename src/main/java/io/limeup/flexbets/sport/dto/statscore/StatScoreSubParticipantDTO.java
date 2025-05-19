@@ -41,6 +41,7 @@ public class StatScoreSubParticipantDTO {
     private List<StatScoreStatDTO> stats;
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Details {
         private String founded;
         private String phone;
