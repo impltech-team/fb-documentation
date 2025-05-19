@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service.live.mock;
+package io.limeup.flexbets.sport.service.live;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -7,11 +7,11 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 @Configuration
 @EnableWebSocket
-public class MockWebSocketConfig implements WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketConfigurer {
 
     private final MockWebSocketController webSocketController;
 
-    public MockWebSocketConfig(MockWebSocketController webSocketController) {
+    public WebSocketConfig(MockWebSocketController webSocketController) {
         this.webSocketController = webSocketController;
     }
 

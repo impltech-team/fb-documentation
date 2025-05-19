@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import io.limeup.flexbets.sport.batch.event.BatchJobEvent;
 import io.limeup.flexbets.sport.model.PrefetchLog;
@@ -44,8 +45,7 @@ class BatchJobRunnerImplTest {
     @Test
     void runStatsPreFetchingJobShouldCreateLogsAndPublishEvent() {
         when(competitionService.findAllExternalIds()).thenReturn(List.of(1, 2));
-        when(prefetchLogRepository.existsByPrefetchDateAndCompetitionId(any(LocalDate.class), anyInt()))
-                .thenReturn(false);
+        when(prefetchLogRepository.findPrefetchLogByPrefetchDateAndCompetitionId(any(), any())).thenReturn(Optional.of(new PrefetchLog()));
 
         ResponseEntity<String> response = batchJobRunner.runStatsPreFetchingJob(2);
 
@@ -57,26 +57,9 @@ class BatchJobRunnerImplTest {
     }
 
     @Test
-    void runStatsPreFetchingJobWhenLogsAlreadyExistShouldNotSave() {
-        when(competitionService.findAllExternalIds()).thenReturn(List.of(1));
-        when(prefetchLogRepository.existsByPrefetchDateAndCompetitionId(any(LocalDate.class), anyInt()))
-                .thenReturn(true);
-
-        ResponseEntity<String> response = batchJobRunner.runStatsPreFetchingJob(1);
-
-        verify(prefetchLogRepository, never()).save(any(PrefetchLog.class));
-
-        verify(eventPublisher, times(1)).publishEvent(any(BatchJobEvent.class));
-
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).contains("Prefetch job triggered for next 1 days.");
-    }
-
-    @Test
-    void runStatsPreFetchingJobShouldSaveCorrectPrefetchLogFields() {
+    void runStatsPreFetchingJobShouldSaveCorrectPrefetchLogFieldsForNewDate() {
         when(competitionService.findAllExternalIds()).thenReturn(List.of(42));
-        when(prefetchLogRepository.existsByPrefetchDateAndCompetitionId(any(LocalDate.class), anyInt()))
-                .thenReturn(false);
+        when(prefetchLogRepository.findPrefetchLogByPrefetchDateAndCompetitionId(any(), any())).thenReturn(Optional.empty());
 
         batchJobRunner.runStatsPreFetchingJob(1);
 
@@ -87,6 +70,28 @@ class BatchJobRunnerImplTest {
         assertThat(savedLog.getCompetitionId()).isEqualTo(42);
         assertThat(savedLog.getStatus()).isEqualTo(PrefetchLog.Status.PENDING);
         assertThat(savedLog.getPrefetchDate()).isEqualTo(LocalDate.now().plusDays(1));
+    }
+
+    @Test
+    void runStatsPreFetchingJobShouldSaveCorrectPrefetchLogFieldsForExistingDate() {
+        var oldPrefetchLog = PrefetchLog.builder()
+                .id(1L)
+                .competitionId(42)
+                .status(PrefetchLog.Status.SUCCESS)
+                .prefetchDate(LocalDate.now().minusDays(1))
+                .build();
+        when(competitionService.findAllExternalIds()).thenReturn(List.of(42));
+        when(prefetchLogRepository.findPrefetchLogByPrefetchDateAndCompetitionId(any(), any())).thenReturn(Optional.of(oldPrefetchLog));
+
+        batchJobRunner.runStatsPreFetchingJob(1);
+
+        ArgumentCaptor<PrefetchLog> captor = ArgumentCaptor.forClass(PrefetchLog.class);
+        verify(prefetchLogRepository).save(captor.capture());
+
+        PrefetchLog savedLog = captor.getValue();
+        assertThat(savedLog.getCompetitionId()).isEqualTo(42);
+        assertThat(savedLog.getStatus()).isEqualTo(PrefetchLog.Status.PENDING);
+        assertThat(savedLog.getPrefetchDate()).isEqualTo(LocalDate.now().minusDays(1));
     }
 }
 

@@ -19,7 +19,7 @@ public class AreasWireMockTest extends BaseWireMockTest {
     private static final String AREAS_LIST_ENDPOINT = "/areas/list";
 
     @BeforeAll
-    private void setupStub() {
+    public void setupStub() {
         getWireMockServer().addMockServiceRequestListener(
                 WireMockPactGenerator.builder("areas-provider", "areas-consumer").build()
         );

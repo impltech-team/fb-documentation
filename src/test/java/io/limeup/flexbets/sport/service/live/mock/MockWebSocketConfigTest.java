@@ -1,5 +1,7 @@
 package io.limeup.flexbets.sport.service.live.mock;
 
+import io.limeup.flexbets.sport.service.live.MockWebSocketController;
+import io.limeup.flexbets.sport.service.live.WebSocketConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
@@ -17,7 +19,7 @@ class MockWebSocketConfigTest {
         when(registry.addHandler(controller, "/live")).thenReturn(registration);
         when(registration.setAllowedOrigins("*")).thenReturn(registration);
 
-        MockWebSocketConfig config = new MockWebSocketConfig(controller);
+        WebSocketConfig config = new WebSocketConfig(controller);
         config.registerWebSocketHandlers(registry);
 
         verify(registry).addHandler(controller, "/live");
