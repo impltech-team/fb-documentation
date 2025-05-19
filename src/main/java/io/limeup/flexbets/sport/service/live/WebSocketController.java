@@ -9,7 +9,6 @@ import io.limeup.flexbets.sport.utils.ConstantUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -22,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MockWebSocketController extends TextWebSocketHandler {
+public class WebSocketController extends TextWebSocketHandler {
 
     private final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
     private final Map<String, List<Map<String, Object>>> subscriptions = new ConcurrentHashMap<>();
@@ -72,16 +71,16 @@ public class MockWebSocketController extends TextWebSocketHandler {
 
     private void sendEventFromDbToSession(WebSocketSession session, int eventId) {
         try {
-            Optional<LiveEvent> eventOpt = eventRepo.findByEventDataId((long) eventId);
+            List<LiveEvent> eventOpt = eventRepo.findByEventDataId((long) eventId);
             if (eventOpt.isEmpty()) return;
 
-            List<LiveParticipant> participentOpt = participantRepo.findByEvent(eventOpt.get());
+            List<LiveParticipant> participentOpt = participantRepo.findByEvent(eventOpt.getFirst());
             List<LiveParticipantResult> resultList = new ArrayList<>() ;
             for (LiveParticipant p :participentOpt) {
                 resultList.addAll(resultRepo.findByParticipant(p));
             }
 
-            JsonNode eventJson = objectMapper.valueToTree(eventOpt.get());
+            JsonNode eventJson = objectMapper.valueToTree(eventOpt.getFirst());
             JsonNode rawJson = objectMapper.valueToTree(participentOpt);
             JsonNode resultJson = objectMapper.valueToTree(resultList);
 
