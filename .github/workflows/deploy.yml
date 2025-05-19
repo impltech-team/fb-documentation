@@ -135,7 +135,7 @@ jobs:
               task-raw.json > task-clear.json
             jq '
             .containerDefinitions[0].image =
-            "${{ needs.docker-image.outputs.image_tag_result }}"
+            "${{ needs.build-app.outputs.image_tag_result }}"
             ' task-clear.json > task-definition.json
 
         - name: Deploy to ECS
