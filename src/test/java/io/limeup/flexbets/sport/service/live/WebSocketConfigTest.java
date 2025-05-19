@@ -1,7 +1,6 @@
-package io.limeup.flexbets.sport.service.live.mock;
+package io.limeup.flexbets.sport.service.live;
 
-import io.limeup.flexbets.sport.service.live.WebSocketController;
-import io.limeup.flexbets.sport.service.live.WebSocketConfig;
+import io.limeup.flexbets.sport.config.WebSocketConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
