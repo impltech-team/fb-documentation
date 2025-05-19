@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -41,12 +42,19 @@ public class BatchJobRunnerImpl implements BatchJobRunner {
             LocalDate targetDate = now.plusDays(i);
 
             for (Integer compId : competitionIds) {
-                PrefetchLog log = PrefetchLog.builder()
-                        .prefetchDate(targetDate)
-                        .competitionId(compId)
-                        .status(PrefetchLog.Status.PENDING)
-                        .build();
-                prefetchLogRepository.save(log);
+                Optional<PrefetchLog> log = prefetchLogRepository.findPrefetchLogByPrefetchDateAndCompetitionId(targetDate, compId);
+                if (log.isPresent()) {
+                    PrefetchLog prefetchLog = log.get();
+                    prefetchLog.setStatus(PrefetchLog.Status.PENDING);
+                    prefetchLogRepository.save(prefetchLog);
+                } else {
+                    PrefetchLog newLog = PrefetchLog.builder()
+                            .prefetchDate(targetDate)
+                            .competitionId(compId)
+                            .status(PrefetchLog.Status.PENDING)
+                            .build();
+                    prefetchLogRepository.save(newLog);
+                }
             }
         }
 
