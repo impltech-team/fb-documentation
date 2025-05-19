@@ -103,14 +103,25 @@ public class RedisEventMessageListener implements MessageListener {
             log.info("✅ Saved live_event {}", id);
 
             JsonNode details = ev.path("details");
-            int detailId = details.get("id").asInt(-1);
-            if (!detailRepository.existsByEventAndDetailId(liveEvent, detailId)) {
-                detailRepository.save(LiveEventDetail.builder()
-                        .event(liveEvent)
-                        .detailId(detailId)
-                        .value(details.path("value").asText(null))
-                        .build());
+            if (details.isArray()) {
+                for (JsonNode detail : details) {
+                    if (detail.hasNonNull("id")) {
+                        int detailId = detail.get("id").asInt();
+                        if (!detailRepository.existsByEventAndDetailId(liveEvent, detailId)) {
+                            detailRepository.save(LiveEventDetail.builder()
+                                    .event(liveEvent)
+                                    .detailId(detailId)
+                                    .value(detail.path("value").asText(null))
+                                    .build());
+                        }
+                    } else {
+                        log.warn("⚠️ Detail without 'id': {}", detail);
+                    }
+                }
+            } else {
+                log.warn("⚠️ 'details' is not an array or missing: {}", details);
             }
+
 
             JsonNode betting = ev.path("betting").path("bet_statuses");
             String name = betting.get("name").asText();
@@ -147,7 +158,7 @@ public class RedisEventMessageListener implements MessageListener {
                     JsonNode results = p.path("results");
                     if (results.isArray()) {
                         for (JsonNode result : results) {
-                            int resultId = result.get("id").asInt(-1);
+                            int resultId = result.get("id").asInt();
                             if (!resultRepository.existsByParticipantAndResultId(participant, resultId)) {
                                 resultRepository.save(LiveParticipantResult.builder()
                                         .participant(participant)

@@ -72,16 +72,16 @@ public class MockWebSocketController extends TextWebSocketHandler {
 
     private void sendEventFromDbToSession(WebSocketSession session, int eventId) {
         try {
-            Optional<LiveEvent> eventOpt = eventRepo.findByEventDataId((long) eventId);
+            List<LiveEvent> eventOpt = eventRepo.findByEventDataId((long) eventId);
             if (eventOpt.isEmpty()) return;
 
-            List<LiveParticipant> participentOpt = participantRepo.findByEvent(eventOpt.get());
+            List<LiveParticipant> participentOpt = participantRepo.findByEvent(eventOpt.getFirst());
             List<LiveParticipantResult> resultList = new ArrayList<>() ;
             for (LiveParticipant p :participentOpt) {
                 resultList.addAll(resultRepo.findByParticipant(p));
             }
 
-            JsonNode eventJson = objectMapper.valueToTree(eventOpt.get());
+            JsonNode eventJson = objectMapper.valueToTree(eventOpt.getFirst());
             JsonNode rawJson = objectMapper.valueToTree(participentOpt);
             JsonNode resultJson = objectMapper.valueToTree(resultList);
 
