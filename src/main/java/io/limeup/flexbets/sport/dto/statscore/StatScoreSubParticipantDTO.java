@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.dto.statscore;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -7,6 +8,7 @@ import java.util.List;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StatScoreSubParticipantDTO {
     @EqualsAndHashCode.Include
     private Integer id;
