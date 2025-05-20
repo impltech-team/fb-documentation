@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "live_participant_result", schema = "sport")
-@Data
+@Table(name = "live_participant_result")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 public class LiveParticipantResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

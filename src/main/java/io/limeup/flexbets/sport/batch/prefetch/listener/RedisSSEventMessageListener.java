@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service;
+package io.limeup.flexbets.sport.batch.prefetch.listener;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RedisEventMessageListener implements MessageListener {
+public class RedisSSEventMessageListener implements MessageListener {
 
     private final ObjectMapper objectMapper;
     private final LiveEventRepository eventRepository;
