@@ -1,23 +1,24 @@
-package io.limeup.flexbets.sport.service.live.mock;
+package io.limeup.flexbets.sport.service.live;
 
+import io.limeup.flexbets.sport.config.WebSocketConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
 
 import static org.mockito.Mockito.*;
 
-class MockWebSocketConfigTest {
+class WebSocketConfigTest {
 
     @Test
     void registerWebSocketHandlersShouldRegisterLiveHandler() {
-        MockWebSocketController controller = mock(MockWebSocketController.class);
+        WebSocketController controller = mock(WebSocketController.class);
         WebSocketHandlerRegistry registry = mock(WebSocketHandlerRegistry.class);
         WebSocketHandlerRegistration registration = mock(WebSocketHandlerRegistration.class);
 
         when(registry.addHandler(controller, "/live")).thenReturn(registration);
         when(registration.setAllowedOrigins("*")).thenReturn(registration);
 
-        MockWebSocketConfig config = new MockWebSocketConfig(controller);
+        WebSocketConfig config = new WebSocketConfig(controller);
         config.registerWebSocketHandlers(registry);
 
         verify(registry).addHandler(controller, "/live");

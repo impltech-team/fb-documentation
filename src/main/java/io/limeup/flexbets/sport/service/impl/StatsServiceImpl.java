@@ -38,6 +38,7 @@ import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -69,6 +70,7 @@ import java.util.stream.Collectors;
 
 @Transactional
 @Service
+@Slf4j
 public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, StatsResponseDTO, Long> implements StatsService {
 
     private final StatScoreDataService statScoreDataService;
@@ -140,17 +142,20 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                 .dateTo(prefetchDate.atStartOfDay().plusDays(1))
                 .competitionId(competitionId)
                 .build());
+        System.out.printf("eventContexts from stat score service: %s%n", eventContexts);
 
         Map<Integer, Participant> participantsToSave = new HashMap<>();
         Map<Integer, Event> eventsToSave = new HashMap<>();
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
 
         extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, false);
-
+        System.out.printf("Participants to save: %s%n", participantsToSave.values());
         participantRepository.saveAllAndFlush(participantsToSave.values());
+        System.out.printf("Events to save: %s%n", eventsToSave.values());
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
+            System.out.printf("ParticipantEventSeasonCompetition to process: %s%n", pesc);
             processSquadSubParticipants(pesc);
             fetchHistoricalStats(pesc.participant().getExternalId());
         }

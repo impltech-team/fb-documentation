@@ -15,6 +15,10 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    outputs:
+      image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
+    env:
+      ecr_repository: flexbets
     steps:
       - uses: actions/checkout@v4
 
@@ -66,26 +70,6 @@ jobs:
           name: dependency-check-report
           path: ./*.json
 
-      - name: Upload .jar artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app
-          path: build/libs/*.jar
-
-  docker-image:
-    needs: [build-app]
-    name: Build and push Docker image
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    outputs:
-      image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
-    env:
-      ecr_repository: flexbets
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Set short git commit SHA
         id: vars
         run: |
@@ -101,12 +85,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Download .jar artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app
-          path: .
-
       - name: Build and Push Docker image
         id: build-and-push
         env:
@@ -117,13 +95,8 @@ jobs:
           docker push ${{ env.image_tag_result }}
           echo "image_tag_result=${{ env.image_tag_result }}" >> $GITHUB_OUTPUT
 
-      - name: Delete .jar artifact
-        uses: geekyeggo/delete-artifact@v5
-        with:
-          name: app
-
   update-ecs:
-      needs: [docker-image]
+      needs: [build-app]
       name: Update ECS Task (${{ matrix.env }})
       runs-on: ubuntu-latest
       permissions:
@@ -131,7 +104,7 @@ jobs:
         contents: read
       strategy:
         matrix:
-          env: [dev,stage]
+          env: [dev,stage,prd]
       env:
         ecs_cluster: ${{ matrix.env }}
         ecs_service: ${{ matrix.env }}
@@ -162,7 +135,7 @@ jobs:
               task-raw.json > task-clear.json
             jq '
             .containerDefinitions[0].image =
-            "${{ needs.docker-image.outputs.image_tag_result }}"
+            "${{ needs.build-app.outputs.image_tag_result }}"
             ' task-clear.json > task-definition.json
 
         - name: Deploy to ECS
