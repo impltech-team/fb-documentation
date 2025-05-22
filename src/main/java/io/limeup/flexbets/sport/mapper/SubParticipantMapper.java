@@ -9,6 +9,7 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.SubParticipant;
+import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.SubParticipantStatRow;
 import io.limeup.flexbets.sport.utils.UnitConversionUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +21,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -46,6 +41,7 @@ public class SubParticipantMapper {
         if (dto == null || entity == null) return entity;
         entity.setExternalId(dto.getId());
         entity.setPlayerName(dto.getName());
+        entity.setPlayerShortName(dto.getShortName());
         entity.setShirtNumber(dto.getShirtNr());
         entity.setAvatarUrl(dto.getLogo());
         entity.setGender(dto.getGender());
@@ -69,7 +65,7 @@ public class SubParticipantMapper {
         return entity;
     }
 
-    public List<SubParticipantDTO> toDTO(List<SubParticipantStatRow> statRowsRaw) {
+    public List<SubParticipantDTO> toDTO(List<SubParticipantStatRow> statRowsRaw, Map<Integer, Map<String, List<BetRow>>> eventIdSubParticipantBetMap) {
         Map<Integer, List<SubParticipantStatRow>> groupedByPlayer = statRowsRaw.stream()
                 .filter(row -> row.getId() != null)
                 .collect(Collectors.groupingBy(
@@ -141,6 +137,9 @@ public class SubParticipantMapper {
                         configuration.isConvertToImperial(), USCustomary.INCH);
             }
 
+            Map<String, List<BetRow>> subParticipantBetMap = first.getFutureEventId() != null ? eventIdSubParticipantBetMap.get(first.getFutureEventId())
+                    : new HashMap<>();
+
             SubParticipantDTO dto = new SubParticipantDTO(
                     first.getId(),
                     first.getPlayerName(),
@@ -159,7 +158,8 @@ public class SubParticipantMapper {
                     height,
                     first.getBirthDate(),
                     historicalStats,
-                    new ArrayList<>()  // empty until trade360 integration
+                    subParticipantBetMap == null || subParticipantBetMap.isEmpty() ? new ArrayList<>()
+                            : BetMapper.betRowListToOddsDtoList(subParticipantBetMap.get(first.getPlayerShortName()))
             );
 
             result.add(dto);

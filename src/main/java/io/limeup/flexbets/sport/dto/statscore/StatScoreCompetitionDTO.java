@@ -29,4 +29,5 @@ public class StatScoreCompetitionDTO {
     private String status;
     private List<StatScoreSeasonDTO> seasons;
     private StatScoreSeasonDTO season;
+    private Long lsId;
 }

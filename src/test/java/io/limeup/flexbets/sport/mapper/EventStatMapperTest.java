@@ -3,8 +3,8 @@ package io.limeup.flexbets.sport.mapper;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.EventStat;
-import io.limeup.flexbets.sport.model.StatDataType;
-import io.limeup.flexbets.sport.model.StatTargetType;
+import io.limeup.flexbets.sport.model.enums.StatDataType;
+import io.limeup.flexbets.sport.model.enums.StatTargetType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

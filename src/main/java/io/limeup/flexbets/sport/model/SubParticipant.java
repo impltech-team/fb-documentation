@@ -35,6 +35,10 @@ public class SubParticipant {
     private Integer externalId;
 
     private String playerName;
+
+    @Column(name = "player_short_name", nullable = false)
+    private String playerShortName;
+
     private String position;
     private Integer shirtNumber;
     private String avatarUrl;

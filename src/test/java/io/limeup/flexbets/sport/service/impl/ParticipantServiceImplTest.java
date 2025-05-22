@@ -15,7 +15,7 @@ import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.Competition;
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
 import io.limeup.flexbets.sport.repository.StatRepository;

@@ -1,6 +1,6 @@
 package io.limeup.flexbets.sport.dto;
 
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

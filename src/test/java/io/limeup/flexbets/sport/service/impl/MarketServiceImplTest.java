@@ -15,7 +15,7 @@ import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Market;
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.repository.MarketRepository;
 import io.limeup.flexbets.sport.service.CompetitionService;
 import org.junit.jupiter.api.BeforeEach;

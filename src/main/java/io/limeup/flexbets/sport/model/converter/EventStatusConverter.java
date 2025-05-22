@@ -1,6 +1,6 @@
 package io.limeup.flexbets.sport.model.converter;
 
-import io.limeup.flexbets.sport.model.EventStatus;
+import io.limeup.flexbets.sport.model.enums.EventStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

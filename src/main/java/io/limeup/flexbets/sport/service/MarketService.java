@@ -3,7 +3,7 @@ package io.limeup.flexbets.sport.service;
 import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.model.Market;
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 
 import java.util.List;
 import java.util.Set;

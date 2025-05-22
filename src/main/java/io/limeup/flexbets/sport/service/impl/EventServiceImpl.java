@@ -8,7 +8,7 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.mapper.EventMapper;
 import io.limeup.flexbets.sport.model.Event;
-import io.limeup.flexbets.sport.model.EventStatus;
+import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
