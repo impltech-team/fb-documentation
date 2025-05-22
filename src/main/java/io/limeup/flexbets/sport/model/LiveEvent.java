@@ -27,6 +27,7 @@ public class LiveEvent {
     private Long ut;
     @Column(name = "event_data_id")
     private Long eventDataId;
+    @Column(name = "ls_id")
     private Long lsId;
     private String action;
     private LocalDateTime startDate;
