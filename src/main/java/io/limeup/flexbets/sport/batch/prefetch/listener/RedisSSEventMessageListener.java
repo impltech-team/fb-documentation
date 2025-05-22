@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service;
+package io.limeup.flexbets.sport.batch.prefetch.listener;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RedisEventMessageListener implements MessageListener {
+public class RedisSSEventMessageListener implements MessageListener {
 
     private final ObjectMapper objectMapper;
     private final LiveEventRepository eventRepository;
@@ -123,15 +123,23 @@ public class RedisEventMessageListener implements MessageListener {
             }
 
 
+
             JsonNode betting = ev.path("betting").path("bet_statuses");
-            String name = betting.get("name").asText();
-            if (!betStatusRepository.existsByEventAndName(liveEvent, name)) {
-                betStatusRepository.save(LiveEventBetStatus.builder()
-                        .event(liveEvent)
-                        .name(name)
-                        .value(betting.get("value").asText())
-                        .build());
+            if (betting.hasNonNull("name") && betting.hasNonNull("value")) {
+                String name = betting.get("name").asText();
+                String value = betting.get("value").asText();
+
+                if (!betStatusRepository.existsByEventAndName(liveEvent, name)) {
+                    betStatusRepository.save(LiveEventBetStatus.builder()
+                            .event(liveEvent)
+                            .name(name)
+                            .value(value)
+                            .build());
+                }
+            } else {
+                log.warn("⚠️ Missing 'name' or 'value' in betting.bet_statuses for event {}", liveEvent.getId());
             }
+
 
             JsonNode participants = ev.path("participants");
             if (participants.isArray()) {
@@ -169,10 +177,6 @@ public class RedisEventMessageListener implements MessageListener {
                         }
                     }
                     log.info("✅ Saved live_event {} to DB", liveEvent.getId());
-
-                    webSocketController.pushEventFromDb(
-                            liveEvent.getId()
-                    );
                 }
             }
 

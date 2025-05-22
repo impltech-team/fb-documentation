@@ -5,9 +5,10 @@ import io.limeup.flexbets.sport.model.LiveEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LiveEventRepository extends JpaRepository<LiveEvent, Long> {
-    List<LiveEvent> findByEventDataId(Long eventDataId);
+
+    Optional<LiveEvent> findByLsId(long lsId);
 }
