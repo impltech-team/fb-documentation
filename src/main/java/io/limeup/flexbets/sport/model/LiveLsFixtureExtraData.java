@@ -4,23 +4,19 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "live_event_detail")
+@Table(name = "live_ls_fixture_extra_data")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class LiveEventDetail {
+public class LiveLsFixtureExtraData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id", nullable = false)
-    private LiveEvent event;
+    private Long fixtureId;
 
-    @Column(name = "detail_id", nullable = false)
-    private Integer detailId;
-
+    private String name;
     private String value;
 }

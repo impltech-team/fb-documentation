@@ -4,20 +4,18 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "live_event")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 public class LiveEvent {
 
     @Id
@@ -29,6 +27,7 @@ public class LiveEvent {
     private Long ut;
     @Column(name = "event_data_id")
     private Long eventDataId;
+    @Column(name = "ls_id")
     private Long lsId;
     private String action;
     private LocalDateTime startDate;

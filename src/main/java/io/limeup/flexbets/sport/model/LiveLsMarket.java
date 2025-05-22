@@ -1,24 +1,24 @@
 package io.limeup.flexbets.sport.model;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "live_event_bet_status")
+@Table(name = "live_ls_market")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class LiveEventBetStatus {
+public class LiveLsMarket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id", nullable = false)
-    private LiveEvent event;
+    private Long fixtureId;
 
-    private String name;
-    private String value;
+    private Long marketId;
+    private String marketName;
+    private String marketMainLine;
 }
