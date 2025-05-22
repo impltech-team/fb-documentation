@@ -4,7 +4,7 @@ import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Market;
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
 import org.junit.jupiter.api.Test;
 

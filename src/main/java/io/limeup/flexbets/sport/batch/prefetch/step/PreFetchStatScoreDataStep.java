@@ -62,6 +62,7 @@ public class PreFetchStatScoreDataStep {
         log.info("prefetchProcessor started");
         return log -> {
             statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
+
             log.setStatus(PrefetchLog.Status.SUCCESS);
             log.setErrorMessage(null);
             return log;

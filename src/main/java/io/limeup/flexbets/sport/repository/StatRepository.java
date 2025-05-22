@@ -17,6 +17,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
                   WITH unique_players AS (
                       SELECT DISTINCT sp.id AS sub_participant_id,
                                       sp.player_name,
+                                      sp.player_short_name,
                                       sp.position,
                                       esp.participant_id,
                                       p.team_name,
@@ -127,6 +128,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
                       ae.start_date AS event_start_date,
                       sp.external_id AS id,
                       sp.player_name AS player_name,
+                      sp.player_short_name AS player_short_name,
                       sp.position AS position,
                       sp.shirt_number AS shirt_number,
                       sp.gender AS gender,
@@ -269,6 +271,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
             	ae.start_date AS event_start_date,
             	sp.external_id AS id,
             	sp.player_name AS player_name,
+            	sp.player_short_name AS player_short_name,
             	sp.position AS position,
             	sp.shirt_number AS shirt_number,
             	sp.gender AS gender,

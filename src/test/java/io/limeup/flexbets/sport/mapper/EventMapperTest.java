@@ -15,7 +15,7 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStageDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
-import io.limeup.flexbets.sport.model.EventStatus;
+import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
 import io.limeup.flexbets.sport.utils.ConstantUtils;

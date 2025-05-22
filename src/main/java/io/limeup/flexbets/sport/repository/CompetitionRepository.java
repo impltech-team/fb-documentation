@@ -1,8 +1,8 @@
 package io.limeup.flexbets.sport.repository;
 
 import io.limeup.flexbets.sport.model.Competition;
-import io.limeup.flexbets.sport.model.CompetitionType;
-import io.limeup.flexbets.sport.model.StatusType;
+import io.limeup.flexbets.sport.model.enums.CompetitionType;
+import io.limeup.flexbets.sport.model.enums.StatusType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

@@ -2,8 +2,11 @@ package io.limeup.flexbets.sport.batch.prefetch.listener;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.limeup.flexbets.sport.dto.BetDTO;
+import io.limeup.flexbets.sport.dto.trade360.Trade360BetDTO;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.repository.*;
+import io.limeup.flexbets.sport.service.BetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.*;
 
 
 @Service
@@ -29,6 +33,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
     private final LiveLsMarketRepository marketRepo;
     private final LiveLsBetRepository betRepo;
     private final LiveLsFixtureExtraDataRepository extraRepo;
+    private final BetService betService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -37,8 +42,10 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
             JsonNode root = objectMapper.readTree(json);
             JsonNode events = root.path("Body").path("Events");
 
+
             for (JsonNode eventNode : events) {
                 Long fixtureId = eventNode.path("FixtureId").asLong();
+                Map<Integer, List<Trade360BetDTO>> marketBetsMap = new HashMap<>();
 
                 // ⏱ Scoreboard
                 JsonNode scoreboard = eventNode.path("Livescore").path("Scoreboard");
@@ -126,36 +133,67 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                 JsonNode markets = eventNode.path("Markets");
                 if (markets.isArray()) {
                     for (JsonNode m : markets) {
+                        Long marketId = m.path("Id").asLong();
                         LiveLsMarket savedMarket = marketRepo.save(LiveLsMarket.builder()
                                 .fixtureId(fixtureId)
-                                .marketId(m.path("Id").asLong())
+                                .marketId(marketId)
                                 .marketName(m.path("Name").asText())
                                 .marketMainLine(m.path("MainLine").asText(null))
                                 .build());
 
+                        List<Trade360BetDTO> trade360Bets = new ArrayList<>();
+                        marketBetsMap.put(marketId.intValue(), trade360Bets);
+
                         JsonNode bets = m.path("Bets");
                         if (bets.isArray()) {
                             for (JsonNode b : bets) {
+                                Long id = b.path("Id").asLong();
+                                String name = b.path("Name").asText();
+                                String line = b.path("Line").asText();
+                                String baseLine = b.path("BaseLine").asText();
+                                Integer status = b.path("Status").asInt();
+                                String price = b.path("Price").asText(null);
+                                Instant lastUpdated = parseInstant(b.path("LastUpdate").asText(null));
+
                                 betRepo.save(LiveLsBet.builder()
                                         .marketId(savedMarket.getId())
-                                        .betId(b.path("Id").asLong())
-                                        .betName(b.path("Name").asText())
+                                        .betId(id)
+                                        .betName(name)
                                         .betProbability(b.path("Probability").asDouble())
                                         .betSuspensionReason(b.path("SuspensionReason").asText(null))
                                         .betCalculatedMargin(b.path("CalculatedMargin").asText(null))
                                         .betSerializedCalculatedMargin(b.path("SerializedCalculatedMargin").asText(null))
-                                        .betLine(b.path("Line").asText(null))
-                                        .betBaseLine(b.path("BaseLine").asText(null))
-                                        .betStatus(b.path("Status").asInt())
+                                        .betLine(line)
+                                        .betBaseLine(baseLine)
+                                        .betStatus(status)
                                         .betStartPrice(b.path("StartPrice").asText(null))
-                                        .betPrice(b.path("Price").asText(null))
+                                        .betPrice(price)
                                         .betProviderId(b.path("ProviderBetId").asText(null))
-                                        .betLastUpdate(parseInstant(b.path("LastUpdate").asText(null)))
+                                        .betLastUpdate(lastUpdated)
                                         .betSerializedLastUpdate(b.path("SerializedLastUpdate").asText(null))
                                         .build());
+
+                                Trade360BetDTO betDTO = Trade360BetDTO.builder()
+                                        .id(id)
+                                        .name(name)
+                                        .participantName(b.path("PlayerName").asText(null))
+                                        .line(line)
+                                        .baseLine(baseLine)
+                                        .status(status)
+                                        .price(price)
+                                        .settlement(b.path("Settlement").asInt(0))
+                                        .suspensionReason(b.path("SuspensionReason").asInt(0))
+                                        .lastUpdated(lastUpdated)
+                                        .build();
+
+                                trade360Bets.add(betDTO);
                             }
                         }
                     }
+                }
+
+                if(!marketBetsMap.isEmpty()){
+                    betService.updateBetsInfoFromTrade360(fixtureId, marketBetsMap);
                 }
             }
 

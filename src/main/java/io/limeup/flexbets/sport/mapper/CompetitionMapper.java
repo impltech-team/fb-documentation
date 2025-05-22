@@ -4,9 +4,9 @@ import io.limeup.flexbets.sport.dto.CompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
-import io.limeup.flexbets.sport.model.CompetitionType;
+import io.limeup.flexbets.sport.model.enums.CompetitionType;
 import io.limeup.flexbets.sport.model.Sport;
-import io.limeup.flexbets.sport.model.StatusType;
+import io.limeup.flexbets.sport.model.enums.StatusType;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -29,6 +29,7 @@ public class CompetitionMapper {
         entity.setExternalId(dto.getId());
         entity.setName(dto.getName());
         entity.setGender(dto.getGender());
+        entity.setLsId(dto.getLsId());
         entity.setSport(sport);
         entity.setArea(area);
 

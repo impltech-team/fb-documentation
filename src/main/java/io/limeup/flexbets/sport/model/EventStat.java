@@ -1,5 +1,7 @@
 package io.limeup.flexbets.sport.model;
 
+import io.limeup.flexbets.sport.model.enums.StatDataType;
+import io.limeup.flexbets.sport.model.enums.StatTargetType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

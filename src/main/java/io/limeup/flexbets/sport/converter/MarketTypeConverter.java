@@ -1,6 +1,6 @@
 package io.limeup.flexbets.sport.converter;
 
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
