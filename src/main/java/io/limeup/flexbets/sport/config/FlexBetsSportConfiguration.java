@@ -22,4 +22,16 @@ public class FlexBetsSportConfiguration {
 
     @Value("${convert.imperial}")
     private boolean convertToImperial;
+
+    @Value("${trade360.username}")
+    private String trade360Username;
+
+    @Value("${trade360.password}")
+    private String trade360Password;
+
+    @Value("${trade360.prematch-package-id}")
+    private String trade360PrematchPackageId;
+
+    @Value("${trade360.inplay-package-id}")
+    private String trade360InPlayPackageId;
 }

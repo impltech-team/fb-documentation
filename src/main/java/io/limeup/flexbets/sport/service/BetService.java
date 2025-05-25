@@ -42,14 +42,14 @@ public class BetService {
             System.out.println("Updating bets info process has started.");
             Event event = eventOptional.get();
             Long competitionId = event.getCompetition().getId();
-            Map<Long, Bet> existingBets = betRepository.findAllByEventLsInAndMarketExternalIdIn(List.of(eventLsId), marketBetsMap.keySet())
-                    .stream()
-                    .collect(Collectors.toMap(Bet::getExternalId, Function.identity()));
 
             List<Bet> betsToSave = new ArrayList<>();
 
             for(Integer marketId : marketBetsMap.keySet()) {
                 Market market = marketRepository.findByExternalIdAndCompetitionId(marketId, competitionId).orElse(null);
+                Map<Long, Bet> existingBets = betRepository.findAllByEventLsIdAndMarketExternalId(eventLsId, marketId)
+                        .stream()
+                        .collect(Collectors.toMap(Bet::getExternalId, Function.identity()));
                 if(market != null) {
                     List<Trade360BetDTO> newBets = marketBetsMap.get(marketId);
 

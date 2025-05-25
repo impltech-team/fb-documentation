@@ -19,9 +19,12 @@ public enum SettlementType {
         this.id = id;
     }
 
-    public static SettlementType getById(int id) {
-        return Arrays.stream(SettlementType.values())
-                .filter(settlementType -> settlementType.id == id)
-                .findFirst().orElse(null);
+    public static SettlementType getById(Integer id) {
+        if (id == null)
+            return null;
+        else
+            return Arrays.stream(SettlementType.values())
+                    .filter(settlementType -> settlementType.id == id)
+                    .findFirst().orElse(null);
     }
 }

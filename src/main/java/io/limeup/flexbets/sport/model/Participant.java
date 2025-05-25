@@ -47,4 +47,7 @@ public class Participant {
     private List<EventSubParticipant> playerParticipations;
 
     private String type;
+
+    @Column(name = "team_short_name")
+    private String teamShortName;
 }
