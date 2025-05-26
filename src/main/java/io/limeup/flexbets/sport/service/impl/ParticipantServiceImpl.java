@@ -6,6 +6,7 @@ import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.mapper.ParticipantMapper;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
 import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
@@ -76,11 +77,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                 statNames
         );
 
-        Set<Integer> eventIds = stats.stream().map(ParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
-        Map<Integer, List<BetRow>> eventIdBetsMap = betService.getBetsEventMapByEventExternalIdsAndMarketType(eventIds, MarketType.PARTICIPANT);
-
-
-        return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats, eventIdBetsMap), count, requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats, retrieveEventIdParticipantBetMap(stats)), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @EventBasedCache(cacheName = "participantDetailsCache",
@@ -92,13 +89,15 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
         Set<String> statNames = marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
         List<ParticipantStatRow> participantStatsDetails = statRepository.getParticipantStatsDetails(
                 participantId, maxHistoricalDataCount, statNames);
-        Set<Integer> eventIds = participantStatsDetails.stream().map(ParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
-        Map<Integer, List<BetRow>> eventIdBetsMap = betService.getBetsEventMapByEventExternalIdsAndMarketType(eventIds, MarketType.PARTICIPANT);
 
-        return ParticipantMapper.toDTO(participantStatsDetails, eventIdBetsMap)
+        return ParticipantMapper.toDTO(participantStatsDetails, retrieveEventIdParticipantBetMap(participantStatsDetails))
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
     }
 
+    private Map<Integer, List<BetRow>> retrieveEventIdParticipantBetMap(List<ParticipantStatRow> participantStatRows) {
+        Set<Integer> eventIds = participantStatRows.stream().map(ParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
+        return betService.getBetsEventMapByEventExternalIdsAndMarketTypeAndBetStatus(eventIds, MarketType.PARTICIPANT, BetStatus.OPEN);
+    }
 }
