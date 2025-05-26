@@ -5,6 +5,7 @@ import io.limeup.flexbets.sport.mapper.BetMapper;
 import io.limeup.flexbets.sport.model.Bet;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.Market;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
 import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.repository.BetRepository;
 import io.limeup.flexbets.sport.repository.EventRepository;
@@ -31,8 +32,8 @@ public class BetService {
         this.marketRepository = marketRepository;
     }
 
-    public Map<Integer, List<BetRow>> getBetsEventMapByEventExternalIdsAndMarketType(Collection<Integer> eventIds, MarketType marketType) {
-        return betRepository.findAllByEventExternalIdInAndMarketType(eventIds, marketType.name()).stream()
+    public Map<Integer, List<BetRow>> getBetsEventMapByEventExternalIdsAndMarketTypeAndBetStatus(Collection<Integer> eventIds, MarketType marketType, BetStatus betStatus) {
+        return betRepository.findAllByEventExternalIdInAndMarketTypeAndBetStatus(eventIds, marketType.name(), betStatus.name()).stream()
                 .collect(Collectors.groupingBy(BetRow::getEventExternalId));
     }
 

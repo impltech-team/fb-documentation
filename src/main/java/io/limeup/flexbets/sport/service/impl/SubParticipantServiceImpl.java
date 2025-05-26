@@ -6,6 +6,7 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.mapper.SubParticipantMapper;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
 import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.repository.StatRepository;
@@ -108,7 +109,7 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
 
     private Map<Integer, Map<String, List<BetRow>>> retrieveEventIdSubParticipantBetMap(List<SubParticipantStatRow> subParticipantStatsDetails) {
         Set<Integer> eventIds = subParticipantStatsDetails.stream().map(SubParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
-        Map<Integer, List<BetRow>> eventIdBetsMap = betService.getBetsEventMapByEventExternalIdsAndMarketType(eventIds, MarketType.SUB_PARTICIPANT);
+        Map<Integer, List<BetRow>> eventIdBetsMap = betService.getBetsEventMapByEventExternalIdsAndMarketTypeAndBetStatus(eventIds, MarketType.SUB_PARTICIPANT, BetStatus.OPEN);
         Map<Integer, Map<String, List<BetRow>>> result = new HashMap<>();
         eventIdBetsMap.keySet().forEach(eventId -> {
             Map<String, List<BetRow>> subParticipantNameBetMap = eventIdBetsMap.get(eventId).stream()
