@@ -2,7 +2,6 @@ package io.limeup.flexbets.sport.batch.prefetch.listener;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.limeup.flexbets.sport.dto.BetDTO;
 import io.limeup.flexbets.sport.dto.trade360.Trade360BetDTO;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.repository.*;
@@ -15,7 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -153,7 +156,6 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 String baseLine = b.path("BaseLine").asText();
                                 Integer status = b.path("Status").asInt();
                                 String price = b.path("Price").asText(null);
-                                Instant lastUpdated = parseInstant(b.path("LastUpdate").asText(null));
 
                                 betRepo.save(LiveLsBet.builder()
                                         .marketId(savedMarket.getId())
@@ -169,7 +171,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                         .betStartPrice(b.path("StartPrice").asText(null))
                                         .betPrice(price)
                                         .betProviderId(b.path("ProviderBetId").asText(null))
-                                        .betLastUpdate(lastUpdated)
+                                        .betLastUpdate(parseInstant(b.path("LastUpdate").asText(null)))
                                         .betSerializedLastUpdate(b.path("SerializedLastUpdate").asText(null))
                                         .build());
 
@@ -183,7 +185,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                         .price(price)
                                         .settlement(b.path("Settlement").asInt(0))
                                         .suspensionReason(b.path("SuspensionReason").asInt(0))
-                                        .lastUpdated(lastUpdated)
+                                        .lastUpdated(LocalDateTime.parse(b.path("LastUpdate").asText(null)))
                                         .build();
 
                                 trade360Bets.add(betDTO);

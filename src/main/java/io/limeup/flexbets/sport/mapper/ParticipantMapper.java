@@ -38,6 +38,7 @@ public class ParticipantMapper {
         entity.setCompetition(competition);
         entity.setType(dto.getType());
         entity.setHistoricalStats(new ArrayList<>());
+        entity.setTeamShortName(dto.getShortName());
         return entity;
     }
 

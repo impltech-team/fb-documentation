@@ -66,6 +66,6 @@ public class Bet {
     private SuspensionReason suspensionReason;
 
     @Column(name = "last_updated")
-    private Instant lastUpdated;
+    private LocalDateTime lastUpdated;
 }
 

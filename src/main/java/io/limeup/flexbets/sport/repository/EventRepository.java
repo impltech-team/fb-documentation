@@ -102,4 +102,6 @@ public interface EventRepository extends ExternalIdRepository<Event, Long> {
     );
 
     Optional<Event> findByLsId(Long lsId);
+
+    List<Event> findAllByStartDateBetweenAndLsIdIsNull(LocalDateTime startDate, LocalDateTime endDate);
 }

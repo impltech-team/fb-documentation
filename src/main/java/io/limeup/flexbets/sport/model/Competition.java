@@ -52,5 +52,5 @@ public class Competition {
     private String gender;
 
     @Column(name = "ls_id", unique = true)
-    private Long lsId;
+    private Integer lsId;
 }

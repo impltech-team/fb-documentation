@@ -29,7 +29,7 @@ public interface BetRepository extends ExternalIdRepository<Bet, Long> {
 
     @Query(value = """ 
             SELECT b FROM Bet b
-                WHERE b.market.externalId IN :marketExternalIds AND b.event.lsId IN :eventLsIds
+                WHERE b.market.externalId = :marketExternalId AND b.event.lsId = :eventLsId
             """)
-    List<Bet> findAllByEventLsInAndMarketExternalIdIn(Collection<Long> eventLsIds, Collection<Integer> marketExternalIds);
+    List<Bet> findAllByEventLsIdAndMarketExternalId(Long eventLsId, Integer marketExternalId);
 }

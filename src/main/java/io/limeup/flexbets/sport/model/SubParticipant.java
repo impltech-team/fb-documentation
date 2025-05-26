@@ -36,7 +36,7 @@ public class SubParticipant {
 
     private String playerName;
 
-    @Column(name = "player_short_name", nullable = false)
+    @Column(name = "player_short_name")
     private String playerShortName;
 
     private String position;
