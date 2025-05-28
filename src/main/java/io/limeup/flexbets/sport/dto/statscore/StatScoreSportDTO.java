@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.dto.statscore;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,6 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StatScoreSportDTO {
     @EqualsAndHashCode.Include
     private Integer id;
@@ -44,6 +46,7 @@ public class StatScoreSportDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SportResult {
         private Integer id;
         private String name;
@@ -54,11 +57,13 @@ public class StatScoreSportDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SportStats {
         private List<SportStat> team;
         private List<SportStat> person;
 
         @Data
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class SportStat {
             private Integer id;
             private String name;
@@ -69,6 +74,7 @@ public class StatScoreSportDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SportDetail {
         private Integer id;
         private String name;
@@ -92,6 +98,7 @@ public class StatScoreSportDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SportIncident {
         private Integer id;
         private String name;
@@ -108,6 +115,7 @@ public class StatScoreSportDTO {
         private List<Attribute> attributes;
 
         @Data
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Attribute {
             private Integer ids;
             private String name;

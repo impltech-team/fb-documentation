@@ -108,7 +108,10 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
     }
 
     private Map<Integer, Map<String, List<BetRow>>> retrieveEventIdSubParticipantBetMap(List<SubParticipantStatRow> subParticipantStatsDetails) {
-        Set<Integer> eventIds = subParticipantStatsDetails.stream().map(SubParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
+        Set<Integer> eventIds = subParticipantStatsDetails.stream()
+                .map(SubParticipantStatRow::getFutureEventId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         Map<Integer, List<BetRow>> eventIdBetsMap = betService.getBetsEventMapByEventExternalIdsAndMarketTypeAndBetStatus(eventIds, MarketType.SUB_PARTICIPANT, BetStatus.OPEN);
         Map<Integer, Map<String, List<BetRow>>> result = new HashMap<>();
         eventIdBetsMap.keySet().forEach(eventId -> {
