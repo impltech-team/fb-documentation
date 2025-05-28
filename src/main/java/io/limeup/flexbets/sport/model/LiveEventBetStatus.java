@@ -5,10 +5,11 @@ import lombok.*;
 
 @Entity
 @Table(name = "live_event_bet_status")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 public class LiveEventBetStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

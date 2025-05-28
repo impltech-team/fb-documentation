@@ -63,3 +63,9 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.web.reactive.function.client.ExchangeFunctions: DEBUG
     reactor.netty.http.client: DEBUG
+
+trade360:
+  username: ${LSPORTS_USERNAME:adam@flexbets.io}
+  password: ${LSPORTS_PASSWORD:Gsj38@d983dWA}
+  prematch-package-id: ${LSPORTS_PREMATCH_PACKAGE_ID:2463}
+  inplay-package-id: ${LSPORTS_INPLAY_PACKAGE_ID:2464}

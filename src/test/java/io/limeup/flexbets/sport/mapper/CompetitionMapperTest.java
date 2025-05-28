@@ -2,8 +2,8 @@ package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.CompetitionDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
-import io.limeup.flexbets.sport.model.CompetitionType;
-import io.limeup.flexbets.sport.model.StatusType;
+import io.limeup.flexbets.sport.model.enums.CompetitionType;
+import io.limeup.flexbets.sport.model.enums.StatusType;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Sport;

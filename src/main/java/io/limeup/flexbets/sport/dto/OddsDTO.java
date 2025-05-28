@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OddsDTO {
-    private int id;
+    private long id;
     private String marketName;
     private int marketId;
     private String line;

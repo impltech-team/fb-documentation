@@ -1,5 +1,7 @@
 package io.limeup.flexbets.sport.model;
 
+import io.limeup.flexbets.sport.model.enums.CompetitionType;
+import io.limeup.flexbets.sport.model.enums.StatusType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -48,4 +50,7 @@ public class Competition {
     private StatusType statusType;
 
     private String gender;
+
+    @Column(name = "ls_id", unique = true)
+    private Integer lsId;
 }

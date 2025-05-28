@@ -1,6 +1,6 @@
 package io.limeup.flexbets.sport.converter;
 
-import io.limeup.flexbets.sport.model.StatTargetType;
+import io.limeup.flexbets.sport.model.enums.StatTargetType;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

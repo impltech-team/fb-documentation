@@ -2,16 +2,13 @@ package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
-import io.limeup.flexbets.sport.model.Market;
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.service.MarketService;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;

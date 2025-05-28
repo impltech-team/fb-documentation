@@ -1,6 +1,6 @@
 package io.limeup.flexbets.sport.converter;
 
-import io.limeup.flexbets.sport.model.CompetitionType;
+import io.limeup.flexbets.sport.model.enums.CompetitionType;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

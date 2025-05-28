@@ -3,6 +3,7 @@ package io.limeup.flexbets.sport.batch.prefetch.step;
 import io.limeup.flexbets.sport.batch.prefetch.listener.MarkAsFailedSkipListener;
 import io.limeup.flexbets.sport.model.PrefetchLog;
 import io.limeup.flexbets.sport.service.StatsService;
+import io.limeup.flexbets.sport.service.trade360.Trade360DataService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class PreFetchStatScoreDataStep {
 
     private final EntityManagerFactory entityManagerFactory;
     private final StatsService statsService;
+    private final Trade360DataService dataService;
 
     @Bean
     public Step preFetchStatScoreDataStepDef(JobRepository jobRepository,
@@ -62,6 +64,7 @@ public class PreFetchStatScoreDataStep {
         log.info("prefetchProcessor started");
         return log -> {
             statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
+            dataService.fetchDataFromTrade360ApiForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             log.setStatus(PrefetchLog.Status.SUCCESS);
             log.setErrorMessage(null);
             return log;

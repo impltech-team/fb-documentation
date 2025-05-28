@@ -5,8 +5,8 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.model.Competition;
-import io.limeup.flexbets.sport.model.CompetitionType;
-import io.limeup.flexbets.sport.model.StatusType;
+import io.limeup.flexbets.sport.model.enums.CompetitionType;
+import io.limeup.flexbets.sport.model.enums.StatusType;
 
 public interface CompetitionService extends ExternalIdReadService<Competition, CompetitionDTO, Long> {
 

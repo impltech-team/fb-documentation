@@ -6,11 +6,14 @@ import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.mapper.ParticipantMapper;
-import io.limeup.flexbets.sport.model.MarketType;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
+import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.model.Participant;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
 import io.limeup.flexbets.sport.repository.StatRepository;
+import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
+import io.limeup.flexbets.sport.service.BetService;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.ParticipantService;
@@ -19,9 +22,8 @@ import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -35,11 +37,14 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
 
     private final StatRepository statRepository;
 
-    protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository) {
+    private final BetService betService;
+
+    protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository, BetService betService) {
         super(repository);
         this.participantRepository = repository;
         this.marketService = marketService;
         this.statRepository = statRepository;
+        this.betService = betService;
     }
 
     @EventBasedCache(cacheName = "participantsListCache",
@@ -72,7 +77,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
                 statNames
         );
 
-        return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats), count, requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(ParticipantMapper.toDTO(stats, retrieveEventIdParticipantBetMap(stats)), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @EventBasedCache(cacheName = "participantDetailsCache",
@@ -84,10 +89,15 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
         Set<String> statNames = marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);
         List<ParticipantStatRow> participantStatsDetails = statRepository.getParticipantStatsDetails(
                 participantId, maxHistoricalDataCount, statNames);
-        return ParticipantMapper.toDTO(participantStatsDetails)
+
+        return ParticipantMapper.toDTO(participantStatsDetails, retrieveEventIdParticipantBetMap(participantStatsDetails))
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
     }
 
+    private Map<Integer, List<BetRow>> retrieveEventIdParticipantBetMap(List<ParticipantStatRow> participantStatRows) {
+        Set<Integer> eventIds = participantStatRows.stream().map(ParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
+        return betService.getBetsEventMapByEventExternalIdsAndMarketTypeAndBetStatus(eventIds, MarketType.PARTICIPANT, BetStatus.OPEN);
+    }
 }

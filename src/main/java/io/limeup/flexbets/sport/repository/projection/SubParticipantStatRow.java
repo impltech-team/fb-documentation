@@ -12,6 +12,7 @@ public interface SubParticipantStatRow {
     LocalDateTime getEventStartDate();
     Integer getId();
     String getPlayerName();
+    String getPlayerShortName();
     String getPosition();
     Integer getShirtNumber();
     String getGender();

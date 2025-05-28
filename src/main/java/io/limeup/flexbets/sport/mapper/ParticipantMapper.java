@@ -7,6 +7,7 @@ import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Participant;
+import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import org.springframework.stereotype.Component;
 
@@ -37,10 +38,11 @@ public class ParticipantMapper {
         entity.setCompetition(competition);
         entity.setType(dto.getType());
         entity.setHistoricalStats(new ArrayList<>());
+        entity.setTeamShortName(dto.getShortName());
         return entity;
     }
 
-    public static List<ParticipantDTO> toDTO(List<ParticipantStatRow> statRowsRaw) {
+    public static List<ParticipantDTO> toDTO(List<ParticipantStatRow> statRowsRaw,  Map<Integer, List<BetRow>> eventIdBetsMap) {
         Map<Integer, List<ParticipantStatRow>> groupedByParticipant = statRowsRaw.stream()
                 .filter(row -> row.getId() != null)
                 .collect(Collectors.groupingBy(
@@ -108,7 +110,8 @@ public class ParticipantMapper {
             dto.setCompetitionId(first.getCompetitionId());
             dto.setNextEvent(nextEvent);
             dto.setHistoricalStats(historicalStats);
-            dto.setOdds(new ArrayList<>()); // empty until trade360 integration
+            dto.setOdds(first.getFutureEventId() != null ? BetMapper.betRowListToOddsDtoList(eventIdBetsMap.get(first.getFutureEventId()))
+                    : new ArrayList<>());
 
             result.add(dto);
         }

@@ -18,14 +18,12 @@ import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.EventStat;
 import io.limeup.flexbets.sport.model.EventSubParticipant;
 import io.limeup.flexbets.sport.model.Participant;
-import io.limeup.flexbets.sport.model.PrefetchLog;
-import io.limeup.flexbets.sport.model.StatTargetType;
+import io.limeup.flexbets.sport.model.enums.StatTargetType;
 import io.limeup.flexbets.sport.model.SubParticipant;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.EventSubParticipantRepository;
 import io.limeup.flexbets.sport.repository.ParticipantRepository;
-import io.limeup.flexbets.sport.repository.PrefetchLogRepository;
 import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.SubParticipantRepository;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
@@ -37,19 +35,7 @@ import io.limeup.flexbets.sport.dto.StatsResponseDTO;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
-import io.limeup.flexbets.sport.utils.ConstantUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.configuration.JobRegistry;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.NoSuchJobException;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,20 +128,16 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
                 .dateTo(prefetchDate.atStartOfDay().plusDays(1))
                 .competitionId(competitionId)
                 .build());
-        System.out.printf("eventContexts from stat score service: %s%n", eventContexts);
 
         Map<Integer, Participant> participantsToSave = new HashMap<>();
         Map<Integer, Event> eventsToSave = new HashMap<>();
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
 
         extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, false);
-        System.out.printf("Participants to save: %s%n", participantsToSave.values());
         participantRepository.saveAllAndFlush(participantsToSave.values());
-        System.out.printf("Events to save: %s%n", eventsToSave.values());
         eventRepository.saveAllAndFlush(eventsToSave.values());
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
-            System.out.printf("ParticipantEventSeasonCompetition to process: %s%n", pesc);
             processSquadSubParticipants(pesc);
             fetchHistoricalStats(pesc.participant().getExternalId());
         }
