@@ -97,7 +97,10 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     }
 
     private Map<Integer, List<BetRow>> retrieveEventIdParticipantBetMap(List<ParticipantStatRow> participantStatRows) {
-        Set<Integer> eventIds = participantStatRows.stream().map(ParticipantStatRow::getFutureEventId).collect(Collectors.toSet());
+        Set<Integer> eventIds = participantStatRows.stream()
+                .map(ParticipantStatRow::getFutureEventId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         return betService.getBetsEventMapByEventExternalIdsAndMarketTypeAndBetStatus(eventIds, MarketType.PARTICIPANT, BetStatus.OPEN);
     }
 }
