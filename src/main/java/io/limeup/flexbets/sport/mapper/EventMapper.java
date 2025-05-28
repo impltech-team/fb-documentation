@@ -15,6 +15,7 @@ import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -194,12 +195,11 @@ public class EventMapper {
     private static void fillWithScore(StatScoreEventParticipantDTO p, FullEventDTO.Participant participant) {
         if (p.getStats() != null) {
             for (StatScoreResultDTO result : p.getResults()) {
-                if ("Result".equalsIgnoreCase(result.getName()) && result.getValue() != null) {
+                if ("Result".equalsIgnoreCase(result.getName()) && !StringUtils.isEmpty(result.getValue())) {
                     participant.setScore(Integer.parseInt(result.getValue()));
                     break;
                 }
             }
         }
     }
-
 }
