@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.repository.*;
-import io.limeup.flexbets.sport.service.live.WebSocketController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -26,7 +25,6 @@ public class RedisSSEventMessageListener implements MessageListener {
     private final LiveEventBetStatusRepository betStatusRepository;
     private final LiveParticipantRepository participantRepository;
     private final LiveParticipantResultRepository resultRepository;
-    private final WebSocketController webSocketController;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
