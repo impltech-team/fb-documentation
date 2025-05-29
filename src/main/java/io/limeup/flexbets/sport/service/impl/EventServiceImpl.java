@@ -8,12 +8,11 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
 import io.limeup.flexbets.sport.mapper.EventMapper;
 import io.limeup.flexbets.sport.model.Event;
-import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
-import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.EventService;
+import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
 import io.limeup.flexbets.sport.service.VenueService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
@@ -24,9 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -79,25 +76,8 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
                 requestQuery.getPageSize(),
                 (requestQuery.getPage() - 1) * requestQuery.getPageSize());
 
-        PaginatedResponse<EventDTO> eventDTOPaginatedResponse = PaginationUtils.buildPaginatedResponse(
+        return PaginationUtils.buildPaginatedResponse(
                 EventMapper.toDTO(eventRows), count, requestQuery.getPage(), requestQuery.getPageSize());
-
-        //tmp updating status here, TBD update status and start_date in db according to AMPQ queues (as it could be rescheduled)
-        calculateStatus(eventRows, eventDTOPaginatedResponse);
-
-        return eventDTOPaginatedResponse;
-    }
-
-    private void calculateStatus(List<EventRow> eventRows, PaginatedResponse<EventDTO> eventDTOPaginatedResponse) {
-        List<Event> events = eventRepository.findByExternalIdIn(eventRows.stream()
-                .map(EventRow::getExternalId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
-        events.forEach(event -> event.setStatus(event.getStartDate().isBefore(LocalDateTime.now()) ? EventStatus.FINISHED : EventStatus.SCHEDULED));
-        eventRepository.saveAllAndFlush(events);
-
-        eventDTOPaginatedResponse.getItems()
-                .forEach(eventDTO -> eventDTO.setStatus(eventDTO.getEventDate().isBefore(LocalDateTime.now()) ? EventStatus.FINISHED.toString() : EventStatus.SCHEDULED.toString()));
     }
 
     @EventBasedCache(cacheName = "eventDetailsCache",
@@ -107,6 +87,8 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
         StatScoreCompetitionDTO eventCompetition = statScoreClient.getEventById(eventId, false).block()
                 .getApi().getData();
         Venue venue = venueService.readByExternalId(eventCompetition.getSeason().getStage().getGroup().getEvent().getVenueId()).orElse(null);
+
+
         return EventMapper.mapToFullEventDTO(eventCompetition, venue);
     }
 }

@@ -75,18 +75,20 @@ public class Trade360DataService {
                 .collect(Collectors.toMap(Participant::getTeamName, Participant::getTeamShortName));
         Map<String, Long> eventNameIdMap = new HashMap<>();
         data.forEach(fixtureEvent -> {
-            String homeTeamName = fixtureEvent.getFixture().getParticipants().stream()
-                    .filter(participant -> participant.getPosition().equals(1))
-                    .findFirst().get().getName();
-            String homeShortName = allParticipants.get(homeTeamName);
+            if(fixtureEvent.getFixture().getParticipants().size() == 2) {
+                String homeTeamName = fixtureEvent.getFixture().getParticipants().stream()
+                        .filter(participant -> participant.getPosition().equals(1))
+                        .findFirst().get().getName();
+                String homeShortName = allParticipants.get(homeTeamName);
 
-            String awayTeamName = fixtureEvent.getFixture().getParticipants().stream()
-                    .filter(participant -> participant.getPosition().equals(2))
-                    .findFirst().get().getName();
-            String awayShortName = allParticipants.get(awayTeamName);
+                String awayTeamName = fixtureEvent.getFixture().getParticipants().stream()
+                        .filter(participant -> participant.getPosition().equals(2))
+                        .findFirst().get().getName();
+                String awayShortName = allParticipants.get(awayTeamName);
 
-            if(homeShortName != null && awayShortName != null){
-                eventNameIdMap.put(String.format("%s - %s", homeShortName, awayShortName), fixtureEvent.getFixtureId());
+                if (homeShortName != null && awayShortName != null) {
+                    eventNameIdMap.put(String.format("%s - %s", homeShortName, awayShortName), fixtureEvent.getFixtureId());
+                }
             }
         });
 
