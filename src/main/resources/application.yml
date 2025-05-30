@@ -65,7 +65,7 @@ logging:
     reactor.netty.http.client: DEBUG
 
 trade360:
-  username: ${LSPORTS_USERNAME:adam@flexbets.io}
-  password: ${LSPORTS_PASSWORD:Gsj38@d983dWA}
+  username: ${LSPORTS_USERNAME}
+  password: ${LSPORTS_PASSWORD}
   prematch-package-id: ${LSPORTS_PREMATCH_PACKAGE_ID:2463}
   inplay-package-id: ${LSPORTS_INPLAY_PACKAGE_ID:2464}
