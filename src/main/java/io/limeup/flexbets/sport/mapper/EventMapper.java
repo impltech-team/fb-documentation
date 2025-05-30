@@ -226,7 +226,7 @@ public class EventMapper {
         bets.forEach(bet -> {
             FullEventDTO.Bet betToSave = new FullEventDTO.Bet();
             betToSave.setId(bet.getId());
-            betToSave.setType(STR."\{bet.getName()} \{bet.getLine()}");
+            betToSave.setType(bet.getName() + " " + bet.getLine());
             betToSave.setPrice(bet.getPrice());
 
             if (MarketType.SUB_PARTICIPANT.name().equals(market.getType())) {
