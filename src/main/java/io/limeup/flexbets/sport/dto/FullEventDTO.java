@@ -18,6 +18,7 @@ public class FullEventDTO {
     private List<Participant> participants;
     private Venue venue;
     private List<Incident> incidents;
+    private List<Market> markets;
 
     @Data
     @NoArgsConstructor
@@ -68,5 +69,26 @@ public class FullEventDTO {
         private int subParticipantId;
         private String subParticipantName;
         private String info;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Market {
+        private int id;
+        private String name;
+        private String type;
+        private List<Bet> bets;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Bet {
+        private long id;
+        private Integer participantId;
+        private String participantName;
+        private String type;
+        private String price;
     }
 }
