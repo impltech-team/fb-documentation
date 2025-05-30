@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -185,7 +186,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                         .price(price)
                                         .settlement(b.path("Settlement").asInt(0))
                                         .suspensionReason(b.path("SuspensionReason").asInt(0))
-                                        .lastUpdated(LocalDateTime.parse(b.path("LastUpdate").asText(null)))
+                                        .lastUpdated(parseToLocalDateTime(b.path("LastUpdate").asText(null)))
                                         .build();
 
                                 trade360Bets.add(betDTO);
@@ -222,5 +223,11 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
         } catch (Exception e) {
             return null;
         }
+    }
+    private LocalDateTime parseToLocalDateTime(String isoString) {
+        if (isoString == null || isoString.isBlank()) {
+            return null;
+        }
+        return OffsetDateTime.parse(isoString).toLocalDateTime();
     }
 }

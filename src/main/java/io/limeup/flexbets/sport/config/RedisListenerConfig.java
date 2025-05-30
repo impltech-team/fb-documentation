@@ -21,7 +21,7 @@ public class RedisListenerConfig {
         container.setConnectionFactory(redisConnectionFactory);
 
         container.addMessageListener(redisSSEventMessageListener, new PatternTopic("events:stats_score"));
-        container.addMessageListener(redisPreMatchEventMessageListener, new PatternTopic("events:prematch")); // ✅
+        container.addMessageListener(redisPreMatchEventMessageListener, new PatternTopic("events:prematch"));
 
         return container;
     }
