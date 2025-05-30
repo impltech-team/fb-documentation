@@ -15,15 +15,21 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreStageDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
 import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
+import io.limeup.flexbets.sport.model.enums.MarketType;
+import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -129,7 +135,10 @@ class EventMapperTest {
         venue.setCountry("Ukraine");
         venue.setCity("Kyiv");
 
-        FullEventDTO fullEventDTO = EventMapper.mapToFullEventDTO(competitionDTO, venue);
+        Map<String, Integer> subParticipantNameIdMap = new HashMap<>();
+        subParticipantNameIdMap.put("John Doe", 1);
+
+        FullEventDTO fullEventDTO = EventMapper.mapToFullEventDTO(competitionDTO, venue, getMarketBetsMap(), subParticipantNameIdMap);
 
         assertThat(fullEventDTO).isNotNull();
         assertThat(fullEventDTO.getId()).isEqualTo(100);
@@ -138,6 +147,11 @@ class EventMapperTest {
         assertThat(fullEventDTO.getCompetition()).isEqualTo("Champions League");
         assertThat(fullEventDTO.getVenue()).isNotNull();
         assertThat(fullEventDTO.getVenue().getVenueName()).isEqualTo("National Stadium");
+        assertThat(fullEventDTO.getMarkets()).hasSize(2);
+        assertThat(fullEventDTO.getMarkets().get(0).getId()).isEqualTo(1);
+        assertThat(fullEventDTO.getMarkets().get(1).getId()).isEqualTo(2);
+        assertThat(fullEventDTO.getMarkets().get(0).getBets()).hasSize(1);
+        assertThat(fullEventDTO.getMarkets().get(1).getBets()).hasSize(1);
     }
 
     @Test
@@ -201,7 +215,10 @@ class EventMapperTest {
         venue.setCountry(ConstantUtils.TestConstants.USA);
         venue.setCity(ConstantUtils.TestConstants.WASHINGTON);
 
-        FullEventDTO fullEventDTO = EventMapper.mapToFullEventDTO(competitionDTO, venue);
+        Map<String, Integer> subParticipantNameIdMap = new HashMap<>();
+        subParticipantNameIdMap.put("John Doe", 1);
+
+        FullEventDTO fullEventDTO = EventMapper.mapToFullEventDTO(competitionDTO, venue, getMarketBetsMap(), subParticipantNameIdMap);
 
         assertThat(fullEventDTO).isNotNull();
         assertThat(fullEventDTO.getVenue().getLocation()).isEqualTo(ConstantUtils.TestConstants.USA + " " + ConstantUtils.TestConstants.WASHINGTON);
@@ -227,5 +244,132 @@ class EventMapperTest {
         assertThat(mappedParticipant.getScore()).isEqualTo(3);
     }
 
+    private  Map<Integer, List<BetRow>> getMarketBetsMap(){
+        String teamMarketName = "Over/Under Points Home Team";
+        String playerMarketName = "Over/Under Player Points";
+        Map<Integer, List<BetRow>> markets = new HashMap<>();
+
+        List<BetRow> teamMarket = new ArrayList<>();
+        BetRow teamBetRow = new BetRow() {
+            @Override
+            public Long getId() {
+                return 1L;
+            }
+
+            @Override
+            public Integer getEventExternalId() {
+                return 12;
+            }
+
+            @Override
+            public Integer getMarketExternalId() {
+                return 1;
+            }
+
+            @Override
+            public String getMarketName() {
+                return teamMarketName;
+            }
+
+            @Override
+            public String getMarketType() {
+                return MarketType.PARTICIPANT.name();
+            }
+
+            @Override
+            public String getStatus() {
+                return BetStatus.OPEN.name();
+            }
+
+            @Override
+            public String getName() {
+                return "Over";
+            }
+
+            @Override
+            public String getLine() {
+                return "111.5";
+            }
+
+            @Override
+            public String getPrice() {
+                return "2.1";
+            }
+
+            @Override
+            public String getParticipantName() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getLastUpdated() {
+                return LocalDateTime.now();
+            }
+        };
+        teamMarket.add(teamBetRow);
+        markets.put(1, teamMarket);
+
+        List<BetRow> playerMarket = new ArrayList<>();
+        BetRow playerBetRow = new BetRow() {
+            @Override
+            public Long getId() {
+                return 2L;
+            }
+
+            @Override
+            public Integer getEventExternalId() {
+                return 12;
+            }
+
+            @Override
+            public Integer getMarketExternalId() {
+                return 2;
+            }
+
+            @Override
+            public String getMarketName() {
+                return playerMarketName;
+            }
+
+            @Override
+            public String getMarketType() {
+                return MarketType.SUB_PARTICIPANT.name();
+            }
+
+            @Override
+            public String getStatus() {
+                return BetStatus.OPEN.name();
+            }
+
+            @Override
+            public String getName() {
+                return "Over";
+            }
+
+            @Override
+            public String getLine() {
+                return "11.5";
+            }
+
+            @Override
+            public String getPrice() {
+                return "1.8";
+            }
+
+            @Override
+            public String getParticipantName() {
+                return "John Doe";
+            }
+
+            @Override
+            public LocalDateTime getLastUpdated() {
+                return LocalDateTime.now();
+            }
+        };
+        playerMarket.add(playerBetRow);
+        markets.put(2, playerMarket);
+
+        return markets;
+    }
 }
 

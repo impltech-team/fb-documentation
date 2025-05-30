@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.repository.*;
+import io.limeup.flexbets.sport.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,7 @@ public class RedisSSEventMessageListener implements MessageListener {
     private final LiveEventBetStatusRepository betStatusRepository;
     private final LiveParticipantRepository participantRepository;
     private final LiveParticipantResultRepository resultRepository;
-    private final EventRepository eventRepository;
+    private final EventService eventService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -41,10 +42,13 @@ public class RedisSSEventMessageListener implements MessageListener {
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
+            String lsIdString = ev.get("lsId").asText();
+            Long lsId = lsIdString != null ? Long.parseLong(lsIdString) : null;
             LocalDateTime startDate = LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             String statusType = ev.path("status_type").asText();
+            String name = ev.path("name").asText();
 
-            updateEventStatus(eventDataId, statusType, startDate);
+            eventService.updateEventByIdOrByName(eventDataId, name, lsId, statusType, startDate);
 
             if (liveEventRepository.existsById(id)) {
                 log.info("ℹ️ Event {} already exists. Skipping.", id);
@@ -58,7 +62,7 @@ public class RedisSSEventMessageListener implements MessageListener {
                     .source(root.path("source").asInt())
                     .ut(root.path("ut").asLong())
                     .eventDataId((long) eventDataId)
-                    .lsId(ev.path("ls_id").asLong())
+                    .lsId(lsId)
                     .action(ev.path("action").asText())
                     .startDate(startDate)
                     .ftOnly("yes".equalsIgnoreCase(ev.path("ft_only").asText()))
@@ -87,8 +91,8 @@ public class RedisSSEventMessageListener implements MessageListener {
                     .betCards(ev.path("bet_cards").asText(null))
                     .betCorners(ev.path("bet_corners").asText(null))
                     .relationStatus(ev.path("relation_status").asText())
-                    .statusType(ev.path("status_type").asText())
-                    .name(ev.path("name").asText())
+                    .statusType(statusType)
+                    .name(name)
                     .roundId(ev.path("round_id").isNull() ? null : ev.path("round_id").asInt())
                     .roundName(ev.path("round_name").asText(null))
                     .scoutsfeed("yes".equalsIgnoreCase(ev.path("scoutsfeed").asText()))
@@ -129,13 +133,13 @@ public class RedisSSEventMessageListener implements MessageListener {
 
             JsonNode betting = ev.path("betting").path("bet_statuses");
             if (betting.hasNonNull("name") && betting.hasNonNull("value")) {
-                String name = betting.get("name").asText();
+                String betName = betting.get("name").asText();
                 String value = betting.get("value").asText();
 
-                if (!betStatusRepository.existsByEventAndName(liveEvent, name)) {
+                if (!betStatusRepository.existsByEventAndName(liveEvent, betName)) {
                     betStatusRepository.save(LiveEventBetStatus.builder()
                             .event(liveEvent)
-                            .name(name)
+                            .name(betName)
                             .value(value)
                             .build());
                 }
@@ -185,18 +189,6 @@ public class RedisSSEventMessageListener implements MessageListener {
 
         } catch (Exception e) {
             log.error("❌ Failed to process Redis message", e);
-        }
-    }
-
-    private void updateEventStatus(Integer eventDataId, String status, LocalDateTime startDate) {
-        Optional<Event> eventOptional = eventRepository.findByExternalId(eventDataId);
-        if (eventOptional.isPresent()) {
-            Event event = eventOptional.get();
-            if (!StringUtils.isEmpty(status) && !event.getStatus().name().equalsIgnoreCase(status)) {
-                event.setStatus(EventStatus.valueOf(status.toUpperCase()));
-                event.setStartDate(startDate);
-                eventRepository.save(event);
-            }
         }
     }
 }
