@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,9 +51,11 @@ public class Trade360DataService {
             if(eventList != null && !eventList.isEmpty()){
                 processFixtureEventsWithNullLsId(eventList, prefetchDate.atStartOfDay(), toDate.atStartOfDay());
                 eventList.forEach(event -> {
-                    Map<Integer, List<Trade360BetDTO>> marketBetsMap = event.getMarkets().stream()
-                                    .collect(Collectors.toMap(Trade360MarketDTO::getId, Trade360MarketDTO::getBets));
-                    betService.updateBetsInfoFromTrade360(event.getFixtureId(), marketBetsMap);
+                    if(!CollectionUtils.isEmpty(event.getMarkets())) {
+                        Map<Integer, List<Trade360BetDTO>> marketBetsMap = event.getMarkets().stream()
+                                .collect(Collectors.toMap(Trade360MarketDTO::getId, Trade360MarketDTO::getBets));
+                        betService.updateBetsInfoFromTrade360(event.getFixtureId(), marketBetsMap);
+                    }
                 });
             }
         }
