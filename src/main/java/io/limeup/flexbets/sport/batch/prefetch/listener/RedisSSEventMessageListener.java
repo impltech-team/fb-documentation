@@ -42,7 +42,7 @@ public class RedisSSEventMessageListener implements MessageListener {
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
-            String lsIdString = ev.get("lsId").asText();
+            String lsIdString = ev.path("lsId").asText();
             Long lsId = lsIdString != null ? Long.parseLong(lsIdString) : null;
             LocalDateTime startDate = LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             String statusType = ev.path("status_type").asText();
