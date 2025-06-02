@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 @Component
 public class EventMapper {
 
+    private static final String HOME_TEAM_MARKET_NAME = "home team";
+    private static final String AWAY_TEAM_MARKET_NAME = "away team";
+
     public Event toEntity(StatScoreEventDTO dto, Competition competition, Venue venue, StatScoreSeasonDTO season) {
         if (dto == null) {
             return null;
@@ -210,9 +213,23 @@ public class EventMapper {
                 market.setId(marketInfo.get().getMarketExternalId());
                 market.setName(marketInfo.get().getMarketName());
                 market.setType(marketInfo.get().getMarketType());
-                fillWithBets(market, bets, subParticipantNameIdMap);
 
-                if(!CollectionUtils.isEmpty(market.getBets())) {
+                FullEventDTO.Participant homeTeam = null;
+                FullEventDTO.Participant awayTeam = null;
+
+                if (MarketType.PARTICIPANT.name().equalsIgnoreCase(market.getType())
+                        && fullEvent.getParticipants().size() == 2) {
+                    homeTeam = fullEvent.getParticipants().stream()
+                            .filter(FullEventDTO.Participant::isHome)
+                            .findFirst().orElse(null);
+                    awayTeam = fullEvent.getParticipants().stream()
+                            .filter(participant -> !participant.isHome())
+                            .findFirst().orElse(null);
+                }
+
+                fillWithBets(market, bets, subParticipantNameIdMap, getParticipantInfoByMarketName(market.getName(), homeTeam, awayTeam));
+
+                if (!CollectionUtils.isEmpty(market.getBets())) {
                     marketList.add(market);
                 }
             }
@@ -221,7 +238,8 @@ public class EventMapper {
         }
     }
 
-    private static void fillWithBets(FullEventDTO.Market market, List<BetRow> bets, Map<String, Integer> subParticipants) {
+    private static void fillWithBets(FullEventDTO.Market market, List<BetRow> bets, Map<String, Integer> subParticipants,
+                                     FullEventDTO.Participant participant) {
         List<FullEventDTO.Bet> result = new ArrayList<>();
         bets.forEach(bet -> {
             FullEventDTO.Bet betToSave = new FullEventDTO.Bet();
@@ -237,11 +255,29 @@ public class EventMapper {
                     betToSave.setParticipantName(participantName);
                     result.add(betToSave);
                 }
+            } else if (MarketType.PARTICIPANT.name().equals(market.getType())) {
+                if(participant != null) {
+                    betToSave.setParticipantId(participant.getParticipantId());
+                    betToSave.setParticipantName(participant.getParticipantName());
+                }
+                result.add(betToSave);
             } else {
                 result.add(betToSave);
             }
 
             market.setBets(result);
         });
+    }
+
+    private static FullEventDTO.Participant getParticipantInfoByMarketName(String marketName,
+                                                                           FullEventDTO.Participant homeTeam,
+                                                                           FullEventDTO.Participant awayTeam) {
+        if (marketName.toLowerCase().contains(HOME_TEAM_MARKET_NAME)) {
+            return homeTeam;
+        } else if (marketName.toLowerCase().contains(AWAY_TEAM_MARKET_NAME)) {
+            return awayTeam;
+        } else {
+            return null;
+        }
     }
 }
