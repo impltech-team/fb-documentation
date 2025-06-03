@@ -43,7 +43,12 @@ public class RedisSSEventMessageListener implements MessageListener {
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
             String lsIdString = ev.path("lsId").asText();
-            Long lsId = lsIdString != null ? Long.parseLong(lsIdString) : null;
+            if(lsIdString ==null || lsIdString.isEmpty())
+            {
+                log.info("ℹ️ Event {} is damaged ,dont have lsId. Skipping.", id);
+                return;
+            }
+            Long lsId = Long.parseLong(lsIdString) ;
             LocalDateTime startDate = LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             String statusType = ev.path("status_type").asText();
             String name = ev.path("name").asText();
