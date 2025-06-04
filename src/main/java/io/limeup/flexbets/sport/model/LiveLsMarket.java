@@ -21,4 +21,7 @@ public class LiveLsMarket {
     private Long marketId;
     private String marketName;
     private String marketMainLine;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private LiveLsEvent event;
 }

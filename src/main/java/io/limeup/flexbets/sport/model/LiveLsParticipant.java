@@ -18,5 +18,8 @@ public class LiveLsParticipant {
 
     private String lsParticipantName;
     private Integer lsParticipantPosition;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private LiveLsEvent event;
 }
 
