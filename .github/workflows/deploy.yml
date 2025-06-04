@@ -133,10 +133,14 @@ jobs:
               .registeredAt,
               .registeredBy)' \
               task-raw.json > task-clear.json
-            jq '
-            .containerDefinitions[0].image =
-            "${{ needs.build-app.outputs.image_tag_result }}"
-            ' task-clear.json > task-definition.json
+            jq --arg image "${{ needs.build-app.outputs.image_tag_result }}" --arg name "${{ needs.build-app.outputs.app_name }}" '
+              .containerDefinitions |= map(
+              if .name == $name then
+                .image = $image
+              else
+                .
+              end
+              )' task-clear.json > task-definition.json
 
         - name: Deploy to ECS
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
