@@ -42,12 +42,9 @@ public class RedisSSEventMessageListener implements MessageListener {
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
-            String lsIdString = ev.path("lsId").asText();
-            if(lsIdString ==null || lsIdString.isEmpty())
-            {
-                log.info("ℹ️ Event {} is damaged ,dont have lsId. Skipping.", id);
-                return;
-            }
+            String lsIdString = ev.path("ls_id").asText();
+
+
             Long lsId = Long.parseLong(lsIdString) ;
             LocalDateTime startDate = LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             String statusType = ev.path("status_type").asText();
@@ -55,10 +52,6 @@ public class RedisSSEventMessageListener implements MessageListener {
 
             eventService.updateEventByIdOrByName(eventDataId, name, lsId, statusType, startDate);
 
-            if (liveEventRepository.existsById(id)) {
-                log.info("ℹ️ Event {} already exists. Skipping.", id);
-                return;
-            }
             log.info("ℹ️ Event {} will bew written.", id);
             LiveEvent liveEvent = LiveEvent.builder()
                     .id(id)
