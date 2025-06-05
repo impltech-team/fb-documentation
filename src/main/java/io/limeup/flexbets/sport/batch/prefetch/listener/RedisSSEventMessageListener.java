@@ -3,16 +3,19 @@ package io.limeup.flexbets.sport.batch.prefetch.listener;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.model.*;
+import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.repository.*;
-import io.limeup.flexbets.sport.service.live.WebSocketController;
+import io.limeup.flexbets.sport.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -21,12 +24,12 @@ import java.util.UUID;
 public class RedisSSEventMessageListener implements MessageListener {
 
     private final ObjectMapper objectMapper;
-    private final LiveEventRepository eventRepository;
+    private final LiveEventRepository liveEventRepository;
     private final LiveEventDetailRepository detailRepository;
     private final LiveEventBetStatusRepository betStatusRepository;
     private final LiveParticipantRepository participantRepository;
     private final LiveParticipantResultRepository resultRepository;
-    private final WebSocketController webSocketController;
+    private final EventService eventService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -38,12 +41,17 @@ public class RedisSSEventMessageListener implements MessageListener {
 
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
-            long eventDataId = ev.get("id").asLong();
+            int eventDataId = ev.get("id").asInt();
+            String lsIdString = ev.path("ls_id").asText();
 
-            if (eventRepository.existsById(id)) {
-                log.info("ℹ️ Event {} already exists. Skipping.", id);
-                return;
-            }
+
+            Long lsId = Long.parseLong(lsIdString) ;
+            LocalDateTime startDate = LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            String statusType = ev.path("status_type").asText();
+            String name = ev.path("name").asText();
+
+            eventService.updateEventByIdOrByName(eventDataId, name, lsId, statusType, startDate);
+
             log.info("ℹ️ Event {} will bew written.", id);
             LiveEvent liveEvent = LiveEvent.builder()
                     .id(id)
@@ -51,10 +59,10 @@ public class RedisSSEventMessageListener implements MessageListener {
                     .type(root.path("type").asText(null))
                     .source(root.path("source").asInt())
                     .ut(root.path("ut").asLong())
-                    .eventDataId(eventDataId)
-                    .lsId(ev.path("ls_id").asLong())
+                    .eventDataId((long) eventDataId)
+                    .lsId(lsId)
                     .action(ev.path("action").asText())
-                    .startDate(LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                    .startDate(startDate)
                     .ftOnly("yes".equalsIgnoreCase(ev.path("ft_only").asText()))
                     .coverageType(ev.path("coverage_type").asText(null))
                     .statusId(ev.path("status_id").asInt())
@@ -81,8 +89,8 @@ public class RedisSSEventMessageListener implements MessageListener {
                     .betCards(ev.path("bet_cards").asText(null))
                     .betCorners(ev.path("bet_corners").asText(null))
                     .relationStatus(ev.path("relation_status").asText())
-                    .statusType(ev.path("status_type").asText())
-                    .name(ev.path("name").asText())
+                    .statusType(statusType)
+                    .name(name)
                     .roundId(ev.path("round_id").isNull() ? null : ev.path("round_id").asInt())
                     .roundName(ev.path("round_name").asText(null))
                     .scoutsfeed("yes".equalsIgnoreCase(ev.path("scoutsfeed").asText()))
@@ -97,9 +105,7 @@ public class RedisSSEventMessageListener implements MessageListener {
                     .participantsIdStatsModified(ev.path("participants_id_stats_modified").toString())
                     .build();
 
-
-
-            eventRepository.save(liveEvent);
+            liveEventRepository.save(liveEvent);
             log.info("✅ Saved live_event {}", id);
 
             JsonNode details = ev.path("details");
@@ -123,16 +129,15 @@ public class RedisSSEventMessageListener implements MessageListener {
             }
 
 
-
             JsonNode betting = ev.path("betting").path("bet_statuses");
             if (betting.hasNonNull("name") && betting.hasNonNull("value")) {
-                String name = betting.get("name").asText();
+                String betName = betting.get("name").asText();
                 String value = betting.get("value").asText();
 
-                if (!betStatusRepository.existsByEventAndName(liveEvent, name)) {
+                if (!betStatusRepository.existsByEventAndName(liveEvent, betName)) {
                     betStatusRepository.save(LiveEventBetStatus.builder()
                             .event(liveEvent)
-                            .name(name)
+                            .name(betName)
                             .value(value)
                             .build());
                 }

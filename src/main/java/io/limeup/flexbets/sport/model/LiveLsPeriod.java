@@ -27,4 +27,7 @@ public class LiveLsPeriod {
 
     @Column(name = "ls_period_result_position_2")
     private Integer lsPeriodResultPosition2;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private LiveLsEvent event;
 }

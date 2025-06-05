@@ -3,23 +3,25 @@ package io.limeup.flexbets.sport.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "live_ls_fixture_extra_data")
+@Table(name = "live_ls_event")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class LiveLsFixtureExtraData {
+public class LiveLsEvent {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "fixture_id", nullable = false)
     private Long fixtureId;
 
-    private String name;
-    private String value;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private LiveLsEvent event;
+    @Column(name = "received_at")
+    private LocalDateTime receivedAt;
+
 }

@@ -15,11 +15,8 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.time.OffsetDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +24,7 @@ import java.util.Map;
 public class RedisPreMatchEventMessageListener implements MessageListener {
 
     private final ObjectMapper objectMapper;
-
+    private final LiveLsEventRepository eventRepo;
     private final LiveLsScoreboardRepository scoreboardRepo;
     private final LiveLsPeriodRepository periodRepo;
     private final LiveLsPeriodIncidentRepository incidentRepo;
@@ -45,12 +42,20 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
             JsonNode root = objectMapper.readTree(json);
             JsonNode events = root.path("Body").path("Events");
 
+            if (!events.isArray() || events.isEmpty()) return;
+
+
 
             for (JsonNode eventNode : events) {
                 Long fixtureId = eventNode.path("FixtureId").asLong();
+                LiveLsEvent event = eventRepo.save(
+                        LiveLsEvent.builder()
+                                .fixtureId(fixtureId)
+                                .receivedAt(LocalDateTime.now())
+                                .build()
+                );
                 Map<Integer, List<Trade360BetDTO>> marketBetsMap = new HashMap<>();
 
-                // ⏱ Scoreboard
                 JsonNode scoreboard = eventNode.path("Livescore").path("Scoreboard");
                 if (!scoreboard.isMissingNode()) {
                     scoreboardRepo.save(LiveLsScoreboard.builder()
@@ -60,10 +65,10 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                             .lsScoreboardTime(scoreboard.path("Time").asText())
                             .lsScoreboardResultPosition1(getResultValue(scoreboard, 1))
                             .lsScoreboardResultPosition2(getResultValue(scoreboard, 2))
+                            .event(event)
                             .build());
                 }
 
-                // 📊 Statistics
                 JsonNode stats = eventNode.path("Livescore").path("Statistics");
                 if (stats.isArray()) {
                     for (JsonNode s : stats) {
@@ -72,11 +77,11 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 .lsStatType(s.path("Type").asInt())
                                 .lsStatResultPosition1(getResultValue(s, 1))
                                 .lsStatResultPosition2(getResultValue(s, 2))
+                                .event(event)
                                 .build());
                     }
                 }
 
-                // ⏲ Periods + Incidents
                 JsonNode periods = eventNode.path("Livescore").path("Periods");
                 if (periods.isArray()) {
                     for (JsonNode p : periods) {
@@ -88,6 +93,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 .lsPeriodSequenceNumber(p.path("SequenceNumber").asInt())
                                 .lsPeriodResultPosition1(getResultValue(p, 1))
                                 .lsPeriodResultPosition2(getResultValue(p, 2))
+                                .event(event)
                                 .build());
 
                         JsonNode incidents = p.path("Incidents");
@@ -107,7 +113,6 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                     }
                 }
 
-                // 👥 Participants
                 JsonNode participants = eventNode.path("Fixture").path("Participants");
                 if (participants.isArray()) {
                     for (JsonNode p : participants) {
@@ -116,11 +121,11 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 .fixtureId(fixtureId)
                                 .lsParticipantName(p.path("Name").asText())
                                 .lsParticipantPosition(p.path("Position").asInt())
+                                .event(event)
                                 .build());
                     }
                 }
 
-                // 📦 FixtureExtraData
                 JsonNode extras = eventNode.path("Fixture").path("FixtureExtraData");
                 if (extras.isArray()) {
                     for (JsonNode extra : extras) {
@@ -128,11 +133,11 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 .fixtureId(fixtureId)
                                 .name(extra.path("Name").asText())
                                 .value(extra.path("Value").asText())
+                                .event(event)
                                 .build());
                     }
                 }
 
-                // 📈 Markets and Bets
                 JsonNode markets = eventNode.path("Markets");
                 if (markets.isArray()) {
                     for (JsonNode m : markets) {
@@ -142,6 +147,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 .marketId(marketId)
                                 .marketName(m.path("Name").asText())
                                 .marketMainLine(m.path("MainLine").asText(null))
+                                .event(event)
                                 .build());
 
                         List<Trade360BetDTO> trade360Bets = new ArrayList<>();
@@ -185,7 +191,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                         .price(price)
                                         .settlement(b.path("Settlement").asInt(0))
                                         .suspensionReason(b.path("SuspensionReason").asInt(0))
-                                        .lastUpdated(LocalDateTime.parse(b.path("LastUpdate").asText(null)))
+                                        .lastUpdated(parseToLocalDateTime(b.path("LastUpdate").asText(null)))
                                         .build();
 
                                 trade360Bets.add(betDTO);
@@ -194,13 +200,13 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                     }
                 }
 
-                if(!marketBetsMap.isEmpty()){
+                if (!marketBetsMap.isEmpty()) {
                     betService.updateBetsInfoFromTrade360(fixtureId, marketBetsMap);
                 }
             }
 
         } catch (Exception e) {
-            log.error("❌ Error parsing PreMatch event", e);
+            log.error("\u274C Error parsing PreMatch event", e);
         }
     }
 
@@ -222,5 +228,12 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private LocalDateTime parseToLocalDateTime(String isoString) {
+        if (isoString == null || isoString.isBlank()) {
+            return null;
+        }
+        return OffsetDateTime.parse(isoString).toLocalDateTime();
     }
 }

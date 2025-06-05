@@ -14,4 +14,6 @@ public interface EventService extends ExternalIdReadService<Event, EventDTO, Lon
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery);
 
     FullEventDTO getEventById(Integer eventId);
+
+    void updateEventByIdOrByName(Integer eventId, String name, Long lsId, String status, LocalDateTime startDate);
 }

@@ -7,6 +7,7 @@ public interface BetRow {
     Integer getEventExternalId();
     Integer getMarketExternalId();
     String getMarketName();
+    String getMarketType();
     String getStatus();
     String getName();
     String getLine();

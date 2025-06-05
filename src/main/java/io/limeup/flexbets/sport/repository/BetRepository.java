@@ -14,6 +14,7 @@ public interface BetRepository extends ExternalIdRepository<Bet, Long> {
                e.external_id AS eventExternalId,
                m.external_id AS marketExternalId,
                m.market_name AS marketName,
+               m.market_type AS marketType,
                b.status AS status,
                b.name AS name,
                b.line AS line,
@@ -26,6 +27,25 @@ public interface BetRepository extends ExternalIdRepository<Bet, Long> {
         WHERE e.external_id IN (:eventExternalIds) AND m.market_type = :marketType AND b.status = :betStatus
     """, nativeQuery = true)
     List<BetRow> findAllByEventExternalIdInAndMarketTypeAndBetStatus(Collection<Integer> eventExternalIds, String marketType, String betStatus);
+
+    @Query(value = """ 
+        SELECT b.external_id AS id,
+               e.external_id AS eventExternalId,
+               m.external_id AS marketExternalId,
+               m.market_name AS marketName,
+               m.market_type AS marketType,
+               b.status AS status,
+               b.name AS name,
+               b.line AS line,
+               b.price AS price,
+               b.participant_name AS participantName,
+               b.last_updated AS lastUpdated
+        FROM sport.bet b
+            JOIN sport.event e ON b.event_id = e.id
+            JOIN sport.market m ON b.market_id = m.id
+        WHERE e.external_id IN (:eventExternalIds) AND b.status = :betStatus
+    """, nativeQuery = true)
+    List<BetRow> findAllByEventExternalIdInAndBetStatus(Collection<Integer> eventExternalIds, String betStatus);
 
     @Query(value = """ 
             SELECT b FROM Bet b

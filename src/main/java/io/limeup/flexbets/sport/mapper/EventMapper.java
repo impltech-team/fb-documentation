@@ -4,15 +4,13 @@ import io.limeup.flexbets.sport.dto.EventDTO;
 import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.ParticipantSummaryDTO;
 import io.limeup.flexbets.sport.dto.VenueDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreEventParticipantDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreResultDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
+import io.limeup.flexbets.sport.dto.statscore.*;
 import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
-import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.model.Venue;
+import io.limeup.flexbets.sport.model.enums.EventStatus;
+import io.limeup.flexbets.sport.model.enums.MarketType;
+import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -20,13 +18,14 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class EventMapper {
+
+    private static final String HOME_TEAM_MARKET_NAME = "home team";
+    private static final String AWAY_TEAM_MARKET_NAME = "away team";
 
     public Event toEntity(StatScoreEventDTO dto, Competition competition, Venue venue, StatScoreSeasonDTO season) {
         if (dto == null) {
@@ -79,7 +78,7 @@ public class EventMapper {
                 .id(first.getExternalId())
                 .eventName(first.getEventName())
                 .eventDate(first.getStartDate())
-                .status(first.getStatus())
+                .status(first.getStatus().toUpperCase())
                 .competition(first.getCompetitionName())
                 .competitionId(first.getCompetitionId())
                 .venue(VenueDTO.builder()
@@ -97,7 +96,8 @@ public class EventMapper {
                 .build();
     }
 
-    public static FullEventDTO mapToFullEventDTO(StatScoreCompetitionDTO eventCompetitionDTO, Venue venue) {
+    public static FullEventDTO mapToFullEventDTO(StatScoreCompetitionDTO eventCompetitionDTO, Venue venue, Map<Integer, List<BetRow>> markets,
+                                                 Map<String, Integer> subParticipantNameIdMap) {
         FullEventDTO fullEvent = new FullEventDTO();
         StatScoreEventDTO dto = eventCompetitionDTO.getSeason().getStage().getGroup().getEvent();
         fullEvent.setId(dto.getId());
@@ -110,7 +110,7 @@ public class EventMapper {
         fillWithVenue(venue, fullEvent, dto);
         fillWithParticipants(fullEvent, dto);
         fillWithIncidents(fullEvent, dto);
-        // markets gonna be added after trade360 integration
+        fillWithMarkets(fullEvent, markets, subParticipantNameIdMap);
 
         return fullEvent;
     }
@@ -199,6 +199,85 @@ public class EventMapper {
                     break;
                 }
             }
+        }
+    }
+
+    private static void fillWithMarkets(FullEventDTO fullEvent, Map<Integer, List<BetRow>> markets, Map<String, Integer> subParticipantNameIdMap) {
+        List<FullEventDTO.Market> marketList = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<BetRow>> entry : markets.entrySet()) {
+            List<BetRow> bets = entry.getValue();
+            Optional<BetRow> marketInfo = bets.stream().findFirst();
+            if (marketInfo.isPresent()) {
+                FullEventDTO.Market market = new FullEventDTO.Market();
+                market.setId(marketInfo.get().getMarketExternalId());
+                market.setName(marketInfo.get().getMarketName());
+                market.setType(marketInfo.get().getMarketType());
+
+                FullEventDTO.Participant homeTeam = null;
+                FullEventDTO.Participant awayTeam = null;
+
+                if (MarketType.PARTICIPANT.name().equalsIgnoreCase(market.getType())
+                        && fullEvent.getParticipants().size() == 2) {
+                    homeTeam = fullEvent.getParticipants().stream()
+                            .filter(FullEventDTO.Participant::isHome)
+                            .findFirst().orElse(null);
+                    awayTeam = fullEvent.getParticipants().stream()
+                            .filter(participant -> !participant.isHome())
+                            .findFirst().orElse(null);
+                }
+
+                fillWithBets(market, bets, subParticipantNameIdMap, getParticipantInfoByMarketName(market.getName(), homeTeam, awayTeam));
+
+                if (!CollectionUtils.isEmpty(market.getBets())) {
+                    marketList.add(market);
+                }
+            }
+
+            fullEvent.setMarkets(marketList);
+        }
+    }
+
+    private static void fillWithBets(FullEventDTO.Market market, List<BetRow> bets, Map<String, Integer> subParticipants,
+                                     FullEventDTO.Participant participant) {
+        List<FullEventDTO.Bet> result = new ArrayList<>();
+        bets.forEach(bet -> {
+            FullEventDTO.Bet betToSave = new FullEventDTO.Bet();
+            betToSave.setId(bet.getId());
+            betToSave.setType(bet.getName() + " " + bet.getLine());
+            betToSave.setPrice(bet.getPrice());
+
+            if (MarketType.SUB_PARTICIPANT.name().equals(market.getType())) {
+                String participantName = bet.getParticipantName();
+                Integer participantId = subParticipants.get(participantName);
+                if (participantId != null) {
+                    betToSave.setParticipantId(participantId);
+                    betToSave.setParticipantName(participantName);
+                    result.add(betToSave);
+                }
+            } else if (MarketType.PARTICIPANT.name().equals(market.getType())) {
+                if(participant != null) {
+                    betToSave.setParticipantId(participant.getParticipantId());
+                    betToSave.setParticipantName(participant.getParticipantName());
+                }
+                result.add(betToSave);
+            } else {
+                result.add(betToSave);
+            }
+
+            market.setBets(result);
+        });
+    }
+
+    private static FullEventDTO.Participant getParticipantInfoByMarketName(String marketName,
+                                                                           FullEventDTO.Participant homeTeam,
+                                                                           FullEventDTO.Participant awayTeam) {
+        if (marketName.toLowerCase().contains(HOME_TEAM_MARKET_NAME)) {
+            return homeTeam;
+        } else if (marketName.toLowerCase().contains(AWAY_TEAM_MARKET_NAME)) {
+            return awayTeam;
+        } else {
+            return null;
         }
     }
 }

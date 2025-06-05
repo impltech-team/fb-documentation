@@ -37,6 +37,10 @@ public class BetService {
                 .collect(Collectors.groupingBy(BetRow::getEventExternalId));
     }
 
+    public List<BetRow> getBetsByExternalIdInAndBetStatus(Collection<Integer> externalIds, BetStatus betStatus) {
+        return betRepository.findAllByEventExternalIdInAndBetStatus(externalIds, betStatus.name());
+    }
+
     public void updateBetsInfoFromTrade360(Long eventLsId, Map<Integer, List<Trade360BetDTO>> marketBetsMap) {
         Optional<Event> eventOptional = eventRepository.findByLsId(eventLsId);
         if(eventOptional.isPresent()) {

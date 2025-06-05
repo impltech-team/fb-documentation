@@ -22,4 +22,7 @@ public class LiveLsStatistic {
     private Integer lsStatResultPosition1;
     @Column(name = "ls_stat_result_position_2")
     private Integer lsStatResultPosition2;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private LiveLsEvent event;
 }
