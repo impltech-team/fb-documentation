@@ -35,40 +35,11 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
-      - name: Cache Dependency-Check NVD database
-        uses: actions/cache@v4
-        with:
-          path: dependency-check/data
-          key: dependency-check-nvd-${{ runner.os }}-${{ github.run_number }}
-          restore-keys: |
-            dependency-check-nvd-${{ runner.os }}-
-
       - name: Build .jar
         run: |
           chmod +x gradlew
           ./gradlew dependencies --no-daemon
           ./gradlew build -x test --no-daemon
-
-      - name: Dependency check
-        id: dependency-check
-        timeout-minutes: 3
-        continue-on-error: true
-        run: |
-          VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt) && \
-          curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip && \
-          unzip dependency-check.zip && \
-          dependency-check/bin/dependency-check.sh \
-            --out . \
-            --scan ~/.gradle/caches \
-            --format JSON \
-            --prettyPrint
-
-      - name: Upload dependency check report
-        if: ${{ steps.dependency-check.outcome != 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: ./*.json
 
       - name: Set short git commit SHA
         id: vars
