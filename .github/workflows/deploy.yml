@@ -15,10 +15,10 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    outputs:
-      image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
     env:
       ecr_repository: flexbets
+    outputs:
+      image_tag_result: ${{ steps.build-and-push.outputs.image_tag_result }}
     steps:
       - uses: actions/checkout@v4
 
