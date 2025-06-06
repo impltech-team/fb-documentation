@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -81,6 +82,7 @@ public class FullEventDTO {
         private List<Bet> bets;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

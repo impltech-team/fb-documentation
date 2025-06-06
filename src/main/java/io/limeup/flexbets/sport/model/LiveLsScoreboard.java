@@ -25,4 +25,7 @@ public class LiveLsScoreboard {
     private Integer lsScoreboardResultPosition1;
     @Column(name = "ls_scoreboard_result_position_2")
     private Integer lsScoreboardResultPosition2;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private LiveLsEvent event;
 }
