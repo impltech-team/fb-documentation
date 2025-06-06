@@ -107,8 +107,7 @@ jobs:
           env: [dev,stage,prd]
       env:
         ecs_cluster: ${{ matrix.env }}
-        ecs_service: ${{ matrix.env }}
-        ecs_task: ${{ matrix.env }}-api
+        ecs_service: sports
       steps:
         - run: echo ${{ matrix.env }}
         - uses: actions/checkout@v4
@@ -124,7 +123,7 @@ jobs:
           id: task-def-update
           timeout-minutes: 3
           run: |
-            aws ecs describe-task-definition --task-definition ${{ env.ecs_task }} \
+            aws ecs describe-task-definition --task-definition ${{ matrix.env }}-${{ env.ecs_service }} \
               --query taskDefinition --output json > task-raw.json
             jq 'del(.compatibilities,
               .taskDefinitionArn,
@@ -133,10 +132,14 @@ jobs:
               .registeredAt,
               .registeredBy)' \
               task-raw.json > task-clear.json
-            jq '
-            .containerDefinitions[0].image =
-            "${{ needs.build-app.outputs.image_tag_result }}"
-            ' task-clear.json > task-definition.json
+            jq --arg image "${{ needs.build-app.outputs.image_tag_result }}" --arg name "flexbets-sports" '
+              .containerDefinitions |= map(
+              if .name == $name then
+                .image = $image
+              else
+                .
+              end
+              )' task-clear.json > task-definition.json
 
         - name: Deploy to ECS
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
