@@ -94,7 +94,7 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
                     .collect(Collectors.toSet());
 
             if (statNames.isEmpty()) {
-                throw new FlexBetsSportNotFoundException("No stats found for sub-participant markets in competition " + competitionId);
+//                throw new FlexBetsSportNotFoundException("No stats found for sub-participant markets in competition " + competitionId);
             }
             return statNames;
         } else {
