@@ -44,10 +44,11 @@ public class BetService {
     public void updateBetsInfoFromTrade360(Long eventLsId, Map<Integer, List<Trade360BetDTO>> marketBetsMap) {
         Optional<Event> eventOptional = eventRepository.findByLsId(eventLsId);
         if(eventOptional.isPresent()) {
-            System.out.println("Updating bets info process has started.");
             Event event = eventOptional.get();
             Long competitionId = event.getCompetition().getId();
 
+            System.out.println("Updating bets info process has started for event with id " + eventLsId +
+                    " and competition with id - " + competitionId);
             List<Bet> betsToSave = new ArrayList<>();
 
             for(Integer marketId : marketBetsMap.keySet()) {
@@ -73,6 +74,8 @@ public class BetService {
             }
 
             betRepository.saveAll(betsToSave);
+            System.out.println("Updating bets info process has finished for event with id " + eventLsId +
+                    " and competition with id - " + competitionId);
         }
     }
 }

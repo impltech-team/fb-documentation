@@ -37,6 +37,7 @@ public class Trade360DataService {
     BetService betService;
 
     public void fetchDataFromTrade360ApiForCompetitionAndDate(Integer competitionId, LocalDate prefetchDate){
+        System.out.printf("Fetch data from Trade360 service has started for competition id - %s and date - %s%n", competitionId, prefetchDate);
         Optional<Competition> competitionOptional = competitionService.readByExternalId(competitionId);
         if(competitionOptional.isPresent()){
             Competition competition = competitionOptional.get();
@@ -59,6 +60,8 @@ public class Trade360DataService {
                 });
             }
         }
+
+        System.out.printf("Fetch data from Trade360 service has finished for competition id - %s and date - %s%n", competitionId, prefetchDate);
     }
 
     //Works only for 2-participant events for now

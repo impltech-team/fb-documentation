@@ -61,6 +61,7 @@ public class PreFetchStatScoreDataStep {
     @Bean
     public ItemProcessor<PrefetchLog, PrefetchLog> prefetchProcessor() {
         return log -> {
+            System.out.printf("prefetchProcessor has started for competition id - %s and date - %s%n", log.getCompetitionId(), log.getPrefetchDate());
             statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             dataService.fetchDataFromTrade360ApiForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             log.setStatus(PrefetchLog.Status.SUCCESS);
