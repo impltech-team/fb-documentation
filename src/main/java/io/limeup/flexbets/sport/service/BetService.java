@@ -56,7 +56,7 @@ public class BetService {
             List<Bet> betsToSave = new ArrayList<>();
 
             marketBetsList.forEach(marketBetDTO -> {
-                Optional<Market> marketOptional = marketRepository.findByExternalIdAndExternalCompetitionId(marketBetDTO.getId(), competitionId);
+                Optional<Market> marketOptional = marketRepository.findByExternalIdAndCompetitionId(marketBetDTO.getId(), competitionId);
                 Market market;
                 if (marketOptional.isEmpty()) {
                     String playerName = marketBetDTO.getBets().stream()
