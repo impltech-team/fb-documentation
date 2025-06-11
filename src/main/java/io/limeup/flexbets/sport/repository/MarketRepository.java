@@ -20,5 +20,11 @@ public interface MarketRepository extends ExternalIdRepository<Market, Long> {
             @Param("marketType") MarketType marketType
     );
 
-    Optional<Market> findByExternalIdAndCompetitionId(Integer externalId, Long competitionId);
+    @Query("""
+                SELECT m FROM Market m
+                WHERE m.externalId = :externalId
+                  AND m.competition.externalId = :externalCompetitionId
+            """)
+    Optional<Market> findByExternalIdAndExternalCompetitionId(@Param("externalId") Integer externalId,
+                                                              @Param("externalCompetitionId") Long externalCompetitionId);
 }
