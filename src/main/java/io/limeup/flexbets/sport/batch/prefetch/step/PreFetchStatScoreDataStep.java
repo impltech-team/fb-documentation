@@ -53,7 +53,7 @@ public class PreFetchStatScoreDataStep {
         return new JpaPagingItemReaderBuilder<PrefetchLog>()
                 .name("prefetchLogReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT p FROM PrefetchLog p WHERE p.status = 'PENDING' OR p.status = 'FAILED'")
+                .queryString(String.format("SELECT p FROM PrefetchLog p WHERE p.status <> '%s'", PrefetchLog.Status.SUCCESS.name()))
                 .pageSize(10)
                 .build();
     }
@@ -61,8 +61,11 @@ public class PreFetchStatScoreDataStep {
     @Bean
     public ItemProcessor<PrefetchLog, PrefetchLog> prefetchProcessor() {
         return log -> {
-            System.out.printf("prefetchProcessor has started for competition id - %s and date - %s%n", log.getCompetitionId(), log.getPrefetchDate());
-            statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
+            System.out.printf("prefetchProcessor has started for prefetch log with status - %s, for competition id - %s and date - %s%n",
+                    log.getCompetitionId(), log.getPrefetchDate(), log.getStatus().name());
+            if (!PrefetchLog.Status.UPDATE.equals(log.getStatus())) {
+                statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
+            }
             dataService.fetchDataFromTrade360ApiForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             log.setStatus(PrefetchLog.Status.SUCCESS);
             log.setErrorMessage(null);

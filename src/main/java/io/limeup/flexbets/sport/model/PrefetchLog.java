@@ -66,6 +66,7 @@ public class PrefetchLog {
 
     public enum Status {
         PENDING,
+        UPDATE,
         SUCCESS,
         FAILED
     }
