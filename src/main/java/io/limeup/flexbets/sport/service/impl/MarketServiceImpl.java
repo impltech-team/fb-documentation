@@ -98,7 +98,7 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
             }
             return statNames;
         } else {
-            Market market = readByExternalId(marketId)
+            Market market = marketRepository.findByExternalIdAndCompetitionId(marketId, Long.valueOf(competitionId))
                     .orElseThrow(() -> new FlexBetsSportNotFoundException("Market " + marketId + " not found"));
 
             Set<String> stats = new HashSet<>(market.getLinkedStats());

@@ -1,8 +1,11 @@
 package io.limeup.flexbets.sport.service;
 
 import io.limeup.flexbets.sport.dto.trade360.Trade360BetDTO;
+import io.limeup.flexbets.sport.dto.trade360.Trade360MarketDTO;
 import io.limeup.flexbets.sport.mapper.BetMapper;
+import io.limeup.flexbets.sport.mapper.MarketMapper;
 import io.limeup.flexbets.sport.model.Bet;
+import io.limeup.flexbets.sport.model.Competition;
 import io.limeup.flexbets.sport.model.Event;
 import io.limeup.flexbets.sport.model.Market;
 import io.limeup.flexbets.sport.model.enums.BetStatus;
@@ -41,38 +44,50 @@ public class BetService {
         return betRepository.findAllByEventExternalIdInAndBetStatus(externalIds, betStatus.name());
     }
 
-    public void updateBetsInfoFromTrade360(Long eventLsId, Map<Integer, List<Trade360BetDTO>> marketBetsMap) {
+    public void updateBetsInfoFromTrade360(Long eventLsId, List<Trade360MarketDTO> marketBetsList) {
         Optional<Event> eventOptional = eventRepository.findByLsId(eventLsId);
-        if(eventOptional.isPresent()) {
-            System.out.println("Updating bets info process has started.");
+        if (eventOptional.isPresent()) {
             Event event = eventOptional.get();
-            Long competitionId = event.getCompetition().getId();
+            Competition competition = event.getCompetition();
+            Long competitionId = competition.getId();
 
+            System.out.println("Updating bets info process has started for event with id " + eventLsId +
+                    " and competition with id - " + competitionId);
             List<Bet> betsToSave = new ArrayList<>();
 
-            for(Integer marketId : marketBetsMap.keySet()) {
-                Market market = marketRepository.findByExternalIdAndCompetitionId(marketId, competitionId).orElse(null);
-                Map<Long, Bet> existingBets = betRepository.findAllByEventLsIdAndMarketExternalId(eventLsId, marketId)
+            marketBetsList.forEach(marketBetDTO -> {
+                Optional<Market> marketOptional = marketRepository.findByExternalIdAndCompetitionId(marketBetDTO.getId(), competitionId);
+                Market market;
+                if (marketOptional.isEmpty()) {
+                    String playerName = marketBetDTO.getBets().stream()
+                            .findFirst().get().getParticipantName();
+                    MarketType marketType = playerName != null ? MarketType.SUB_PARTICIPANT : MarketType.PARTICIPANT;
+                    market = marketRepository.saveAndFlush(MarketMapper.toEntity(marketBetDTO, marketType, competition));
+                } else {
+                    market = marketOptional.get();
+                }
+
+                Map<Long, Bet> existingBets = betRepository.findAllByEventLsIdAndMarketExternalId(eventLsId, market.getExternalId())
                         .stream()
                         .collect(Collectors.toMap(Bet::getExternalId, Function.identity()));
-                if(market != null) {
-                    List<Trade360BetDTO> newBets = marketBetsMap.get(marketId);
+                List<Trade360BetDTO> newBets = marketBetDTO.getBets();
 
-                    for(Trade360BetDTO betDto : newBets) {
-                        Bet bet = existingBets.get(betDto.getId());
+                for (Trade360BetDTO betDto : newBets) {
+                    Bet bet = existingBets.get(betDto.getId());
 
-                        if (bet == null) {
-                            bet = BetMapper.toEntity(betDto, event, market);
-                        } else {
-                            BetMapper.updateEntity(bet, betDto, event, market);
-                        }
-
-                        betsToSave.add(bet);
+                    if (bet == null) {
+                        bet = BetMapper.toEntity(betDto, event, market);
+                    } else {
+                        BetMapper.updateEntity(bet, betDto, event, market);
                     }
+
+                    betsToSave.add(bet);
                 }
-            }
+            });
 
             betRepository.saveAll(betsToSave);
+            System.out.println("Updating bets info process has finished for event with id " + eventLsId +
+                    " and competition with id - " + competitionId);
         }
     }
 }

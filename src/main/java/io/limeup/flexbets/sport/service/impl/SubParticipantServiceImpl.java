@@ -84,8 +84,6 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 statNames
         );
 
-        Map<Integer, Map<String, List<BetRow>>> retrieveEventIdSubParticipantBetMap = retrieveEventIdSubParticipantBetMap(stats);
-
         return PaginationUtils.buildPaginatedResponse(
                 mapper.toDTO(stats, retrieveEventIdSubParticipantBetMap(stats)), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
@@ -121,5 +119,4 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
         });
         return result;
     }
-
 }
