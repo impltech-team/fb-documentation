@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
@@ -36,7 +37,9 @@ public class Trade360DataService {
     ParticipantRepository participantRepository;
     BetService betService;
 
+    @Transactional
     public void fetchDataFromTrade360ApiForCompetitionAndDate(Integer competitionId, LocalDate prefetchDate){
+        System.out.printf("Fetch data from Trade360 service has started for competition id - %s and date - %s%n", competitionId, prefetchDate);
         Optional<Competition> competitionOptional = competitionService.readByExternalId(competitionId);
         if(competitionOptional.isPresent()){
             Competition competition = competitionOptional.get();
@@ -52,13 +55,13 @@ public class Trade360DataService {
                 processFixtureEventsWithNullLsId(eventList, prefetchDate.atStartOfDay(), toDate.atStartOfDay());
                 eventList.forEach(event -> {
                     if(!CollectionUtils.isEmpty(event.getMarkets())) {
-                        Map<Integer, List<Trade360BetDTO>> marketBetsMap = event.getMarkets().stream()
-                                .collect(Collectors.toMap(Trade360MarketDTO::getId, Trade360MarketDTO::getBets));
-                        betService.updateBetsInfoFromTrade360(event.getFixtureId(), marketBetsMap);
+                        betService.updateBetsInfoFromTrade360(event.getFixtureId(), event.getMarkets());
                     }
                 });
             }
         }
+
+        System.out.printf("Fetch data from Trade360 service has finished for competition id - %s and date - %s%n", competitionId, prefetchDate);
     }
 
     //Works only for 2-participant events for now

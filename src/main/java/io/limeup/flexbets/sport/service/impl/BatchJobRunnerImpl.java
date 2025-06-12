@@ -45,7 +45,7 @@ public class BatchJobRunnerImpl implements BatchJobRunner {
                 Optional<PrefetchLog> log = prefetchLogRepository.findPrefetchLogByPrefetchDateAndCompetitionId(targetDate, compId);
                 if (log.isPresent()) {
                     PrefetchLog prefetchLog = log.get();
-                    prefetchLog.setStatus(PrefetchLog.Status.PENDING);
+                    prefetchLog.setStatus(PrefetchLog.Status.UPDATE);
                     prefetchLogRepository.save(prefetchLog);
                 } else {
                     PrefetchLog newLog = PrefetchLog.builder()
