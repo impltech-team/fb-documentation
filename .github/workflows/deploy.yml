@@ -2,10 +2,7 @@ name: Deploy to ECS
 
 on:
   push:
-    branches: [feat/ci-docker]
-  pull_request:
-    branches: [main]
-    types: [opened]
+    branches: [main, feat/ci-docker]
   workflow_dispatch:
 
 jobs:
