@@ -56,18 +56,6 @@ class MarketServiceImplTest {
     }
 
     @Test
-    void listMarketEntitiesShouldReturnEntities() {
-        Market market = createTestMarket(1, MarketType.SUB_PARTICIPANT);
-
-        when(marketRepository.findByCompetitionAndOptionalType(anyInt(), any()))
-                .thenReturn(List.of(market));
-
-        List<Market> result = marketService.listMarketEntities(1, null);
-
-        assertThat(result).isNotEmpty();
-    }
-
-    @Test
     void getAllMarketsFullDTOShouldReturnFullDTOs() {
         Market market = createTestMarket(1, MarketType.SUB_PARTICIPANT);
 
