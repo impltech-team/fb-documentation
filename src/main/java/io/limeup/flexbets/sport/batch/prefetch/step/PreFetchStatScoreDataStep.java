@@ -14,6 +14,8 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaCursorItemReader;
+import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
@@ -50,11 +52,10 @@ public class PreFetchStatScoreDataStep {
 
     @Bean
     public ItemReader<PrefetchLog> prefetchLogReader() {
-        return new JpaPagingItemReaderBuilder<PrefetchLog>()
+        return new JpaCursorItemReaderBuilder<PrefetchLog>()
                 .name("prefetchLogReader")
                 .entityManagerFactory(entityManagerFactory)
-                .queryString(String.format("SELECT p FROM PrefetchLog p WHERE p.status <> '%s'", PrefetchLog.Status.SUCCESS.name()))
-                .pageSize(10)
+                .queryString(String.format("SELECT p FROM PrefetchLog p WHERE p.status <> '%s' ORDER BY p.id", PrefetchLog.Status.SUCCESS.name()))
                 .build();
     }
 
