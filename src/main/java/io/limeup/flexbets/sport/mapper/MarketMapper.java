@@ -9,6 +9,8 @@ import io.limeup.flexbets.sport.model.enums.MarketType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class MarketMapper {
 
@@ -39,14 +41,19 @@ public class MarketMapper {
         return market;
     }
 
+    //TODO delete this method if create market api will be used
     public static MarketDTO toDTO(Market entity) {
+        return MarketMapper.toDTO(entity, new ArrayList<>());
+    }
+
+    public static MarketDTO toDTO(Market entity, List<String> marketLinkedStats) {
         return MarketDTO.builder()
                 .competitionId(entity.getCompetition() != null ? entity.getCompetition().getExternalId() : null)
                 .id(entity.getExternalId())
                 .marketName(entity.getMarketName())
                 .marketType(entity.getMarketType())
                 .enabled(entity.isEnabled())
-                .linkedStats(entity.getLinkedStats())
+                .linkedStats(marketLinkedStats)
                 .build();
     }
 
@@ -54,7 +61,6 @@ public class MarketMapper {
         entity.setExternalId(dto.getId());
         entity.setMarketType(dto.getMarketType());
         entity.setMarketName(dto.getMarketName());
-        entity.setLinkedStats(dto.getLinkedStats());
         entity.setEnabled(dto.isEnabled());
         entity.setCompetition(competition);
         return entity;

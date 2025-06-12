@@ -46,11 +46,6 @@ public class Market {
     @Column(name = "market_name")
     private String marketName;
 
-    @ElementCollection
-    @CollectionTable(name = "market_linked_stats", joinColumns = @JoinColumn(name = "market_id"))
-    @Column(name = "stat_name")
-    private List<String> linkedStats = new ArrayList<>();
-
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 }

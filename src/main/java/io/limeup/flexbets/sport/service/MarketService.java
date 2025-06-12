@@ -12,8 +12,6 @@ public interface MarketService extends ExternalIdReadService<Market, MarketLiteD
 
     List<MarketLiteDTO> listMarkets(Integer competitionId, MarketType marketType);
 
-    List<Market> listMarketEntities(Integer competitionId, MarketType marketType);
-
     Set<String> getStatsByMarket(Integer competitionId, Integer marketId, MarketType marketType);
 
     List<MarketDTO> getAllMarketsFullDTO();
