@@ -108,7 +108,7 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
                 .filter(subParticipant -> subParticipant.getPlayerShortName() != null)
                 .collect(Collectors.toMap(SubParticipant::getPlayerShortName, SubParticipant::getExternalId));
 
-        Map<Integer, List<BetRow>> marketBetRowMap = betService.getBetsByExternalIdInAndBetStatus(List.of(eventId), BetStatus.OPEN)
+        Map<Integer, List<BetRow>> marketBetRowMap = betService.getBetsByExternalIdInAndBetStatus(List.of(eventId), BetStatus.SUSPENDED)
                 .stream()
                 .collect(Collectors.groupingBy(BetRow::getMarketExternalId));
 

@@ -90,7 +90,7 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
                 mapper.toDTO(stats, retrieveEventIdSubParticipantBetMap(stats)), count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-    @EventBasedCache(cacheName = "subParticipantDetailsCache",
+ @EventBasedCache(cacheName = "subParticipantDetailsCache",
             key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {

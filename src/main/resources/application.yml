@@ -69,3 +69,7 @@ trade360:
   password: ${LSPORTS_PASSWORD}
   prematch-package-id: ${LSPORTS_PREMATCH_PACKAGE_ID:2463}
   inplay-package-id: ${LSPORTS_INPLAY_PACKAGE_ID:2464}
+
+sportsdata:
+  base-url: https://api.sportsdata.io/v3/mlb/scores/json
+  key: ${SPORTSDATA_API_KEY}

@@ -5,6 +5,7 @@ import io.limeup.flexbets.sport.dto.statscore.AuthResponse;
 import io.limeup.flexbets.sport.service.statscore.StatScoreAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -16,13 +17,15 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 public class StatScoreAuthServiceImpl implements StatScoreAuthService {
 
+    @Qualifier("statScoreWebClient")
     private final ObjectProvider<WebClient> webClient;
     private final FlexBetsSportConfiguration flexBetsSportConfiguration;
 
     private final AtomicReference<String> token = new AtomicReference<>(null);
     private final AtomicReference<Long> tokenExpiration = new AtomicReference<>(0L);
 
-    public StatScoreAuthServiceImpl(ObjectProvider<WebClient> webClient, FlexBetsSportConfiguration flexBetsSportConfiguration) {
+
+    public StatScoreAuthServiceImpl(@Qualifier("statScoreWebClient") ObjectProvider<WebClient> webClient, FlexBetsSportConfiguration flexBetsSportConfiguration) {
         this.webClient = webClient;
         this.flexBetsSportConfiguration = flexBetsSportConfiguration;
     }
