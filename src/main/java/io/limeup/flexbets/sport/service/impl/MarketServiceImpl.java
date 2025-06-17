@@ -44,11 +44,6 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
     }
 
     @Override
-    public List<Market> listMarketEntities(Integer competitionId, MarketType marketType) {
-        return marketRepository.findByCompetitionAndOptionalType(competitionId, marketType);
-    }
-
-    @Override
     public List<MarketDTO> getAllMarketsFullDTO() {
         return marketRepository.findAll().stream()
                 .map(MarketMapper::toDTO)
@@ -57,7 +52,6 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
 
     @Override
     public MarketDTO createMarket(MarketDTO dto) {
-
         Market market = MarketMapper.toEntity(dto,
                 competitionService.readByExternalId(dto.getCompetitionId())
                         .orElseThrow(() -> new NotFoundException("Competition not found")));
@@ -70,7 +64,8 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
                 .orElseThrow(() -> new EntityNotFoundException("Market not found"));
         Competition competition = competitionService.readByExternalId(dto.getCompetitionId())
                 .orElseThrow(() -> new NotFoundException("Competition not found"));
-        return MarketMapper.toDTO(marketRepository.save(MarketMapper.updateEntity(market, dto, competition)));
+        List<String> marketLinkedStats = marketRepository.findMarketStatsByMarketId(id).stream().toList();
+        return MarketMapper.toDTO(marketRepository.save(MarketMapper.updateEntity(market, dto, competition)), marketLinkedStats);
     }
 
     @Override
@@ -89,19 +84,14 @@ public class MarketServiceImpl extends ExternalIdReadServiceImpl<Market, MarketL
     @Override
     public Set<String> getStatsByMarket(Integer competitionId, Integer marketId, MarketType marketType) {
         if (marketId == null) {
-            Set<String> statNames = listMarketEntities(competitionId, marketType).stream()
-                    .flatMap(market -> market.getLinkedStats().stream())
-                    .collect(Collectors.toSet());
+            Set<String> statNames = marketRepository.findMarketStatsByCompetitionIdAndMarketType(marketType.name(), competitionId);
 
             if (statNames.isEmpty()) {
                 throw new FlexBetsSportNotFoundException("No stats found for sub-participant markets in competition " + competitionId);
             }
             return statNames;
         } else {
-            Market market = readByExternalId(marketId)
-                    .orElseThrow(() -> new FlexBetsSportNotFoundException("Market " + marketId + " not found"));
-
-            Set<String> stats = new HashSet<>(market.getLinkedStats());
+            Set<String> stats = marketRepository.findMarketStatsByMarketId(marketId);
             if (stats.isEmpty()) {
                 throw new FlexBetsSportNotFoundException("Market " + marketId + " has no linked stats");
             }

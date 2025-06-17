@@ -121,6 +121,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
 
     @Override
     public void fetchStatDataForCompetitionAndDate(Integer competitionId, LocalDate prefetchDate) {
+        System.out.printf("Fetch data from StatsScore service has started for competition id - %s and date - %s%n", competitionId, prefetchDate);
         List<StatScoreDataService.EventContext> eventContexts = statScoreDataService.getAllEventsWithContext(EventQueryParams
                 .builder()
                 .limit(150)
@@ -141,6 +142,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             processSquadSubParticipants(pesc);
             fetchHistoricalStats(pesc.participant().getExternalId());
         }
+        System.out.printf("Fetch data from StatsScore service has finished for competition id - %s and date - %s%n", competitionId, prefetchDate);
     }
 
     private void processSquadSubParticipants(ParticipantEventSeasonCompetition pesc) {
