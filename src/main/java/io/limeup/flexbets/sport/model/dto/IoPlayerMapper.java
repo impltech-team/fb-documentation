@@ -1,6 +1,6 @@
 package io.limeup.flexbets.sport.model.dto;
 
-import io.limeup.flexbets.sport.dto.SportsDataPlayerDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
 import io.limeup.flexbets.sport.model.IoPlayer;
 import org.springframework.stereotype.Component;
 

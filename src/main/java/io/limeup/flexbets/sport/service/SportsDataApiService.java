@@ -1,6 +1,6 @@
 //package io.limeup.flexbets.sport.service;
 //
-//import io.limeup.flexbets.sport.dto.SportsDataPlayerDTO;
+//import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
 //import org.springframework.beans.factory.annotation.Qualifier;
 //import org.springframework.stereotype.Service;
 //import org.springframework.web.reactive.function.client.WebClient;

@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.dto;
+package io.limeup.flexbets.sport.dto.sportsdata;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
