@@ -14,18 +14,17 @@ public class SportsDataFetcher {
 
     private final SportsDataMlbImportService importService;
 
-//    @EventListener(ApplicationReadyEvent.class)
-//    @Scheduled(fixedDelay = 500_000)       // або cron = "*/5 * * * * *"
+    @Scheduled(fixedDelay = 500_000)       // або cron = "*/5 * * * * *"
     public void poll() {
         importService.importScores(LocalDate.now());
     }
 
-//    @Scheduled(fixedDelay = 500_000)      // або cron = "*/5 * * * * *"
+    @Scheduled(fixedDelay = 500_000)      // або cron = "*/5 * * * * *"
     public void pollPlayers() {
         importService.importPlayers();
     }
 
-//    @Scheduled(fixedDelay = 500_000)       // або cron = "*/5 * * * * *"
+    @Scheduled(fixedDelay = 500_000)       // або cron = "*/5 * * * * *"
     public void pollTeams() {
         importService.importTeams();
     }
