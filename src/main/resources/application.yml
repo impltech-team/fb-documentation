@@ -69,3 +69,6 @@ trade360:
   password: ${LSPORTS_PASSWORD}
   prematch-package-id: ${LSPORTS_PREMATCH_PACKAGE_ID:2463}
   inplay-package-id: ${LSPORTS_INPLAY_PACKAGE_ID:2464}
+
+sportsdata:
+  key: ${SPORTSDATA_API_KEY}

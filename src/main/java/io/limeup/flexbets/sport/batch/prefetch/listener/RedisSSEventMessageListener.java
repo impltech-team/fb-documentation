@@ -3,19 +3,16 @@ package io.limeup.flexbets.sport.batch.prefetch.listener;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.model.*;
-import io.limeup.flexbets.sport.model.enums.EventStatus;
 import io.limeup.flexbets.sport.repository.*;
 import io.limeup.flexbets.sport.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -42,10 +39,13 @@ public class RedisSSEventMessageListener implements MessageListener {
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
+            if (ev.path("ls_id") == null) {
+                return;
+            }
             String lsIdString = ev.path("ls_id").asText();
 
 
-            Long lsId = Long.parseLong(lsIdString) ;
+            Long lsId = Long.parseLong(lsIdString);
             LocalDateTime startDate = LocalDateTime.parse(ev.path("start_date").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             String statusType = ev.path("status_type").asText();
             String name = ev.path("name").asText();

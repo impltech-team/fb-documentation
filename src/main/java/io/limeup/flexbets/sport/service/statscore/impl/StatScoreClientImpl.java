@@ -3,33 +3,13 @@ package io.limeup.flexbets.sport.service.statscore.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.limeup.flexbets.sport.dto.statscore.ListWrapper;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreAreaDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreBracketDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreParticipantDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreSportDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreSportLiteDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreStandingDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.*;
+import io.limeup.flexbets.sport.dto.statscore.prams.*;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
 import io.limeup.flexbets.sport.utils.StatScoreDateTimeUtils;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -39,13 +19,8 @@ import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-@AllArgsConstructor
 @Slf4j
 @Service
 public class StatScoreClientImpl implements StatScoreClient {
@@ -54,6 +29,13 @@ public class StatScoreClientImpl implements StatScoreClient {
 
     private final ObjectMapper objectMapper;
 
+    public StatScoreClientImpl(
+            @Qualifier("statScoreWebClient") WebClient webClient,
+            ObjectMapper objectMapper) {
+        this.webClient = webClient;
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public Mono<StatScoreResponse<ListWrapper<StatScoreSubParticipantDTO>>> getEventSubParticipants(Integer eventId, boolean retryEnabled) {
         return fetchListWrapper(
@@ -61,7 +43,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of("eventId", eventId),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.SUB_PARTICIPANTS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -97,7 +80,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.PARTICIPANT,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -141,7 +125,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 ConstantUtils.StatScoreWebClient.COMPETITIONS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -153,7 +138,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.COMPETITION,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -167,7 +153,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(ConstantUtils.StatScoreWebClient.PARTICIPANT_ID, participantId),
                 queryParams,
                 ConstantUtils.StatScoreWebClient.PARTICIPANTS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -187,7 +174,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "areas",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -205,7 +193,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "sports",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -217,7 +206,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 "sport",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -237,7 +227,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "venues",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -249,7 +240,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 "venue",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -261,7 +253,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(ConstantUtils.StatScoreWebClient.STAGE_ID, stageId),
                 Map.of(),
                 "nodes",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -280,7 +273,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 ConstantUtils.StatScoreWebClient.COMPETITION,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -307,7 +301,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.COMPETITIONS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -319,7 +314,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.COMPETITION,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -338,7 +334,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 ConstantUtils.StatScoreWebClient.COMPETITION,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -350,7 +347,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.COMPETITION,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -378,7 +376,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "standings_list",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -396,7 +395,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 "standings",
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -429,7 +429,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 queryParams,
                 ConstantUtils.StatScoreWebClient.COMPETITIONS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -441,7 +442,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of(),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.COMPETITIONS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
@@ -453,7 +455,8 @@ public class StatScoreClientImpl implements StatScoreClient {
                 Map.of("eventId", eventId),
                 Map.of(),
                 ConstantUtils.StatScoreWebClient.PARTICIPANTS,
-                new TypeReference<>() {},
+                new TypeReference<>() {
+                },
                 retryEnabled
         );
     }
