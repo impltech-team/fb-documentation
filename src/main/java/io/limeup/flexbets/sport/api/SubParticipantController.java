@@ -46,9 +46,10 @@ public class SubParticipantController {
     @GetMapping("/{sub-participant_id}")
     public ResponseEntity<SubParticipantDTO> getSubParticipantById(
             @PathVariable("sub-participant_id") Integer subParticipantId,
+            @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "market_id") Integer marketId,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount) {
-        SubParticipantService service = serviceResolver.resolve("DEFAULT");
+        SubParticipantService service = serviceResolver.resolve(competitionId.toString());
         return ResponseEntity.ok(service.getSubParticipantById(subParticipantId, marketId, maxHistoricalDataCount));
     }
 }

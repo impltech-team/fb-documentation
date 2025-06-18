@@ -47,7 +47,7 @@ public class SportsDataMlbImportService {
 //                date
 //        );
         String scorePath = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/2025-06-17?key=52bba367bf14471bac048aa668395046");
+                "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/2025-06-18?key=52bba367bf14471bac048aa668395046");
 
         List<ScoreBasicDto> gameDtos = sportsDataWebClient.get()
                 .uri(scorePath)

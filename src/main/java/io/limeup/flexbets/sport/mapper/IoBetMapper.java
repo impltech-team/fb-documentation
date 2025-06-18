@@ -6,6 +6,7 @@ import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.enums.BetStatus;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -43,6 +44,7 @@ public class IoBetMapper {
         entity.setTeamKey(dto.getTeamKey());
         entity.setPlayerId(dto.getPlayerId());
         entity.setPlayerName(dto.getPlayerName());
+        entity.setAnyBetsAvailable(dto.getAnyBetsAvailable());
         entity.setCreatedAt(dto.getCreated());
         entity.setUpdatedAt(dto.getUpdated());
         entity.setBetOutcomes(betOutcomeList);
@@ -86,22 +88,22 @@ public class IoBetMapper {
                 .toList();
     }
 
-    public List<OddsDTO> toOddsDTOList(List<IoBet> betMarkets) {
-        List<OddsDTO> result = new ArrayList<>();
-        betMarkets.forEach(betMarket -> {
-            if(!CollectionUtils.isEmpty(betMarkets)){
-                betMarket.getBetOutcomes().forEach(betOutcome -> {
-                   OddsDTO odds = OddsDTO.builder()
-                           .id(betOutcome.getId())
-                           .marketName(betMarket.getBetType())
-                           .marketId(betMarket.getBetTypeId())
-//                           .betType()
-                           .status(BetStatus.OPEN.name())
-                           .build();
-                });
-            }
-        });
+    public List<OddsDTO> toOddsDTOList(List<SportsDataBetRow> bets) {
+        return bets.stream()
+                .map(this::toOddsDTO)
+                .toList();
+    }
 
-        return result;
+    public OddsDTO toOddsDTO(SportsDataBetRow bet) {
+        return OddsDTO.builder()
+                .id(bet.getId())
+                .marketName(bet.getMarketType())
+                .marketId(bet.getMarketTypeId())
+                .betType(bet.getBetType())
+                .line(bet.getBetLine())
+                .price(bet.getPrice())
+                .status(BetStatus.OPEN.name())
+                .lastUpdatedDate(bet.getLastUpdated())
+                .build();
     }
 }

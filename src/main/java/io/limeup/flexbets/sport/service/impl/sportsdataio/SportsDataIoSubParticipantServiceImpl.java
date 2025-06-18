@@ -4,10 +4,10 @@ import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
-import io.limeup.flexbets.sport.model.IoBet;
+import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.dto.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
-import io.limeup.flexbets.sport.repository.projection.BetRow;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
@@ -17,8 +17,10 @@ import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -58,7 +60,15 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                 requestQuery.getPageSize()
         );
 
-        List<SubParticipantDTO> subParticipantDTOList = playerMapper.toSubParticipantDTOList(players, new HashMap<>());
+        Set<Integer> eventIds = players.stream()
+                .map(SportsDataPlayerRow::getEventId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, List<SportsDataBetRow>> playerIdBetMap = betRepository.findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(IoBetMarketStatus.PLAYER_PROP.getName(), eventIds)
+                .stream()
+                .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
+
+        List<SubParticipantDTO> subParticipantDTOList = playerMapper.toSubParticipantDTOList(players, playerIdBetMap);
 
         return PaginationUtils.buildPaginatedResponse(subParticipantDTOList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
@@ -67,27 +77,18 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
             key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
-//        SubParticipant rawSubParticipant = externalIdRepository.findByExternalId(subParticipantId)
-//                .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));
+        SportsDataPlayerRow player = playerRepository.getPlayerWithBetsById(subParticipantId)
+                .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));
 //        Set<String> statNames = marketService.getStatsByMarket(
 //                rawSubParticipant.getCompetition().getExternalId(), marketId, MarketType.SUB_PARTICIPANT);
 //        List<SubParticipantStatRow> subParticipantStatsDetails = statRepository.getSubParticipantStatsDetails(
 //                subParticipantId, maxHistoricalDataCount, statNames);
-//
-//        return mapper.toDTO(subParticipantStatsDetails, retrieveEventIdSubParticipantBetMap(subParticipantStatsDetails))
-//                .stream()
-//                .findFirst()
-//                .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("SubParticipant %s Not Found", subParticipantId)));
-        return null;
-    }
 
-    private Map<Long, List<IoBet>> retrieveEventIdSubParticipantBetMap(List<SportsDataPlayerRow> playerDetails) {
-        Set<Integer> eventIds = playerDetails.stream()
-                .map(SportsDataPlayerRow::getEventId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        return betRepository.findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(IoBetMarketStatus.PLAYER_PROP.getName(), eventIds)
-                .stream()
-                .collect(Collectors.groupingBy(IoBet::getPlayerId));
+        List<SportsDataBetRow> playerBets = betRepository.findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(
+                IoBetMarketStatus.PLAYER_PROP.getName(),
+                Set.of(player.getEventId())
+        );
+
+        return playerMapper.toSubParticipantDTO(player, playerBets);
     }
 }

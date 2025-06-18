@@ -16,7 +16,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
 
     @Query(value = """
                   SELECT
-                        p.id AS id,
+                        p.player_id AS id,
                         p.first_name || ' ' || p.last_name AS playerName,
                         p.jersey AS shirtNumber,
                         p.team_id AS playerTeamId,
@@ -57,6 +57,36 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
             @Param("offset") int offset,
             @Param("limit") int limit
     );
+
+
+    @Query(value = """
+                  SELECT
+                        p.player_id AS id,
+                        p.first_name || ' ' || p.last_name AS playerName,
+                        p.jersey AS shirtNumber,
+                        p.team_id AS playerTeamId,
+                        TRIM(COALESCE(t.city || ' ', '') || t.name) AS playerTeamName,
+                        p.position AS position,
+                        p.height AS height,
+                        p.weight AS weight,
+                        p.birth_country AS country,
+                        p.birth_date AS birthDate,
+                                                                         
+                        e.game_id AS event_id,
+                        e.datetime AS event_datetime,
+                        TRIM(COALESCE(home_team.city || ' ', '') || home_team.name) || ' - ' || TRIM(COALESCE(away_team.city || ' ', '') || away_team.name) AS eventName,                                              
+                        CASE
+                            WHEN p.team_id = e.home_team_id THEN away_team.key
+                            WHEN p.team_id = e.away_team_id THEN home_team.key
+                        END AS opponentTeamKey
+                FROM io_player p
+                        JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
+                        LEFT JOIN sport.io_team t ON t.team_id = p.team_id
+                        LEFT JOIN sport.io_team home_team ON home_team.team_id = e.home_team_id
+                        LEFT JOIN sport.io_team away_team ON away_team.team_id = e.away_team_id
+                WHERE p.player_id = :playerId
+            """, nativeQuery = true)
+    Optional<SportsDataPlayerRow> getPlayerWithBetsById(@Param("playerId") Integer playerId);
 
     @Query(value = """
     SELECT COUNT(*)
