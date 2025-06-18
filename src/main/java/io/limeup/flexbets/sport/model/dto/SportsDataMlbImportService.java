@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.model.dto;
 
+import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
@@ -8,17 +9,22 @@ import io.limeup.flexbets.sport.mapper.IoTeamMapper;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
+import io.limeup.flexbets.sport.model.IoPlayersStats;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerGamesStatsRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerStatsRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoEventRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,19 +41,65 @@ public class SportsDataMlbImportService {
     private final IoBetRepository betRepository;
     private final IoEventMapper mapper;
     private final IoPlayerMapper playerMapper;
+    private final IoPlayerGamesStatsRepository playerGamesStatsRepository;
+    private final IoPlayerGameStatsMapper playerGameStatsMapper;
+    private final IoPlayerStatsRepository playerStatsRepository;
+    private final IoPlayersStatsMapper ioPlayersStatsMapper;
+//    @Value("${sportsdata.key}")
+    private String apiKey = "52bba367bf14471bac048aa668395046";
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
+    private  int seasonYear = Year.now().getValue();
+
+    @Transactional
+    public void importPlayersStats () {
+
+
+        String path = String.format(
+                "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/"
+                        + seasonYear + "/?key=" + apiKey);
+
+        List<IoSportsDataPlayerStatsDTO> dtos = sportsDataWebClient.get()
+                .uri(path)
+                .retrieve()
+                .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
+                .collectList()
+                .block();
+
+        if (dtos == null) return;
+
+        for (IoSportsDataPlayerStatsDTO dto : dtos) {
+            System.out.println("Received DTO: " + dto);
+
+            if (dto.getPlayerID() == null) {
+                System.out.println("⚠️  DTO has null PlayerID, skipping: " + dto);
+                continue;
+            }
+
+            List<IoPlayersStats> list = playerStatsRepository.findByStatId(dto.getStatID());
+
+            if (list.isEmpty()) {
+                playerStatsRepository.save(ioPlayersStatsMapper.toEntity(dto));
+            } else {
+                IoPlayersStats latest = list.stream()
+                        .max(Comparator.comparing(IoPlayersStats::getUpdated))
+                        .orElse(list.get(0));
+
+                ioPlayersStatsMapper.merge(latest, dto);
+                playerStatsRepository.save(latest);
+
+            }
+        }
+
+    }
 
     @Transactional
     public void importScores(LocalDate date) {
         System.out.printf("Import scores from SportsDataMLB has started for date - %s", date);
         long start = System.currentTimeMillis();
-//        String path = String.format(
-//                "/v3/mlb/scores/json/ScoresBasicFinal/%s",
-//                date
-//        );
         String scorePath = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/2025-06-18?key=52bba367bf14471bac048aa668395046");
+                "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/"
+                        + date + "?key=" + apiKey);
 
         List<ScoreBasicDto> gameDtos = sportsDataWebClient.get()
                 .uri(scorePath)
@@ -72,8 +124,8 @@ public class SportsDataMlbImportService {
             }
 
             String betMarketPath = String.format(
-                    "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/%s/G1000?key=52bba367bf14471bac048aa668395046&include=available",
-                    game.getGameId());
+                    "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/"
+                            + game.getGameId() + "/G1000?key=" + apiKey + "&include=available");
 
             List<SportsDataBettingMarketDTO> updateBetMarketDtoList = sportsDataWebClient.get()
                     .uri(betMarketPath)
@@ -106,12 +158,8 @@ public class SportsDataMlbImportService {
     @Transactional
     public void importPlayers() {
 
-//        String path = String.format(
-//                "/v3/mlb/scores/json/ScoresBasicFinal/%s",
-//                date
-//        );
         String path = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=52bba367bf14471bac048aa668395046");
+                "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey);
 
         List<SportsDataPlayerDTO> dtos = sportsDataWebClient.get()
                 .uri(path)
@@ -122,11 +170,14 @@ public class SportsDataMlbImportService {
 
         if (dtos == null) return;
 
+        List<Long> playerIds = dtos.stream()
+                .map(SportsDataPlayerDTO::getPlayerID)
+                .filter(Objects::nonNull)
+                .toList();
+
         for (SportsDataPlayerDTO dto : dtos) {
-            System.out.println("Received DTO: " + dto);
 
             if (dto.getPlayerID() == null) {
-                System.out.println("⚠️  DTO has null PlayerID, skipping: " + dto);
                 continue;
             }
 
@@ -140,19 +191,41 @@ public class SportsDataMlbImportService {
                                 playerRepository.save(playerMapper.toEntity(dto));
                             }
                     );
-        }
+         }
 
+        for(Long playerId :playerIds){
+
+            String playerStatsApi = String.format(
+                    "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/" + seasonYear + "/" +
+                            playerId + " /5?key=" + apiKey);
+
+            List<IoPlayerGameStatsDto> updatePlayerGameDtoList = sportsDataWebClient.get()
+                    .uri(playerStatsApi)
+                    .retrieve()
+                    .bodyToFlux(IoPlayerGameStatsDto.class)
+                    .collectList()
+                    .block();
+
+            if (updatePlayerGameDtoList == null) return;
+
+            for (IoPlayerGameStatsDto dtosa : updatePlayerGameDtoList) {
+                playerGamesStatsRepository.findByStatId(dtosa.getStatId())
+                        .ifPresentOrElse(
+                                ex -> {
+                                    playerGameStatsMapper.merge(ex, dtosa);
+                                    playerGamesStatsRepository.save(ex);
+                                },
+                                () -> playerGamesStatsRepository.save(playerGameStatsMapper.toEntity(dtosa))
+                        );
+            }
+        }
     }
 
     @Transactional
     public void importTeams() {
 
-//        String path = String.format(
-//                "/v3/mlb/scores/json/ScoresBasicFinal/%s",
-//                date
-//        );
         String path = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=52bba367bf14471bac048aa668395046");
+                "https://api.sportsdata.io/v3/mlb/scores/json/teams?key="+ apiKey);
 
         List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
                 .uri(path)

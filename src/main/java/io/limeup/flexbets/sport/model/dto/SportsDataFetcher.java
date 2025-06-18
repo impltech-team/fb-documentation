@@ -14,18 +14,23 @@ public class SportsDataFetcher {
 
     private final SportsDataMlbImportService importService;
 
-    @Scheduled(fixedDelay = 500_000)       // або cron = "*/5 * * * * *"
+    @Scheduled(fixedDelay = 7_200_000)
     public void poll() {
         importService.importScores(LocalDate.now());
     }
 
-    @Scheduled(fixedDelay = 500_000)      // або cron = "*/5 * * * * *"
+    @Scheduled(fixedDelay = 7_200_000)
     public void pollPlayers() {
         importService.importPlayers();
     }
 
-    @Scheduled(fixedDelay = 500_000)       // або cron = "*/5 * * * * *"
+    @Scheduled(fixedDelay = 7_200_000)
     public void pollTeams() {
         importService.importTeams();
+    }
+
+    @Scheduled(fixedDelay = 600_000)
+    public void pollPlayersStats() {
+        importService.importPlayersStats();
     }
 }

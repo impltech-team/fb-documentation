@@ -7,11 +7,8 @@ import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.enums.BetStatus;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
-import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
