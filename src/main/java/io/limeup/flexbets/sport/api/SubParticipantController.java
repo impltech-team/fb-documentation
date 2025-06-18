@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.service.SubParticipantService;
+import io.limeup.flexbets.sport.service.SubParticipantServiceResolver;
 import io.limeup.flexbets.sport.validator.PositiveList;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,7 +26,7 @@ import java.util.List;
 @Tag(name = "Sub-Participants", description = "Manage sub-participant data")
 @Validated
 public class SubParticipantController {
-    private final SubParticipantService subParticipantService;
+    private final SubParticipantServiceResolver serviceResolver;
 
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<SubParticipantDTO>> listSubParticipants(
@@ -37,7 +38,8 @@ public class SubParticipantController {
             @RequestParam(required = false, name = "market_id") Integer marketId,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
-        return ResponseEntity.ok(subParticipantService.listSubParticipants(
+        SubParticipantService service = serviceResolver.resolve(competitionId.toString());
+        return ResponseEntity.ok(service.listSubParticipants(
                 competitionId, positions, participantIds, marketId, maxHistoricalDataCount, requestQuery));
     }
 
@@ -46,6 +48,7 @@ public class SubParticipantController {
             @PathVariable("sub-participant_id") Integer subParticipantId,
             @RequestParam(required = false, name = "market_id") Integer marketId,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount) {
-        return ResponseEntity.ok(subParticipantService.getSubParticipantById(subParticipantId, marketId, maxHistoricalDataCount));
+        SubParticipantService service = serviceResolver.resolve("DEFAULT");
+        return ResponseEntity.ok(service.getSubParticipantById(subParticipantId, marketId, maxHistoricalDataCount));
     }
 }

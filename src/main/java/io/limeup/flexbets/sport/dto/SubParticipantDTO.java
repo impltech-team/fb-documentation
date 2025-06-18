@@ -20,7 +20,7 @@ public class SubParticipantDTO {
     private String team;
     private String position;
     private EventLiteDTO nextEvent;
-    private int shirtNr;
+    private Integer shirtNr;
     private int areaId;
     private String areaName;
     private String gender;

@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service.impl;
+package io.limeup.flexbets.sport.service.impl.statscore;
 
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.OddsDTO;
@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 import static io.limeup.flexbets.sport.model.enums.SettingName.MOCK_ODDS;
 
 @Transactional
-@Service
-public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubParticipant, SubParticipantDTO, Long> implements SubParticipantService {
+@Service("statscoreProvider")
+public class StatscoreSubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubParticipant, SubParticipantDTO, Long> implements SubParticipantService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("player_name", "team_name", "position", "event_time");
 
@@ -50,9 +50,9 @@ public class SubParticipantServiceImpl extends ExternalIdReadServiceImpl<SubPart
 
     private final SettingsRepository settingsRepository;
 
-    protected SubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository,
-                                        MarketService marketService, SubParticipantMapper mapper, BetService betService,
-                                        SettingsRepository settingsRepository) {
+    protected StatscoreSubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository,
+                                                 MarketService marketService, SubParticipantMapper mapper, BetService betService,
+                                                 SettingsRepository settingsRepository) {
         super(subParticipantRepository);
         this.statRepository = statRepository;
         this.subParticipantRepository = subParticipantRepository;

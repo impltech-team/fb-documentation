@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.repository;
+package io.limeup.flexbets.sport.repository.sportsdataio;
 
 import io.limeup.flexbets.sport.model.IoEvent;
 import org.springframework.data.jpa.repository.JpaRepository;

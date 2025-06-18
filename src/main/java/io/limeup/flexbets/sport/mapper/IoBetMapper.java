@@ -1,11 +1,16 @@
 package io.limeup.flexbets.sport.mapper;
 
+import io.limeup.flexbets.sport.dto.OddsDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -79,5 +84,24 @@ public class IoBetMapper {
         return betOutcomeDTOList.stream()
                 .map(betOutcomeDTO -> toBetOutcomeEntity(betOutcomeDTO, bet))
                 .toList();
+    }
+
+    public List<OddsDTO> toOddsDTOList(List<IoBet> betMarkets) {
+        List<OddsDTO> result = new ArrayList<>();
+        betMarkets.forEach(betMarket -> {
+            if(!CollectionUtils.isEmpty(betMarkets)){
+                betMarket.getBetOutcomes().forEach(betOutcome -> {
+                   OddsDTO odds = OddsDTO.builder()
+                           .id(betOutcome.getId())
+                           .marketName(betMarket.getBetType())
+                           .marketId(betMarket.getBetTypeId())
+//                           .betType()
+                           .status(BetStatus.OPEN.name())
+                           .build();
+                });
+            }
+        });
+
+        return result;
     }
 }

@@ -1,6 +1,6 @@
 //package io.limeup.flexbets.sport.model.dto;
 //
-//import io.limeup.flexbets.sport.repository.IoEventRepository;
+//import io.limeup.flexbets.sport.repository.sportsdataio.IoEventRepository;
 //import jakarta.annotation.PostConstruct;
 //import lombok.RequiredArgsConstructor;
 //import org.springframework.stereotype.Service;

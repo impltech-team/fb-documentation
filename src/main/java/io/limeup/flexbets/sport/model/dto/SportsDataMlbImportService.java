@@ -2,13 +2,16 @@ package io.limeup.flexbets.sport.model.dto;
 
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
 import io.limeup.flexbets.sport.mapper.IoBetMapper;
+import io.limeup.flexbets.sport.mapper.IoTeamMapper;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
-import io.limeup.flexbets.sport.repository.IoBetRepository;
-import io.limeup.flexbets.sport.repository.IoEventRepository;
-import io.limeup.flexbets.sport.repository.IoPlayerRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoEventRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class SportsDataMlbImportService {
     private final WebClient sportsDataWebClient;
     private final IoEventRepository repo;
     private final IoPlayerRepository playerRepository;
+    private final IoTeamRepository teamRepository;
     private final IoBetRepository betRepository;
     private final IoEventMapper mapper;
     private final IoPlayerMapper playerMapper;
@@ -93,9 +97,9 @@ public class SportsDataMlbImportService {
             long durationMillis = System.currentTimeMillis() - start;
             long seconds = durationMillis / 1000;
             long minutes = seconds / 60;
-            String duration = String.format("%d minute %d second", minutes, seconds);
+            String formattedDuration = String.format("%d minute %d second", minutes, seconds);
 
-            System.out.printf("Import scores from SportsDataMLB has finished for date - %s in %s", date, duration);
+            System.out.printf("Import scores from SportsDataMLB has finished for date - %s in %s", date, formattedDuration);
         }
     }
 
@@ -140,6 +144,40 @@ public class SportsDataMlbImportService {
 
     }
 
+    @Transactional
+    public void importTeams() {
+
+//        String path = String.format(
+//                "/v3/mlb/scores/json/ScoresBasicFinal/%s",
+//                date
+//        );
+        String path = String.format(
+                "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=52bba367bf14471bac048aa668395046");
+
+        List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
+                .uri(path)
+                .retrieve()
+                .bodyToFlux(SportsDataTeamDTO.class)
+                .collectList()
+                .block();
+
+        if (dtos == null) return;
+
+        for (SportsDataTeamDTO dto : dtos) {
+            teamRepository.findByTeamId(dto.getTeamId())
+                    .ifPresentOrElse(
+                            existing -> {
+                                IoTeamMapper.updateEntity(existing, dto);
+                                teamRepository.save(existing);
+                            },
+                            () -> {
+                                teamRepository.save(IoTeamMapper.toEntity(dto));
+                            }
+                    );
+        }
+
+    }
+
     private List<IoBet> reconcileBettingMarkets(IoEvent event, List<SportsDataBettingMarketDTO> updateList, List<IoBet> dbList) {
         Map<Long, IoBet> dbBetMap = dbList.stream()
                 .collect(Collectors.toMap(IoBet::getMarketId, Function.identity()));
@@ -159,6 +197,7 @@ public class SportsDataMlbImportService {
             } else if (!Objects.equals(bet.getUpdatedAt(), updatedDto.getUpdated())) {
                 bet = IoBetMapper.toEntity(updatedDto, event);
                 List<IoBetOutcome> updateBetOutcomesList = reconcileBetOutcomes(updatedDto.getBettingOutcomes(), bet.getBetOutcomes(), bet);
+                bet.setBetOutcomes(updateBetOutcomesList);
                 betsToSave.add(bet);
             }
         }

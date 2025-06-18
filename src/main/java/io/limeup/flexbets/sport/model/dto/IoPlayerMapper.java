@@ -1,11 +1,22 @@
 package io.limeup.flexbets.sport.model.dto;
 
+import io.limeup.flexbets.sport.config.FlexBetsSportConfiguration;
+import io.limeup.flexbets.sport.dto.EventLiteDTO;
+import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
+import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoPlayer;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 @Component
+@AllArgsConstructor
 public class IoPlayerMapper {
+
     public void merge(IoPlayer entity, SportsDataPlayerDTO dto) {
         entity.setPlayerId(dto.getPlayerID());
         entity.setSportsDataId(dto.getSportsDataID());
@@ -115,4 +126,36 @@ public class IoPlayerMapper {
                 .build();
     }
 
+    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<IoBet>> playerIdBetMap) {
+        return players.stream()
+                .map(player -> toSubParticipantDTO(player, playerIdBetMap.get(player.getId().longValue())))
+                .toList();
+    }
+
+    //TODO change mock data
+    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<IoBet> ioBet) {
+        SubParticipantDTO result = new SubParticipantDTO();
+        result.setId(player.getId());
+        result.setPlayerName(player.getPlayerName());
+        result.setCompetitionId(5466); //mock
+        result.setCompetition("MLB"); //mock
+        result.setAvatarUrl("no"); //mock ask which parameter from sportsdata needed
+        result.setParticipantId(player.getPlayerTeamId());
+        result.setTeam(player.getPlayerTeamName());
+        result.setPosition(player.getPosition());
+        result.setShirtNr(player.getShirtNumber());
+        result.setAreaName(player.getCountry());
+        result.setAreaName(player.getCountry());
+        result.setGender("male"); //mock
+        result.setWeight(player.getWeight().toString());
+        result.setHeight(player.getHeight().toString());
+        result.setBirthDate(player.getBirthDate());
+        result.setNextEvent(EventLiteDTO.builder()
+                        .eventId(player.getEventId())
+                        .eventName(player.getEventName())
+                        .eventDate(player.getEventDatetime())
+                        .opponent(player.getOpponentTeamKey())
+                .build());
+        return result;
+    }
 }

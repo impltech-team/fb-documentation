@@ -22,6 +22,7 @@ import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.SubParticipantRepository;
 import io.limeup.flexbets.sport.repository.projection.SubParticipantStatRow;
 import io.limeup.flexbets.sport.service.MarketService;
+import io.limeup.flexbets.sport.service.impl.statscore.StatscoreSubParticipantServiceImpl;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SubParticipantServiceImplTest {
+class StatscoreSubParticipantServiceImplTest {
 
     @Mock
     private SubParticipantRepository subParticipantRepository;
@@ -46,7 +47,7 @@ class SubParticipantServiceImplTest {
     private SubParticipantMapper mapper;
 
     @InjectMocks
-    private SubParticipantServiceImpl subParticipantService;
+    private StatscoreSubParticipantServiceImpl subParticipantService;
 
     private RequestQueryDTO requestQuery;
 
