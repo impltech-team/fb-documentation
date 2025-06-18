@@ -20,7 +20,7 @@ public class IoTeam {
     private Long id;
 
     @Column(name = "team_id", nullable = false)
-    private int teamId;
+    private Long teamId;
 
     @Column(name = "key", nullable = false)
     private String key;

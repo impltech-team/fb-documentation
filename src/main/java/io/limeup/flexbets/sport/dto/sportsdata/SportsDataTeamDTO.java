@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class SportsDataTeamDTO {
 
     @JsonProperty("TeamID")
-    private Integer teamId;
+    private Long teamId;
 
     @JsonProperty("Key")
     private String key;

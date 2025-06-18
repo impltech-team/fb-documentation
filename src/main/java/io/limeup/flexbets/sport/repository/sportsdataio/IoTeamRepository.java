@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
 
-    Optional<IoTeam> findByTeamId(int teamId);
+    Optional<IoTeam> findByTeamId(Long teamId);
 }
