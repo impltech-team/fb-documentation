@@ -1,8 +1,6 @@
 package io.limeup.flexbets.sport.model.dto;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +27,7 @@ public class SportsDataFetcher {
         importService.importTeams();
     }
 
-    @Scheduled(fixedDelay = 600_000)
+    @Scheduled(fixedDelay = 700_000)
     public void pollPlayersStats() {
         importService.importPlayersStats();
     }

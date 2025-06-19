@@ -11,4 +11,5 @@ public interface IoPlayerStatsRepository extends JpaRepository<IoPlayersStats, L
     List<IoPlayersStats> findByStatId(Long statID);
 
     Optional<IoPlayersStats> findTopByPlayerIdOrderByUpdatedDesc(Long playerId);
+
 }
