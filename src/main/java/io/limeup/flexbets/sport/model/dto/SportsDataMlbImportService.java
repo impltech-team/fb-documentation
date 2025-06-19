@@ -51,7 +51,6 @@ public class SportsDataMlbImportService {
     private static final String PLAYER_MARKET_NAME = "Player Prop";
     private  int seasonYear = Year.now().getValue();
 
-    @Transactional
     public void importPlayersStats () {
 
 
@@ -93,7 +92,7 @@ public class SportsDataMlbImportService {
 
     }
 
-    @Transactional
+
     public void importScores(LocalDate date) {
         System.out.printf("Import scores from SportsDataMLB has started for date - %s", date);
         long start = System.currentTimeMillis();
@@ -155,11 +154,11 @@ public class SportsDataMlbImportService {
         }
     }
 
-    @Transactional
     public void importPlayers() {
 
-        String path = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey);
+        final int CHUNK = 50;
+
+        String path = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
 
         List<SportsDataPlayerDTO> dtos = sportsDataWebClient.get()
                 .uri(path)
@@ -170,16 +169,9 @@ public class SportsDataMlbImportService {
 
         if (dtos == null) return;
 
-        List<Long> playerIds = dtos.stream()
-                .map(SportsDataPlayerDTO::getPlayerID)
-                .filter(Objects::nonNull)
-                .toList();
-
         for (SportsDataPlayerDTO dto : dtos) {
 
-            if (dto.getPlayerID() == null) {
-                continue;
-            }
+            if (dto.getPlayerID() == null) continue;
 
             playerRepository.findByPlayerId(dto.getPlayerID())
                     .ifPresentOrElse(
@@ -187,39 +179,50 @@ public class SportsDataMlbImportService {
                                 playerMapper.merge(existing, dto);
                                 playerRepository.save(existing);
                             },
-                            () -> {
-                                playerRepository.save(playerMapper.toEntity(dto));
-                            }
+                            () -> playerRepository.save(playerMapper.toEntity(dto))
                     );
-         }
+        }
 
-        for(Long playerId :playerIds){
+        List<Long> playerIds = dtos.stream()
+                .map(SportsDataPlayerDTO::getPlayerID)
+                .filter(Objects::nonNull)
+                .toList();
 
-            String playerStatsApi = String.format(
-                    "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/" + seasonYear + "/" +
-                            playerId + " /5?key=" + apiKey);
+        for (int from = 0; from < playerIds.size(); from += CHUNK) {
 
-            List<IoPlayerGameStatsDto> updatePlayerGameDtoList = sportsDataWebClient.get()
-                    .uri(playerStatsApi)
-                    .retrieve()
-                    .bodyToFlux(IoPlayerGameStatsDto.class)
-                    .collectList()
-                    .block();
+            int to = Math.min(from + CHUNK, playerIds.size());
+            List<Long> subList = playerIds.subList(from, to);
 
-            if (updatePlayerGameDtoList == null) return;
+            for (Long playerId : subList) {
 
-            for (IoPlayerGameStatsDto dtosa : updatePlayerGameDtoList) {
-                playerGamesStatsRepository.findByStatId(dtosa.getStatId())
-                        .ifPresentOrElse(
-                                ex -> {
-                                    playerGameStatsMapper.merge(ex, dtosa);
-                                    playerGamesStatsRepository.save(ex);
-                                },
-                                () -> playerGamesStatsRepository.save(playerGameStatsMapper.toEntity(dtosa))
-                        );
+                String playerStatsApi = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/"
+                        + seasonYear + "/" + playerId + "/5?key=" + apiKey;   // <— без пробілу перед “/5”
+
+                List<IoPlayerGameStatsDto> updatePlayerGameDtoList = sportsDataWebClient.get()
+                        .uri(playerStatsApi)
+                        .retrieve()
+                        .bodyToFlux(IoPlayerGameStatsDto.class)
+                        .collectList()
+                        .block();
+
+                if (updatePlayerGameDtoList == null) continue;
+
+                for (IoPlayerGameStatsDto dtoGame : updatePlayerGameDtoList) {
+                    playerGamesStatsRepository.findByStatId(dtoGame.getStatId())
+                            .ifPresentOrElse(
+                                    ex -> {
+                                        playerGameStatsMapper.merge(ex, dtoGame);
+                                        playerGamesStatsRepository.save(ex);
+                                    },
+                                    () -> playerGamesStatsRepository.save(playerGameStatsMapper.toEntity(dtoGame))
+                            );
+                }
             }
+
+            try { Thread.sleep(400); } catch (InterruptedException ignored) {}
         }
     }
+
 
     @Transactional
     public void importTeams() {
