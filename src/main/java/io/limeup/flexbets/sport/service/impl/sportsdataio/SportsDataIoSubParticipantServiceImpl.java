@@ -94,9 +94,10 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         "SubParticipant %s Not Found".formatted(subParticipantId)));
 
         List<SportsDataBetRow> playerBets = betRepository
-                .findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(
+                .findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(
                         IoBetMarketStatus.PLAYER_PROP.getName(),
-                        Set.of(player.getEventId()));
+                        Set.of(player.getEventId()),
+                        player.getId().longValue());
 
         List<HistoricalStatDTO> hist = buildHistoricalStats(Long.valueOf(player.getId()));
 
