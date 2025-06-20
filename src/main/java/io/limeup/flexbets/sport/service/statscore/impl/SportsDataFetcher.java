@@ -1,5 +1,6 @@
-package io.limeup.flexbets.sport.model.dto;
+package io.limeup.flexbets.sport.service.statscore.impl;
 
+import io.limeup.flexbets.sport.service.sportdataio.SportsDataMlbImportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

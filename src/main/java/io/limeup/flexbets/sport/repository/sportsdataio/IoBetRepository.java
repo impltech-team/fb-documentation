@@ -5,6 +5,7 @@ import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,5 +32,13 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                   AND b.any_bets_available = true
             """, nativeQuery = true)
     List<SportsDataBetRow> findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(String marketType, Collection<Integer> gameIds);
+
+    @Query("""
+           select b
+           from IoBet b
+           left join fetch b.betOutcomes
+           where b.event = :event
+           """)
+    List<IoBet> findByEventWithOutcomes(@Param("event") IoEvent event);
 
 }

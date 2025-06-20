@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.model.dto;
+package io.limeup.flexbets.sport.service.sportdataio;
 
 import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
@@ -10,12 +10,8 @@ import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.IoPlayersStats;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerGamesStatsRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerStatsRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoEventRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
+import io.limeup.flexbets.sport.model.dto.*;
+import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,18 +41,19 @@ public class SportsDataMlbImportService {
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
     private final IoPlayerStatsRepository playerStatsRepository;
     private final IoPlayersStatsMapper ioPlayersStatsMapper;
-//    @Value("${sportsdata.key}")
-    private String apiKey = "52bba367bf14471bac048aa668395046";
+    @Value("${sportsdata.key}")
+    private String apiKey;
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
-    private  int seasonYear = Year.now().getValue();
+    private int seasonYear = Year.now().getValue();
 
-    public void importPlayersStats () {
+    public void importPlayersStats() {
 
-
+        System.out.println("Import players stats from SportsDataMLB started");
         String path = String.format(
                 "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/"
-                        + seasonYear + "/?key=" + apiKey);
+                        + seasonYear + "?key=" + apiKey);
+
 
         List<IoSportsDataPlayerStatsDTO> dtos = sportsDataWebClient.get()
                 .uri(path)
@@ -68,7 +65,6 @@ public class SportsDataMlbImportService {
         if (dtos == null) return;
 
         for (IoSportsDataPlayerStatsDTO dto : dtos) {
-            System.out.println("Received DTO: " + dto);
 
             if (dto.getPlayerID() == null) {
                 System.out.println("⚠️  DTO has null PlayerID, skipping: " + dto);
@@ -89,6 +85,7 @@ public class SportsDataMlbImportService {
 
             }
         }
+        System.out.println("Import players stats from SportsDataMLB has finished ");
 
     }
 
@@ -135,7 +132,7 @@ public class SportsDataMlbImportService {
 
             if (updateBetMarketDtoList == null) return;
 
-            List<IoBet> existingBetMarkets = betRepository.findByEvent(game);
+            List<IoBet> existingBetMarkets = betRepository.findByEventWithOutcomes(game);
 
             updateBetMarketDtoList = updateBetMarketDtoList.stream()
                     .filter(betMarket -> betMarket.getBettingMarketType().equalsIgnoreCase(PLAYER_MARKET_NAME)
@@ -143,7 +140,7 @@ public class SportsDataMlbImportService {
                     .toList();
 
             List<IoBet> betsToSave = reconcileBettingMarkets(game, updateBetMarketDtoList, existingBetMarkets);
-            if(!betsToSave.isEmpty()) betRepository.saveAll(betsToSave);
+            if (!betsToSave.isEmpty()) betRepository.saveAll(betsToSave);
 
             long durationMillis = System.currentTimeMillis() - start;
             long seconds = durationMillis / 1000;
@@ -156,6 +153,7 @@ public class SportsDataMlbImportService {
 
     public void importPlayers() {
 
+        System.out.println("Import players from SportsDataMLB started");
         final int CHUNK = 50;
 
         String path = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
@@ -218,17 +216,20 @@ public class SportsDataMlbImportService {
                             );
                 }
             }
-
-            try { Thread.sleep(400); } catch (InterruptedException ignored) {}
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
         }
+        System.out.println("Import players from SportsDataMLB has finished ");
     }
 
 
     @Transactional
     public void importTeams() {
-
+        System.out.println("Import teams from SportsDataMLB started");
         String path = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/teams?key="+ apiKey);
+                "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey);
 
         List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
                 .uri(path)
@@ -251,11 +252,13 @@ public class SportsDataMlbImportService {
                             }
                     );
         }
+        System.out.println("Import teams from SportsDataMLB has finished ");
 
     }
 
-    private List<IoBet> reconcileBettingMarkets(IoEvent event, List<SportsDataBettingMarketDTO> updateList, List<IoBet> dbList) {
-        Map<Long, IoBet> dbBetMap = dbList.stream()
+    private List<IoBet> reconcileBettingMarkets(IoEvent event, List<SportsDataBettingMarketDTO> updateList,
+                                                List<IoBet> dbBetsWithOutcomes) {
+        Map<Long, IoBet> dbBetMap = dbBetsWithOutcomes.stream()
                 .collect(Collectors.toMap(IoBet::getMarketId, Function.identity()));
 
         Set<Long> activeMarketIds = new HashSet<>(updateList.size());
@@ -278,7 +281,7 @@ public class SportsDataMlbImportService {
             }
         }
 
-        for (IoBet dbEntity : dbList) {
+        for (IoBet dbEntity : dbBetsWithOutcomes) {
             if (!activeMarketIds.contains(dbEntity.getId()) && dbEntity.isAnyBetsAvailable()) {
                 dbEntity.setAnyBetsAvailable(false);
                 dbEntity.getBetOutcomes().forEach(outcome -> outcome.setAvailable(false));
