@@ -13,7 +13,7 @@ public class SportsDataFetcher {
 
     private final SportsDataMlbImportService importService;
 
-    @Scheduled(fixedDelay = 700_000)
+    @Scheduled(fixedDelay = 3_700_000)
     public void poll() {
         importService.importScores(LocalDate.now());
     }

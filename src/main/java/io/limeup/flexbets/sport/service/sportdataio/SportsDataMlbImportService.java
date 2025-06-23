@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -39,18 +40,18 @@ public class SportsDataMlbImportService {
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
 
-    private final IoEventRepository            eventRepo;
-    private final IoBetRepository              betRepo;
-    private final IoTeamRepository             teamRepo;
-    private final IoPlayerRepository           playerRepo;
-    private final IoPlayerStatsRepository      playerStatsRepo;
+    private final IoEventRepository eventRepo;
+    private final IoBetRepository betRepo;
+    private final IoTeamRepository teamRepo;
+    private final IoPlayerRepository playerRepo;
+    private final IoPlayerStatsRepository playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
-    private final IoEventMapper           eventMapper;
-    private final IoBetMapper             betMapper;
-    private final IoTeamMapper            teamMapper;
-    private final IoPlayerMapper          playerMapper;
-    private final IoPlayersStatsMapper    playersStatsMapper;
+    private final IoEventMapper eventMapper;
+    private final IoBetMapper betMapper;
+    private final IoTeamMapper teamMapper;
+    private final IoPlayerMapper playerMapper;
+    private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
     private final FetchLogService fetchLogService;
@@ -60,10 +61,7 @@ public class SportsDataMlbImportService {
     private String apiKey;
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
-//       private static final Duration REQ_TIMEOUT       = Duration.ofSeconds(400);
-//    private static final Retry    RETRY_POLICY      =
-//            Retry.backoff(3, Duration.ofSeconds(3))
-//                    .maxBackoff(Duration.ofSeconds(15));
+
 
     private final int seasonYear = Year.now().getValue();
 
@@ -79,8 +77,7 @@ public class SportsDataMlbImportService {
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
-//                    .timeout(REQ_TIMEOUT)
-//                    .retryWhen(RETRY_POLICY)
+
                     .doOnNext(this::upsertPlayerSeasonStat)
                     .blockLast();
 
@@ -142,8 +139,7 @@ public class SportsDataMlbImportService {
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(SportsDataTeamDTO.class)
-//                    .timeout(REQ_TIMEOUT)
-//                    .retryWhen(RETRY_POLICY)
+
                     .collectList()
                     .block();
 
@@ -177,8 +173,7 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(ScoreBasicDto.class)
-//                .timeout(REQ_TIMEOUT)
-//                .retryWhen(RETRY_POLICY)
+
                 .collectList()
                 .block();
     }
@@ -192,7 +187,6 @@ public class SportsDataMlbImportService {
                 })
                 .orElseGet(() -> eventRepo.save(eventMapper.toEntity(dto)));
     }
-
 
 
     private Mono<Void> fetchBetMarketsForGames(List<ScoreBasicDto> games) {
@@ -212,13 +206,12 @@ public class SportsDataMlbImportService {
                             .uri(url)
                             .retrieve()
                             .bodyToFlux(SportsDataBettingMarketDTO.class)
-//                            .timeout(REQ_TIMEOUT)
-//                            .retryWhen(RETRY_POLICY)
+
                             .filter(b -> PLAYER_MARKET_NAME.equalsIgnoreCase(b.getBettingMarketType())
                                     && Boolean.TRUE.equals(b.getAnyBetsAvailable()))
                             .collectList()
                             .doOnNext(dtos -> {
-                                List<IoBet> toSave = reconcileBettingMarkets(
+                                Set<IoBet> toSave = reconcileBettingMarkets(
                                         game, dtos, betRepo.findByEventWithOutcomes(game));
                                 if (!toSave.isEmpty()) betRepo.saveAll(toSave);
                             })
@@ -228,7 +221,6 @@ public class SportsDataMlbImportService {
     }
 
 
-
     private List<SportsDataPlayerDTO> fetchPlayers() {
 
         String url = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
@@ -236,8 +228,7 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(SportsDataPlayerDTO.class)
-//                .timeout(REQ_TIMEOUT)
-//                .retryWhen(RETRY_POLICY)
+
                 .collectList()
                 .block();
     }
@@ -264,8 +255,7 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(IoPlayerGameStatsDto.class)
-//                .timeout(REQ_TIMEOUT)
-//                .retryWhen(RETRY_POLICY)
+
                 .doOnNext(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
                         .ifPresentOrElse(
                                 ex -> {
@@ -289,9 +279,9 @@ public class SportsDataMlbImportService {
                         () -> teamRepo.save(teamMapper.toEntity(dto)));
     }
 
-    private List<IoBet> reconcileBettingMarkets(IoEvent event,
+    private Set<IoBet> reconcileBettingMarkets(IoEvent event,
                                                 List<SportsDataBettingMarketDTO> incoming,
-                                                List<IoBet> db) {
+                                                Set<IoBet> db) {
 
         Map<Long, IoBet> dbMap = db.stream()
                 .collect(Collectors.toMap(IoBet::getMarketId, it -> it));
@@ -300,7 +290,7 @@ public class SportsDataMlbImportService {
                 .map(SportsDataBettingMarketDTO::getBettingMarketId)
                 .collect(Collectors.toSet());
 
-        List<IoBet> toSave = new ArrayList<>();
+        Set<IoBet> toSave = new HashSet<>();
 
         for (var dto : incoming) {
             IoBet existing = dbMap.get(dto.getBettingMarketId());

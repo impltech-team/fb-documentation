@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface IoBetRepository extends JpaRepository<IoBet, Long> {
 
@@ -33,13 +34,15 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
             """, nativeQuery = true)
     List<SportsDataBetRow> findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(String marketType, Collection<Integer> gameIds);
 
+
+
     @Query("""
            select distinct b
            from IoBet b
            left join fetch b.betOutcomes
            where b.event = :event
            """)
-    List<IoBet> findByEventWithOutcomes(@Param("event") IoEvent event);
+    Set<IoBet> findByEventWithOutcomes(@Param("event") IoEvent event);
 
     @Query(value = """ 
             SELECT
