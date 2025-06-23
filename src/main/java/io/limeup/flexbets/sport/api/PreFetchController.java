@@ -1,7 +1,5 @@
 package io.limeup.flexbets.sport.api;
 
-import io.limeup.flexbets.sport.dto.AreaDTO;
-import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.PrefetchStatusDTO;
 import io.limeup.flexbets.sport.service.PreFetchService;
 import lombok.RequiredArgsConstructor;
