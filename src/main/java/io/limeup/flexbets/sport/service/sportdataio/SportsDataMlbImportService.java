@@ -1,10 +1,17 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
-import io.limeup.flexbets.sport.dto.sportsdata.*;
+import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
-import io.limeup.flexbets.sport.mapper.*;
-import io.limeup.flexbets.sport.model.*;
+import io.limeup.flexbets.sport.mapper.IoBetMapper;
+import io.limeup.flexbets.sport.mapper.IoTeamMapper;
+import io.limeup.flexbets.sport.model.IoBet;
+import io.limeup.flexbets.sport.model.IoBetOutcome;
+import io.limeup.flexbets.sport.model.IoEvent;
+import io.limeup.flexbets.sport.model.IoPlayersStats;
 import io.limeup.flexbets.sport.model.dto.*;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -54,10 +60,10 @@ public class SportsDataMlbImportService {
     private String apiKey;
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
-    private static final Duration REQ_TIMEOUT       = Duration.ofSeconds(40);
-    private static final Retry    RETRY_POLICY      =
-            Retry.backoff(3, Duration.ofSeconds(3))
-                    .maxBackoff(Duration.ofSeconds(15));
+//       private static final Duration REQ_TIMEOUT       = Duration.ofSeconds(400);
+//    private static final Retry    RETRY_POLICY      =
+//            Retry.backoff(3, Duration.ofSeconds(3))
+//                    .maxBackoff(Duration.ofSeconds(15));
 
     private final int seasonYear = Year.now().getValue();
 
@@ -73,8 +79,8 @@ public class SportsDataMlbImportService {
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
-                    .timeout(REQ_TIMEOUT)
-                    .retryWhen(RETRY_POLICY)
+//                    .timeout(REQ_TIMEOUT)
+//                    .retryWhen(RETRY_POLICY)
                     .doOnNext(this::upsertPlayerSeasonStat)
                     .blockLast();
 
@@ -136,8 +142,8 @@ public class SportsDataMlbImportService {
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(SportsDataTeamDTO.class)
-                    .timeout(REQ_TIMEOUT)
-                    .retryWhen(RETRY_POLICY)
+//                    .timeout(REQ_TIMEOUT)
+//                    .retryWhen(RETRY_POLICY)
                     .collectList()
                     .block();
 
@@ -171,8 +177,8 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(ScoreBasicDto.class)
-                .timeout(REQ_TIMEOUT)
-                .retryWhen(RETRY_POLICY)
+//                .timeout(REQ_TIMEOUT)
+//                .retryWhen(RETRY_POLICY)
                 .collectList()
                 .block();
     }
@@ -206,8 +212,8 @@ public class SportsDataMlbImportService {
                             .uri(url)
                             .retrieve()
                             .bodyToFlux(SportsDataBettingMarketDTO.class)
-                            .timeout(REQ_TIMEOUT)
-                            .retryWhen(RETRY_POLICY)
+//                            .timeout(REQ_TIMEOUT)
+//                            .retryWhen(RETRY_POLICY)
                             .filter(b -> PLAYER_MARKET_NAME.equalsIgnoreCase(b.getBettingMarketType())
                                     && Boolean.TRUE.equals(b.getAnyBetsAvailable()))
                             .collectList()
@@ -230,8 +236,8 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(SportsDataPlayerDTO.class)
-                .timeout(REQ_TIMEOUT)
-                .retryWhen(RETRY_POLICY)
+//                .timeout(REQ_TIMEOUT)
+//                .retryWhen(RETRY_POLICY)
                 .collectList()
                 .block();
     }
@@ -258,8 +264,8 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(IoPlayerGameStatsDto.class)
-                .timeout(REQ_TIMEOUT)
-                .retryWhen(RETRY_POLICY)
+//                .timeout(REQ_TIMEOUT)
+//                .retryWhen(RETRY_POLICY)
                 .doOnNext(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
                         .ifPresentOrElse(
                                 ex -> {
@@ -271,7 +277,6 @@ public class SportsDataMlbImportService {
                 .then();
     }
 
-    /* ---------- Teams ---------- */
 
     private void upsertTeam(SportsDataTeamDTO dto) {
 
