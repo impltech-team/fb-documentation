@@ -34,7 +34,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
     List<SportsDataBetRow> findAllByMarketTypeAndEventIdInAndAnyBetsAvailableTrue(String marketType, Collection<Integer> gameIds);
 
     @Query("""
-           select b
+           select distinct b
            from IoBet b
            left join fetch b.betOutcomes
            where b.event = :event
