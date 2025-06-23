@@ -1,324 +1,357 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
-import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
-import io.limeup.flexbets.sport.mapper.IoBetMapper;
-import io.limeup.flexbets.sport.mapper.IoTeamMapper;
-import io.limeup.flexbets.sport.model.IoBet;
-import io.limeup.flexbets.sport.model.IoBetOutcome;
-import io.limeup.flexbets.sport.model.IoEvent;
-import io.limeup.flexbets.sport.model.IoPlayersStats;
+import io.limeup.flexbets.sport.dto.sportsdata.*;
+import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
+import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
+import io.limeup.flexbets.sport.mapper.*;
+import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.model.dto.*;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SportsDataMlbImportService {
 
+
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
-    private final IoEventRepository repo;
-    private final IoPlayerRepository playerRepository;
-    private final IoTeamRepository teamRepository;
-    private final IoBetRepository betRepository;
-    private final IoEventMapper mapper;
-    private final IoPlayerMapper playerMapper;
-    private final IoPlayerGamesStatsRepository playerGamesStatsRepository;
+
+    private final IoEventRepository            eventRepo;
+    private final IoBetRepository              betRepo;
+    private final IoTeamRepository             teamRepo;
+    private final IoPlayerRepository           playerRepo;
+    private final IoPlayerStatsRepository      playerStatsRepo;
+    private final IoPlayerGamesStatsRepository playerGameStatsRepo;
+
+    private final IoEventMapper           eventMapper;
+    private final IoBetMapper             betMapper;
+    private final IoTeamMapper            teamMapper;
+    private final IoPlayerMapper          playerMapper;
+    private final IoPlayersStatsMapper    playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
-    private final IoPlayerStatsRepository playerStatsRepository;
-    private final IoPlayersStatsMapper ioPlayersStatsMapper;
+
+    private final FetchLogService fetchLogService;
+
+
     @Value("${sportsdata.key}")
     private String apiKey;
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
-    private int seasonYear = Year.now().getValue();
+    private static final Duration REQ_TIMEOUT       = Duration.ofSeconds(40);
+    private static final Retry    RETRY_POLICY      =
+            Retry.backoff(3, Duration.ofSeconds(3))
+                    .maxBackoff(Duration.ofSeconds(15));
+
+    private final int seasonYear = Year.now().getValue();
+
 
     public void importPlayersStats() {
 
-        System.out.println("Import players stats from SportsDataMLB started");
-        String path = String.format(
-                "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/"
-                        + seasonYear + "?key=" + apiKey);
+        var log = fetchLogService.start(FetchIoType.PLAYER_STATS, SportIoType.MLB, null);
+        try {
+            String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/"
+                    + seasonYear + "?key=" + apiKey;
 
+            sportsDataWebClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
+                    .timeout(REQ_TIMEOUT)
+                    .retryWhen(RETRY_POLICY)
+                    .doOnNext(this::upsertPlayerSeasonStat)
+                    .blockLast();
 
-        List<IoSportsDataPlayerStatsDTO> dtos = sportsDataWebClient.get()
-                .uri(path)
-                .retrieve()
-                .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
-                .collectList()
-                .block();
-
-        if (dtos == null) return;
-
-        for (IoSportsDataPlayerStatsDTO dto : dtos) {
-
-            if (dto.getPlayerID() == null) {
-                System.out.println("⚠️  DTO has null PlayerID, skipping: " + dto);
-                continue;
-            }
-
-            List<IoPlayersStats> list = playerStatsRepository.findByStatId(dto.getStatID());
-
-            if (list.isEmpty()) {
-                playerStatsRepository.save(ioPlayersStatsMapper.toEntity(dto));
-            } else {
-                IoPlayersStats latest = list.stream()
-                        .max(Comparator.comparing(IoPlayersStats::getUpdated))
-                        .orElse(list.get(0));
-
-                ioPlayersStatsMapper.merge(latest, dto);
-                playerStatsRepository.save(latest);
-
-            }
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
         }
-        System.out.println("Import players stats from SportsDataMLB has finished ");
-
     }
 
-
     public void importScores(LocalDate date) {
-        System.out.printf("Import scores from SportsDataMLB has started for date - %s", date);
-        long start = System.currentTimeMillis();
-        String scorePath = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/"
-                        + date + "?key=" + apiKey);
 
-        List<ScoreBasicDto> gameDtos = sportsDataWebClient.get()
-                .uri(scorePath)
-                .retrieve()
-                .bodyToFlux(ScoreBasicDto.class)
-                .collectList()
-                .block();
+        var log = fetchLogService.start(FetchIoType.SCORES, SportIoType.MLB, null);
+        try {
+            List<ScoreBasicDto> games = fetchScores(date);
+            if (games != null) games.forEach(this::upsertGame);
 
-        if (gameDtos == null) return;
+            fetchLogService.runVoid(FetchIoType.BET, SportIoType.MLB, log,
+                    () -> fetchBetMarketsForGames(games).block());
 
-        for (ScoreBasicDto dto : gameDtos) {
-            Optional<IoEvent> gameOptional = repo.findByGameId(dto.gameId());
-            IoEvent game;
-
-            if (gameOptional.isPresent()) {
-                IoEvent existing = gameOptional.get();
-                mapper.merge(existing, dto);
-                repo.save(existing);
-                game = existing;
-            } else {
-                game = repo.save(mapper.toEntity(dto));
-            }
-
-            String betMarketPath = String.format(
-                    "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/"
-                            + game.getGameId() + "/G1000?key=" + apiKey + "&include=available");
-
-            List<SportsDataBettingMarketDTO> updateBetMarketDtoList = sportsDataWebClient.get()
-                    .uri(betMarketPath)
-                    .retrieve()
-                    .bodyToFlux(SportsDataBettingMarketDTO.class)
-                    .collectList()
-                    .block();
-
-            if (updateBetMarketDtoList == null) return;
-
-            List<IoBet> existingBetMarkets = betRepository.findByEventWithOutcomes(game);
-
-            updateBetMarketDtoList = updateBetMarketDtoList.stream()
-                    .filter(betMarket -> betMarket.getBettingMarketType().equalsIgnoreCase(PLAYER_MARKET_NAME)
-                            && betMarket.getAnyBetsAvailable())
-                    .toList();
-
-            List<IoBet> betsToSave = reconcileBettingMarkets(game, updateBetMarketDtoList, existingBetMarkets);
-            if (!betsToSave.isEmpty()) betRepository.saveAll(betsToSave);
-
-            long durationMillis = System.currentTimeMillis() - start;
-            long seconds = durationMillis / 1000;
-            long minutes = seconds / 60;
-            String formattedDuration = String.format("%d minute %d second", minutes, seconds);
-
-            System.out.printf("Import scores from SportsDataMLB has finished for date - %s in %s", date, formattedDuration);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
         }
     }
 
     public void importPlayers() {
 
-        System.out.println("Import players from SportsDataMLB started");
-        final int CHUNK = 50;
+        var log = fetchLogService.start(FetchIoType.PLAYERS, SportIoType.MLB, null);
+        try {
+            List<SportsDataPlayerDTO> players = fetchPlayers();
+            if (players != null) {
+                players.forEach(this::upsertPlayer);
 
-        String path = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
-
-        List<SportsDataPlayerDTO> dtos = sportsDataWebClient.get()
-                .uri(path)
-                .retrieve()
-                .bodyToFlux(SportsDataPlayerDTO.class)
-                .collectList()
-                .block();
-
-        if (dtos == null) return;
-
-        for (SportsDataPlayerDTO dto : dtos) {
-
-            if (dto.getPlayerID() == null) continue;
-
-            playerRepository.findByPlayerId(dto.getPlayerID())
-                    .ifPresentOrElse(
-                            existing -> {
-                                playerMapper.merge(existing, dto);
-                                playerRepository.save(existing);
-                            },
-                            () -> playerRepository.save(playerMapper.toEntity(dto))
-                    );
-        }
-
-        List<Long> playerIds = dtos.stream()
-                .map(SportsDataPlayerDTO::getPlayerID)
-                .filter(Objects::nonNull)
-                .toList();
-
-        for (int from = 0; from < playerIds.size(); from += CHUNK) {
-
-            int to = Math.min(from + CHUNK, playerIds.size());
-            List<Long> subList = playerIds.subList(from, to);
-
-            for (Long playerId : subList) {
-
-                String playerStatsApi = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/"
-                        + seasonYear + "/" + playerId + "/5?key=" + apiKey;   // <— без пробілу перед “/5”
-
-                List<IoPlayerGameStatsDto> updatePlayerGameDtoList = sportsDataWebClient.get()
-                        .uri(playerStatsApi)
-                        .retrieve()
-                        .bodyToFlux(IoPlayerGameStatsDto.class)
-                        .collectList()
-                        .block();
-
-                if (updatePlayerGameDtoList == null) continue;
-
-                for (IoPlayerGameStatsDto dtoGame : updatePlayerGameDtoList) {
-                    playerGamesStatsRepository.findByStatId(dtoGame.getStatId())
-                            .ifPresentOrElse(
-                                    ex -> {
-                                        playerGameStatsMapper.merge(ex, dtoGame);
-                                        playerGamesStatsRepository.save(ex);
-                                    },
-                                    () -> playerGamesStatsRepository.save(playerGameStatsMapper.toEntity(dtoGame))
-                            );
-                }
+                fetchLogService.runVoid(FetchIoType.PLAYER_GAME_STATS, SportIoType.MLB, log,
+                        () -> Flux.fromIterable(players)
+                                .map(SportsDataPlayerDTO::getPlayerID)
+                                .filter(Objects::nonNull)
+                                .buffer(50)
+                                .delayElements(Duration.ofMillis(200))
+                                .flatMap(ids -> Flux.fromIterable(ids)
+                                        .flatMap(this::fetchAndUpsertPlayerGameStats, 5))
+                                .blockLast());
             }
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ignored) {
-            }
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
         }
-        System.out.println("Import players from SportsDataMLB has finished ");
     }
-
 
     @Transactional
     public void importTeams() {
-        System.out.println("Import teams from SportsDataMLB started");
-        String path = String.format(
-                "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey);
 
-        List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
-                .uri(path)
+        fetchLogService.runVoid(FetchIoType.TEAMS, SportIoType.MLB, null, () -> {
+            String url = "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey;
+            List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToFlux(SportsDataTeamDTO.class)
+                    .timeout(REQ_TIMEOUT)
+                    .retryWhen(RETRY_POLICY)
+                    .collectList()
+                    .block();
+
+            if (dtos != null) dtos.forEach(this::upsertTeam);
+        });
+    }
+
+
+    private void upsertPlayerSeasonStat(IoSportsDataPlayerStatsDTO dto) {
+
+        if (dto.getPlayerID() == null) return;
+
+        playerStatsRepo.findByStatId(dto.getStatID())
+                .stream()
+                .max(Comparator.comparing(IoPlayersStats::getUpdated))
+                .ifPresentOrElse(
+                        latest -> {
+                            playersStatsMapper.merge(latest, dto);
+                            playerStatsRepo.save(latest);
+                        },
+                        () -> playerStatsRepo.save(playersStatsMapper.toEntity(dto)));
+    }
+
+
+    private List<ScoreBasicDto> fetchScores(LocalDate date) {
+
+        String url = "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/"
+                + date + "?key=" + apiKey;
+
+        return sportsDataWebClient.get()
+                .uri(url)
                 .retrieve()
-                .bodyToFlux(SportsDataTeamDTO.class)
+                .bodyToFlux(ScoreBasicDto.class)
+                .timeout(REQ_TIMEOUT)
+                .retryWhen(RETRY_POLICY)
                 .collectList()
                 .block();
-
-        if (dtos == null) return;
-
-        for (SportsDataTeamDTO dto : dtos) {
-            teamRepository.findByTeamId(dto.getTeamId())
-                    .ifPresentOrElse(
-                            existing -> {
-                                IoTeamMapper.updateEntity(existing, dto);
-                                teamRepository.save(existing);
-                            },
-                            () -> {
-                                teamRepository.save(IoTeamMapper.toEntity(dto));
-                            }
-                    );
-        }
-        System.out.println("Import teams from SportsDataMLB has finished ");
-
     }
 
-    private List<IoBet> reconcileBettingMarkets(IoEvent event, List<SportsDataBettingMarketDTO> updateList,
-                                                List<IoBet> dbBetsWithOutcomes) {
-        Map<Long, IoBet> dbBetMap = dbBetsWithOutcomes.stream()
-                .collect(Collectors.toMap(IoBet::getMarketId, Function.identity()));
+    private IoEvent upsertGame(ScoreBasicDto dto) {
 
-        Set<Long> activeMarketIds = new HashSet<>(updateList.size());
-
-        List<IoBet> betsToSave = new ArrayList<>();
-
-        for (SportsDataBettingMarketDTO updatedDto : updateList) {
-            Long id = updatedDto.getBettingMarketId();
-            activeMarketIds.add(id);
-            IoBet bet = dbBetMap.get(id);
-
-            if (bet == null) {
-                bet = IoBetMapper.toEntity(updatedDto, event);
-                betsToSave.add(bet);
-            } else if (!Objects.equals(bet.getUpdatedAt(), updatedDto.getUpdated())) {
-                bet = IoBetMapper.toEntity(updatedDto, event);
-                List<IoBetOutcome> updateBetOutcomesList = reconcileBetOutcomes(updatedDto.getBettingOutcomes(), bet.getBetOutcomes(), bet);
-                bet.setBetOutcomes(updateBetOutcomesList);
-                betsToSave.add(bet);
-            }
-        }
-
-        for (IoBet dbEntity : dbBetsWithOutcomes) {
-            if (!activeMarketIds.contains(dbEntity.getId()) && dbEntity.isAnyBetsAvailable()) {
-                dbEntity.setAnyBetsAvailable(false);
-                dbEntity.getBetOutcomes().forEach(outcome -> outcome.setAvailable(false));
-                betsToSave.add(dbEntity);
-            }
-        }
-
-        return betsToSave;
+        return eventRepo.findByGameId(dto.gameId())
+                .map(ex -> {
+                    eventMapper.merge(ex, dto);
+                    return eventRepo.save(ex);
+                })
+                .orElseGet(() -> eventRepo.save(eventMapper.toEntity(dto)));
     }
 
-    private List<IoBetOutcome> reconcileBetOutcomes(List<SportsDataBettingMarketDTO.BettingOutcomeDTO> updatedList,
-                                                    List<IoBetOutcome> dbList, IoBet bet) {
-        Map<Long, IoBetOutcome> dbMap = dbList.stream()
-                .collect(Collectors.toMap(IoBetOutcome::getId, Function.identity()));
 
-        Set<Long> activeOutcomesIds = new HashSet<>(updatedList.size());
-        List<IoBetOutcome> outcomesToSave = new ArrayList<>();
 
-        for (SportsDataBettingMarketDTO.BettingOutcomeDTO updated : updatedList) {
-            Long id = updated.getBettingOutcomeId();
-            activeOutcomesIds.add(id);
-            IoBetOutcome existing = dbMap.get(id);
+    private Mono<Void> fetchBetMarketsForGames(List<ScoreBasicDto> games) {
+
+        if (games == null) return Mono.empty();
+
+        return Flux.fromIterable(games)
+                .delayElements(Duration.ofMillis(150))
+                .flatMap(gameDto -> {
+                    IoEvent game = eventRepo.findByGameId(gameDto.gameId()).orElse(null);
+                    if (game == null) return Mono.empty();
+
+                    String url = "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/"
+                            + game.getGameId() + "/G1000?key=" + apiKey + "&include=available";
+
+                    return sportsDataWebClient.get()
+                            .uri(url)
+                            .retrieve()
+                            .bodyToFlux(SportsDataBettingMarketDTO.class)
+                            .timeout(REQ_TIMEOUT)
+                            .retryWhen(RETRY_POLICY)
+                            .filter(b -> PLAYER_MARKET_NAME.equalsIgnoreCase(b.getBettingMarketType())
+                                    && Boolean.TRUE.equals(b.getAnyBetsAvailable()))
+                            .collectList()
+                            .doOnNext(dtos -> {
+                                List<IoBet> toSave = reconcileBettingMarkets(
+                                        game, dtos, betRepo.findByEventWithOutcomes(game));
+                                if (!toSave.isEmpty()) betRepo.saveAll(toSave);
+                            })
+                            .then();
+                }, 5)
+                .then();
+    }
+
+
+
+    private List<SportsDataPlayerDTO> fetchPlayers() {
+
+        String url = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
+        return sportsDataWebClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(SportsDataPlayerDTO.class)
+                .timeout(REQ_TIMEOUT)
+                .retryWhen(RETRY_POLICY)
+                .collectList()
+                .block();
+    }
+
+    private void upsertPlayer(SportsDataPlayerDTO dto) {
+
+        if (dto.getPlayerID() == null) return;
+
+        playerRepo.findByPlayerId(dto.getPlayerID())
+                .ifPresentOrElse(
+                        ex -> {
+                            playerMapper.merge(ex, dto);
+                            playerRepo.save(ex);
+                        },
+                        () -> playerRepo.save(playerMapper.toEntity(dto)));
+    }
+
+    private Mono<Void> fetchAndUpsertPlayerGameStats(Long playerId) {
+
+        String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/"
+                + seasonYear + "/" + playerId + "/5?key=" + apiKey;
+
+        return sportsDataWebClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(IoPlayerGameStatsDto.class)
+                .timeout(REQ_TIMEOUT)
+                .retryWhen(RETRY_POLICY)
+                .doOnNext(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
+                        .ifPresentOrElse(
+                                ex -> {
+                                    playerGameStatsMapper.merge(ex, dto);
+                                    playerGameStatsRepo.save(ex);
+                                },
+                                () -> playerGameStatsRepo.save(
+                                        playerGameStatsMapper.toEntity(dto))))
+                .then();
+    }
+
+    /* ---------- Teams ---------- */
+
+    private void upsertTeam(SportsDataTeamDTO dto) {
+
+        teamRepo.findByTeamId(dto.getTeamId())
+                .ifPresentOrElse(
+                        ex -> {
+                            teamMapper.updateEntity(ex, dto);
+                            teamRepo.save(ex);
+                        },
+                        () -> teamRepo.save(teamMapper.toEntity(dto)));
+    }
+
+    private List<IoBet> reconcileBettingMarkets(IoEvent event,
+                                                List<SportsDataBettingMarketDTO> incoming,
+                                                List<IoBet> db) {
+
+        Map<Long, IoBet> dbMap = db.stream()
+                .collect(Collectors.toMap(IoBet::getMarketId, it -> it));
+
+        Set<Long> active = incoming.stream()
+                .map(SportsDataBettingMarketDTO::getBettingMarketId)
+                .collect(Collectors.toSet());
+
+        List<IoBet> toSave = new ArrayList<>();
+
+        for (var dto : incoming) {
+            IoBet existing = dbMap.get(dto.getBettingMarketId());
 
             if (existing == null) {
-                outcomesToSave.add(IoBetMapper.toBetOutcomeEntity(updated, bet));
-            } else if (!Objects.equals(existing.getUpdatedAt(), updated.getUpdated())) {
-                outcomesToSave.add(IoBetMapper.updateEntity(existing, updated, bet));
+                toSave.add(betMapper.toEntity(dto, event));
+            } else if (!Objects.equals(existing.getUpdatedAt(), dto.getUpdated())) {
+                IoBet replaced = betMapper.toEntity(dto, event);
+                replaced.setBetOutcomes(reconcileBetOutcomes(
+                        dto.getBettingOutcomes(), existing.getBetOutcomes(), replaced));
+                toSave.add(replaced);
             }
         }
 
-        for (IoBetOutcome db : dbList) {
-            if (!activeOutcomesIds.contains(db.getId()) && db.isAvailable()) {
-                db.setAvailable(false);
-                outcomesToSave.add(db);
+        db.stream()
+                .filter(b -> !active.contains(b.getMarketId()) && b.isAnyBetsAvailable())
+                .forEach(b -> {
+                    b.setAnyBetsAvailable(false);
+                    b.getBetOutcomes().forEach(o -> o.setAvailable(false));
+                    toSave.add(b);
+                });
+
+        return toSave;
+    }
+
+    private List<IoBetOutcome> reconcileBetOutcomes(
+            List<SportsDataBettingMarketDTO.BettingOutcomeDTO> incoming,
+            List<IoBetOutcome> db,
+            IoBet bet) {
+
+        Map<Long, IoBetOutcome> dbMap = db.stream()
+                .collect(Collectors.toMap(IoBetOutcome::getId, it -> it));
+
+        Set<Long> active = incoming.stream()
+                .map(SportsDataBettingMarketDTO.BettingOutcomeDTO::getBettingOutcomeId)
+                .collect(Collectors.toSet());
+
+        List<IoBetOutcome> toSave = new ArrayList<>();
+
+        for (var dto : incoming) {
+            IoBetOutcome ex = dbMap.get(dto.getBettingOutcomeId());
+
+            if (ex == null) {
+                toSave.add(betMapper.toBetOutcomeEntity(dto, bet));
+            } else if (!Objects.equals(ex.getUpdatedAt(), dto.getUpdated())) {
+                toSave.add(betMapper.updateEntity(ex, dto, bet));
             }
         }
 
-        return outcomesToSave;
+        db.stream()
+                .filter(o -> !active.contains(o.getId()) && o.isAvailable())
+                .forEach(o -> {
+                    o.setAvailable(false);
+                    toSave.add(o);
+                });
+
+        return toSave;
     }
 }
