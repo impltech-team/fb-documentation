@@ -1,0 +1,65 @@
+name: "Update ECS"
+description: "Updates and deploys a new ECS task definition"
+inputs:
+  ecs-service:
+    description: "ECS service name"
+    required: true
+  image-tag:
+    description: "Full image tag"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Determine environment from branch
+      id: branch-map
+      shell: bash
+      run: |
+        case "${{ github.ref_name }}" in
+          main | feat/ci-docker)
+            echo "deploy-env=dev" >> $GITHUB_OUTPUT
+            ;;
+          stage)
+            echo "deploy-env=stage" >> $GITHUB_OUTPUT
+            ;;
+          production)
+            echo "deploy-env=prd" >> $GITHUB_OUTPUT
+            ;;
+        esac
+
+    - name: Get current task definition
+      shell: bash
+      run: |
+        aws ecs describe-task-definition \
+          --task-definition "${{ steps.branch-map.outputs.deploy-env }}-${{ inputs.ecs-service }}" \
+          --query taskDefinition --output json > task-raw.json
+
+    - name: Clear task definition
+      shell: bash
+      run: |
+        jq 'del(.compatibilities,
+          .taskDefinitionArn,
+          .requiresAttributes,
+          .revision, .status,
+          .registeredAt,
+          .registeredBy)' \
+          task-raw.json > task-clear.json
+
+    - name: Update image in task definition
+      shell: bash
+      run: |
+        jq --arg image "${{ inputs.image-tag }}" --arg name "flexbets-${{ inputs.ecs-service }}" '
+          .containerDefinitions |= map(
+            if .name == $name then
+              .image = $image
+            else
+              .
+            end
+          )' task-clear.json > task-definition.json
+
+    - name: Deploy to ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        cluster: ${{ steps.branch-map.outputs.deploy-env }}
+        service: ${{ inputs.ecs-service }}
+        wait-for-service-stability: true
