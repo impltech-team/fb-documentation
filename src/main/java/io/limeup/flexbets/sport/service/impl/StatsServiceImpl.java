@@ -168,9 +168,6 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             throw e;
         }
 
-        saveOrUpdateEvents(eventsToSave.values(), eventIdToEventDTO, eventIdToSeason, eventRepository, eventMapper);
-        log.info("Saved events to DB");
-
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
             log.info("Processing squad sub-participants for participantId={}, eventId={}",
                     pesc.participant().getExternalId(), pesc.event().getExternalId());
