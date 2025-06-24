@@ -138,11 +138,17 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         log.info("Saving {} participants to DB", participantsToSave.size());
         participantRepository.saveAllAndFlush(participantsToSave.values());
         log.info("Saved participants to DB");
+        List<Integer> eventIds = eventsToSave.values().stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+        Map<Integer, Event> existingEvents = eventRepository.findAllById(eventIds).stream()
+                .collect(Collectors.toMap(Event::getId, Function.identity()));
+
         for (Event event : eventsToSave.values()) {
-            Optional<Event> existing = eventRepository.findById(event.getId());
-            if (existing.isPresent()) {
-                eventMapper.updateEntity(existing.get(), event, event.getCompetition(), event.getVenue(), event.getSeason());
-                eventRepository.save(existing.get());
+            Event existing = existingEvents.get(event.getId());
+            if (existing != null) {
+                eventMapper.updateEntity(existing, event, event.getCompetition(), event.getVenue(), event.getSeason());
+                eventRepository.save(existing);
             } else {
                 eventRepository.save(event);
             }
