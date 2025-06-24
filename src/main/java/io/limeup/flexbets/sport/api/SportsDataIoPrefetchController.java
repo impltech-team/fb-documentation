@@ -22,25 +22,25 @@ public class SportsDataIoPrefetchController {
 
     @PostMapping("/players")
     public ResponseEntity<Void> prefetchPlayers() {
-        //      taskExecutor.execute(importService::importPlayers);
+              taskExecutor.execute(importService::importPlayers);
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/teams")
     public ResponseEntity<Void> prefetchTeams() {
-     //   taskExecutor.execute(importService::importTeams);
+        taskExecutor.execute(importService::importTeams);
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/scores")
     public ResponseEntity<Void> prefetchScores() {
-    //    taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
+        taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/player-stats")
     public ResponseEntity<Void> prefetchPlayerStats() {
-     //   taskExecutor.execute(importService::importPlayersStats);
+        taskExecutor.execute(importService::importPlayersStats);
         return ResponseEntity.accepted().build();
     }
 }
