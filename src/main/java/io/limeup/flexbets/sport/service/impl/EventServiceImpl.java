@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -108,7 +107,7 @@ public class EventServiceImpl extends ExternalIdReadServiceImpl<Event, EventDTO,
                 .filter(subParticipant -> subParticipant.getPlayerShortName() != null)
                 .collect(Collectors.toMap(SubParticipant::getPlayerShortName, SubParticipant::getExternalId));
 
-        Map<Integer, List<BetRow>> marketBetRowMap = betService.getBetsByExternalIdInAndBetStatus(List.of(eventId), BetStatus.OPEN)
+        Map<Integer, List<BetRow>> marketBetRowMap = betService.getBetsByExternalIdInAndBetStatus(List.of(eventId), BetStatus.SUSPENDED)
                 .stream()
                 .collect(Collectors.groupingBy(BetRow::getMarketExternalId));
 

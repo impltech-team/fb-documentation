@@ -23,7 +23,7 @@ spring:
     hibernate:
       ddl-auto: none
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         jdbc:
@@ -59,13 +59,16 @@ scheduler:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.springframework.web.reactive.function.client.ExchangeFunctions: DEBUG
-    reactor.netty.http.client: DEBUG
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
+    org.springframework.web.reactive.function.client.ExchangeFunctions: OFF
+    reactor.netty.http.client: ERROR
 
 trade360:
   username: ${LSPORTS_USERNAME}
   password: ${LSPORTS_PASSWORD}
   prematch-package-id: ${LSPORTS_PREMATCH_PACKAGE_ID:2463}
   inplay-package-id: ${LSPORTS_INPLAY_PACKAGE_ID:2464}
+
+sportsdata:
+  key: ${SPORTSDATA_API_KEY}

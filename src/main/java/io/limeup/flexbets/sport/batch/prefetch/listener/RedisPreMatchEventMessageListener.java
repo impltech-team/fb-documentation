@@ -3,6 +3,7 @@ package io.limeup.flexbets.sport.batch.prefetch.listener;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.dto.trade360.Trade360BetDTO;
+import io.limeup.flexbets.sport.dto.trade360.Trade360MarketDTO;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.repository.*;
 import io.limeup.flexbets.sport.service.BetService;
@@ -54,7 +55,7 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                                 .receivedAt(LocalDateTime.now())
                                 .build()
                 );
-                Map<Integer, List<Trade360BetDTO>> marketBetsMap = new HashMap<>();
+                List<Trade360MarketDTO> marketBetsList = new ArrayList<>();
 
                 JsonNode scoreboard = eventNode.path("Livescore").path("Scoreboard");
                 if (!scoreboard.isMissingNode()) {
@@ -142,16 +143,22 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                 if (markets.isArray()) {
                     for (JsonNode m : markets) {
                         Long marketId = m.path("Id").asLong();
+                        String marketName = m.path("Name").asText();
                         LiveLsMarket savedMarket = marketRepo.save(LiveLsMarket.builder()
                                 .fixtureId(fixtureId)
                                 .marketId(marketId)
-                                .marketName(m.path("Name").asText())
+                                .marketName(marketName)
                                 .marketMainLine(m.path("MainLine").asText(null))
                                 .event(event)
                                 .build());
 
+                        Trade360MarketDTO trade360Market = new Trade360MarketDTO();
+                        trade360Market.setId(marketId.intValue());
+                        trade360Market.setName(marketName);
+
                         List<Trade360BetDTO> trade360Bets = new ArrayList<>();
-                        marketBetsMap.put(marketId.intValue(), trade360Bets);
+                        trade360Market.setBets(trade360Bets);
+                        marketBetsList.add(trade360Market);
 
                         JsonNode bets = m.path("Bets");
                         if (bets.isArray()) {
@@ -200,8 +207,8 @@ public class RedisPreMatchEventMessageListener implements MessageListener {
                     }
                 }
 
-                if (!marketBetsMap.isEmpty()) {
-                    betService.updateBetsInfoFromTrade360(fixtureId, marketBetsMap);
+                if (!marketBetsList.isEmpty()) {
+                    betService.updateBetsInfoFromTrade360(fixtureId, marketBetsList);
                 }
             }
 
