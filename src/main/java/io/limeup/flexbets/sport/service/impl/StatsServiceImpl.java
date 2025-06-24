@@ -135,8 +135,19 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         Set<ParticipantEventSeasonCompetition> uniqueParticipantEventSeasonComp = new HashSet<>();
 
         extractEventParticipantsData(eventContexts, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, false);
+        log.info("Saving {} participants to DB", participantsToSave.size());
         participantRepository.saveAllAndFlush(participantsToSave.values());
-        eventRepository.saveAllAndFlush(eventsToSave.values());
+        log.info("Saved participants to DB");
+        for (Event event : eventsToSave.values()) {
+            Optional<Event> existing = eventRepository.findById(event.getId());
+            if (existing.isPresent()) {
+                eventMapper.updateEntity(existing.get(), event, event.getCompetition(), event.getVenue(), event.getSeason());
+                eventRepository.save(existing.get());
+            } else {
+                eventRepository.save(event);
+            }
+        }
+        log.info("Saved events to DB");
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
             processSquadSubParticipants(pesc);
@@ -266,7 +277,15 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         extractEventParticipantsData(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, true);
 
         participantRepository.saveAllAndFlush(new ArrayList<>(participantsToSave.values()));
-        eventRepository.saveAllAndFlush(eventsToSave.values());
+        for (Event event : eventsToSave.values()) {
+            Optional<Event> existing = eventRepository.findById(event.getId());
+            if (existing.isPresent()) {
+                eventMapper.updateEntity(existing.get(), event, event.getCompetition(), event.getVenue(), event.getSeason());
+                eventRepository.save(existing.get());
+            } else {
+                eventRepository.save(event);
+            }
+        }
 
         //refetch all stats for historical events per participant
         statRepository.deleteByEventIdIn(uniqueParticipantEventSeasonComp.stream()
