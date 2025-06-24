@@ -168,26 +168,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             throw e;
         }
 
-        for (Event event : eventsToSave.values()) {
-            try {
-                Optional<Event> existing = eventRepository.findById(event.getId());
-
-                if (existing.isPresent()) {
-                    log.info("Updating existing event in DB: id={}", event.getId());
-                    StatScoreEventDTO eventDTO = eventIdToEventDTO.get(event.getExternalId());
-                    StatScoreSeasonDTO seasonDTO = eventIdToSeason.get(event.getExternalId());
-                    eventMapper.updateEntity(existing.get(), eventDTO, event.getCompetition(), event.getVenue(),
-                            seasonDTO);
-                    eventRepository.save(existing.get());
-                } else {
-                    log.info("Saving new event to DB: id={}", event.getId());
-                    eventRepository.save(event);
-                }
-            } catch (Exception e) {
-                log.error("Error saving event to DB: id={}", event.getId(), e);
-                throw e;
-            }
-        }
+        saveOrUpdateEvents(eventsToSave.values(), eventIdToEventDTO, eventIdToSeason, eventRepository, eventMapper);
         log.info("Saved events to DB");
 
         for (ParticipantEventSeasonCompetition pesc : uniqueParticipantEventSeasonComp) {
