@@ -76,8 +76,6 @@ jobs:
       permissions:
         id-token: write
         contents: read
-      env:
-        ecs_service: sports
       steps:
         - uses: actions/checkout@v4
           id: checkout
@@ -91,7 +89,7 @@ jobs:
         - name: Deploy to ECS
           uses: ./.github/actions/ecs
           with:
-            ecs_service: sports
+            ecs-service: sports
             image-tag: ${{ needs.build-app.outputs.image_tag_result }}
 
         # - name: Update ECS task definition
