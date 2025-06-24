@@ -11,6 +11,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.function.Supplier;
 
@@ -39,6 +40,11 @@ public class FetchLogService {
         });
     }
 
+    public boolean wasRunRecently(FetchIoType type, SportIoType sport, Duration window) {
+        return repo
+                .existsRecently(
+                        type, sport, LocalDateTime.now().minus(window));
+    }
     public IoFetchLog start(FetchIoType type, SportIoType sport, IoFetchLog parent) {
         return repo.save(
                 IoFetchLog.builder()

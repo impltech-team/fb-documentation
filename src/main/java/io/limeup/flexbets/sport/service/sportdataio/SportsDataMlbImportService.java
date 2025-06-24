@@ -1,17 +1,10 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
-import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.*;
 import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
-import io.limeup.flexbets.sport.mapper.IoBetMapper;
-import io.limeup.flexbets.sport.mapper.IoTeamMapper;
-import io.limeup.flexbets.sport.model.IoBet;
-import io.limeup.flexbets.sport.model.IoBetOutcome;
-import io.limeup.flexbets.sport.model.IoEvent;
-import io.limeup.flexbets.sport.model.IoPlayersStats;
+import io.limeup.flexbets.sport.mapper.*;
+import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.model.dto.*;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -40,16 +33,16 @@ public class SportsDataMlbImportService {
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
 
-    private final IoEventRepository eventRepo;
-    private final IoBetRepository betRepo;
-    private final IoTeamRepository teamRepo;
-    private final IoPlayerRepository playerRepo;
-    private final IoPlayerStatsRepository playerStatsRepo;
+    private final IoEventRepository          eventRepo;
+    private final IoBetRepository            betRepo;
+    private final IoTeamRepository           teamRepo;
+    private final IoPlayerRepository         playerRepo;
+    private final IoPlayerStatsRepository    playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
     private final IoEventMapper eventMapper;
-    private final IoBetMapper betMapper;
-    private final IoTeamMapper teamMapper;
+    private final IoBetMapper            betMapper;
+    private final IoTeamMapper           teamMapper;
     private final IoPlayerMapper playerMapper;
     private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
@@ -60,13 +53,15 @@ public class SportsDataMlbImportService {
     @Value("${sportsdata.key}")
     private String apiKey;
 
+//    @Value("${flexbets.import-cooldown-minutes:5}")
+    private long cooldownMinutes = 5;
+
     private static final String PLAYER_MARKET_NAME = "Player Prop";
-
-
     private final int seasonYear = Year.now().getValue();
 
 
     public void importPlayersStats() {
+        if (skipIfLaunchedRecently(FetchIoType.PLAYER_STATS)) return;
 
         var log = fetchLogService.start(FetchIoType.PLAYER_STATS, SportIoType.MLB, null);
         try {
@@ -77,7 +72,6 @@ public class SportsDataMlbImportService {
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
-
                     .doOnNext(this::upsertPlayerSeasonStat)
                     .blockLast();
 
@@ -89,6 +83,7 @@ public class SportsDataMlbImportService {
     }
 
     public void importScores(LocalDate date) {
+        if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
 
         var log = fetchLogService.start(FetchIoType.SCORES, SportIoType.MLB, null);
         try {
@@ -106,6 +101,7 @@ public class SportsDataMlbImportService {
     }
 
     public void importPlayers() {
+        if (skipIfLaunchedRecently(FetchIoType.PLAYERS)) return;
 
         var log = fetchLogService.start(FetchIoType.PLAYERS, SportIoType.MLB, null);
         try {
@@ -132,6 +128,7 @@ public class SportsDataMlbImportService {
 
     @Transactional
     public void importTeams() {
+        if (skipIfLaunchedRecently(FetchIoType.TEAMS)) return;
 
         fetchLogService.runVoid(FetchIoType.TEAMS, SportIoType.MLB, null, () -> {
             String url = "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey;
@@ -139,7 +136,6 @@ public class SportsDataMlbImportService {
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(SportsDataTeamDTO.class)
-
                     .collectList()
                     .block();
 
@@ -148,8 +144,16 @@ public class SportsDataMlbImportService {
     }
 
 
-    private void upsertPlayerSeasonStat(IoSportsDataPlayerStatsDTO dto) {
+    private boolean skipIfLaunchedRecently(FetchIoType type) {
+        Duration window = Duration.ofMinutes(cooldownMinutes);
+        if (fetchLogService.wasRunRecently(type, SportIoType.MLB, window)) {
+            log.warn("[{}] Skipped – already ran within {}", type, window);
+            return true;
+        }
+        return false;
+    }
 
+    private void upsertPlayerSeasonStat(IoSportsDataPlayerStatsDTO dto) {
         if (dto.getPlayerID() == null) return;
 
         playerStatsRepo.findByStatId(dto.getStatID())
@@ -163,9 +167,7 @@ public class SportsDataMlbImportService {
                         () -> playerStatsRepo.save(playersStatsMapper.toEntity(dto)));
     }
 
-
     private List<ScoreBasicDto> fetchScores(LocalDate date) {
-
         String url = "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/"
                 + date + "?key=" + apiKey;
 
@@ -173,13 +175,11 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(ScoreBasicDto.class)
-
                 .collectList()
                 .block();
     }
 
     private IoEvent upsertGame(ScoreBasicDto dto) {
-
         return eventRepo.findByGameId(dto.gameId())
                 .map(ex -> {
                     eventMapper.merge(ex, dto);
@@ -188,9 +188,7 @@ public class SportsDataMlbImportService {
                 .orElseGet(() -> eventRepo.save(eventMapper.toEntity(dto)));
     }
 
-
     private Mono<Void> fetchBetMarketsForGames(List<ScoreBasicDto> games) {
-
         if (games == null) return Mono.empty();
 
         return Flux.fromIterable(games)
@@ -206,7 +204,6 @@ public class SportsDataMlbImportService {
                             .uri(url)
                             .retrieve()
                             .bodyToFlux(SportsDataBettingMarketDTO.class)
-
                             .filter(b -> PLAYER_MARKET_NAME.equalsIgnoreCase(b.getBettingMarketType())
                                     && Boolean.TRUE.equals(b.getAnyBetsAvailable()))
                             .collectList()
@@ -220,21 +217,17 @@ public class SportsDataMlbImportService {
                 .then();
     }
 
-
     private List<SportsDataPlayerDTO> fetchPlayers() {
-
         String url = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
         return sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(SportsDataPlayerDTO.class)
-
                 .collectList()
                 .block();
     }
 
     private void upsertPlayer(SportsDataPlayerDTO dto) {
-
         if (dto.getPlayerID() == null) return;
 
         playerRepo.findByPlayerId(dto.getPlayerID())
@@ -247,7 +240,6 @@ public class SportsDataMlbImportService {
     }
 
     private Mono<Void> fetchAndUpsertPlayerGameStats(Long playerId) {
-
         String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/"
                 + seasonYear + "/" + playerId + "/5?key=" + apiKey;
 
@@ -255,7 +247,6 @@ public class SportsDataMlbImportService {
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(IoPlayerGameStatsDto.class)
-
                 .doOnNext(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
                         .ifPresentOrElse(
                                 ex -> {
@@ -267,9 +258,7 @@ public class SportsDataMlbImportService {
                 .then();
     }
 
-
     private void upsertTeam(SportsDataTeamDTO dto) {
-
         teamRepo.findByTeamId(dto.getTeamId())
                 .ifPresentOrElse(
                         ex -> {
@@ -279,9 +268,10 @@ public class SportsDataMlbImportService {
                         () -> teamRepo.save(teamMapper.toEntity(dto)));
     }
 
+
     private Set<IoBet> reconcileBettingMarkets(IoEvent event,
-                                                List<SportsDataBettingMarketDTO> incoming,
-                                                Set<IoBet> db) {
+                                               List<SportsDataBettingMarketDTO> incoming,
+                                               Set<IoBet> db) {
 
         Map<Long, IoBet> dbMap = db.stream()
                 .collect(Collectors.toMap(IoBet::getMarketId, it -> it));
