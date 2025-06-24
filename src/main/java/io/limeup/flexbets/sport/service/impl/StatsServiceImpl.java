@@ -277,16 +277,28 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
         extractEventParticipantsData(historicalEvents, participantsToSave, uniqueParticipantEventSeasonComp, eventsToSave, true);
 
         participantRepository.saveAllAndFlush(new ArrayList<>(participantsToSave.values()));
+        List<Integer> eventIds = eventsToSave.values().stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
+        Map<Integer, Event> existingEvents = eventRepository.findAllById(eventIds).stream()
+                .collect(Collectors.toMap(Event::getId, Function.identity()));
+
+        List<Event> eventsToUpdate = new ArrayList<>();
+        List<Event> eventsToInsert = new ArrayList<>();
+
         for (Event event : eventsToSave.values()) {
-            Optional<Event> existing = eventRepository.findById(event.getId());
-            if (existing.isPresent()) {
-                eventMapper.updateEntity(existing.get(), event, event.getCompetition(), event.getVenue(), event.getSeason());
-                eventRepository.save(existing.get());
+            Event existing = existingEvents.get(event.getId());
+            if (existing != null) {
+                eventMapper.updateEntity(existing, event, event.getCompetition(), event.getVenue(), event.getSeason());
+                eventsToUpdate.add(existing);
             } else {
-                eventRepository.save(event);
+                eventsToInsert.add(event);
             }
         }
 
+        eventRepository.saveAll(eventsToUpdate);
+        eventRepository.saveAll(eventsToInsert);
         //refetch all stats for historical events per participant
         statRepository.deleteByEventIdIn(uniqueParticipantEventSeasonComp.stream()
                 .map(u -> u.event().getId())
