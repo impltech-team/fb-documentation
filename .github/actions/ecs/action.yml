@@ -15,13 +15,13 @@ runs:
       shell: bash
       run: |
         case "${{ github.ref_name }}" in
-          main | feat/ci-docker)
+          development | feat/ci-docker)
             echo "deploy-env=dev" >> $GITHUB_OUTPUT
             ;;
           stage)
             echo "deploy-env=stage" >> $GITHUB_OUTPUT
             ;;
-          production)
+          main)
             echo "deploy-env=prd" >> $GITHUB_OUTPUT
             ;;
         esac

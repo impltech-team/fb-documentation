@@ -1,9 +1,9 @@
 # FLEXBETS-SPORT
 
 ## Pull request deployment flow
-PR **any** to **main** => dev \
-PR **main** to **stage** => stage \
-PR **stage** to **production** => prd
+PR **any** to **development** => dev \
+PR **development** to **stage** => stage \
+PR **stage** to **main** => prd
 
 ## Overview
 FLEXBETS-SPORT is a service responsible for REST communication with sports APIs and live data services. It collects and transforms data into a unified response, which is made available via REST controllers. The project is built using Java and Spring Boot.
