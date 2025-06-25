@@ -62,9 +62,9 @@ public class PreFetchStatScoreDataStep {
         return log -> {
             System.out.printf("prefetchProcessor has started for prefetch log with status - %s, for competition id - %s and date - %s%n",
                     log.getCompetitionId(), log.getPrefetchDate(), log.getStatus().name());
-            if (!PrefetchLog.Status.UPDATE.equals(log.getStatus())) {
+          //  if (!PrefetchLog.Status.UPDATE.equals(log.getStatus())) {
                 statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
-            }
+         //   }
             dataService.fetchDataFromTrade360ApiForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             log.setStatus(PrefetchLog.Status.SUCCESS);
             log.setErrorMessage(null);

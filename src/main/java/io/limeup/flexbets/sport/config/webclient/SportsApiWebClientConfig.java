@@ -1,12 +1,7 @@
 package io.limeup.flexbets.sport.config.webclient;
 
 import io.limeup.flexbets.sport.service.statscore.StatScoreAuthService;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -21,41 +16,50 @@ import java.time.Duration;
 import java.util.Set;
 
 @Configuration
-@RequiredArgsConstructor
 public class SportsApiWebClientConfig {
 
-    private static final String STATSCORE_BASE = "https://api.statscore.com/v2";
-    private static final Set<String> NO_AUTH = Set.of(
-            "/v2/areas", "/v2/sports", "/oauth/token"
+    private static final String BASE_URL = "https://api.statscore.com/v2";
+
+    private static final Set<String> NO_AUTH_ENDPOINTS = Set.of(
+            "/v2/sports",
+            "/v2/oauth",
+            "/v2/areas"
     );
 
     @Bean
     @Qualifier("statScoreWebClient")
-    public WebClient statScoreWebClient(StatScoreAuthService auth) {
+    public WebClient webClient(StatScoreAuthService authService) {
         return WebClient.builder()
-                .baseUrl(STATSCORE_BASE)
+                .baseUrl(BASE_URL)
                 .clientConnector(new ReactorClientHttpConnector(
-                        HttpClient.create().compress(true)))
-                .codecs(c -> c.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
-                .filter(authFilter(auth))
+                        HttpClient.create().compress(true)
+                ))
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
+                .filter(authFilter(authService))
                 .build();
     }
 
-    private ExchangeFilterFunction authFilter(StatScoreAuthService auth) {
-        return ExchangeFilterFunction.ofRequestProcessor(req -> {
-            String path = req.url().getPath();
-            if (NO_AUTH.contains(path)) return Mono.just(req);
+    private ExchangeFilterFunction authFilter(StatScoreAuthService authService) {
+        return ExchangeFilterFunction.ofRequestProcessor(request -> {
+            String path = request.url().getPath();
 
-            return auth.getToken().map(token -> {
-                URI newUri = URI.create(
-                        req.url() + (req.url().getQuery() == null ? "?" : "&") + "token=" + token);
-                return ClientRequest.from(req).url(newUri).build();
-            });
+            if (NO_AUTH_ENDPOINTS.contains(path)) {
+                return Mono.just(request);
+            }
+
+            return authService.getToken()
+                    .map(token -> {
+                        String originalUrl = request.url().toString();
+                        URI modifiedUrl = URI.create(originalUrl.contains("?") ?
+                                originalUrl + "&token=" + token :
+                                originalUrl + "?token=" + token);
+
+                        return ClientRequest.from(request)
+                                .url(modifiedUrl)
+                                .build();
+                    });
         });
     }
-
-
-    @Bean
     @Qualifier("sportsDataWebClient")
     public WebClient sportsDataWebClient(SportsDataProps props) {
         return WebClient.builder()
