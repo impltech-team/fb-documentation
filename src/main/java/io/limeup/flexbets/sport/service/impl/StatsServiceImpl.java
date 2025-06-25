@@ -337,7 +337,7 @@ public class StatsServiceImpl extends ExternalIdReadServiceImpl<EventStat, Stats
             log.info("Saved {} historical participants to DB", participantsToSave.size());
             for (Event event : eventsToSave.values()) {
                 try {
-                    Optional<Event> existing = eventRepository.findById(event.getId());
+                    Optional<Event> existing = eventRepository.findByExternalId(event.getExternalId());
                     StatScoreSeasonDTO seasonDTO = eventIdToSeason.get(event.getExternalId());
                     StatScoreEventDTO eventDTO = eventIdToEventDTO.get(event.getExternalId());
                     if (existing.isPresent()) {
