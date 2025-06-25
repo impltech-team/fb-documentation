@@ -1,6 +1,7 @@
 # FLEXBETS-SPORT
 
 ## Pull request deployment flow
+
 PR **any** to **development** => dev \
 PR **development** to **stage** => stage \
 PR **stage** to **main** => prd
