@@ -45,7 +45,8 @@ public class IoPlayerMapper {
         entity.setCollege(dto.getCollege());
         entity.setProDebut(dto.getProDebut());
         entity.setSalary(dto.getSalary());
-        entity.setPhotoUrl(dto.getPhotoUrl());
+      // populate by script
+        //  entity.setPhotoUrl(dto.getPhotoUrl());
         entity.setSportRadarPlayerId(dto.getSportRadarPlayerID());
         entity.setRotoworldPlayerId(dto.getRotoworldPlayerID());
         entity.setRotoWirePlayerId(dto.getRotoWirePlayerID());
@@ -99,7 +100,7 @@ public class IoPlayerMapper {
                 .college(dto.getCollege())
                 .proDebut(dto.getProDebut())
                 .salary(dto.getSalary())
-                .photoUrl(dto.getPhotoUrl())
+               // .photoUrl(dto.getPhotoUrl())
                 .sportRadarPlayerId(dto.getSportRadarPlayerID())
                 .rotoworldPlayerId(dto.getRotoworldPlayerID())
                 .rotoWirePlayerId(dto.getRotoWirePlayerID())
@@ -130,27 +131,34 @@ public class IoPlayerMapper {
                 .build();
     }
 
-    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap) {
+    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap, Map<Integer, String> playerUrl) {
         return players.stream()
-                .map(player -> toSubParticipantDTO(player, playerIdBetMap.get(player.getId().longValue())))
+                .map(player -> {
+                    Long playerId = Long.valueOf(player.getId());       // ← зовнішній ID
+                    List<SportsDataBetRow> bets =
+                            playerIdBetMap.getOrDefault(playerId, List.of());
+
+                    String photo = playerUrl.get(playerId.intValue());
+
+                    return toSubParticipantDTO(player, bets, photo);
+                })
                 .toList();
     }
 
-    //TODO change mock data
-    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets) {
+    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets,String playerUrl ){
         SubParticipantDTO result = new SubParticipantDTO();
         result.setId(player.getId());
         result.setPlayerName(player.getPlayerName());
-        result.setCompetitionId(5466); //mock
-        result.setCompetition("MLB"); //mock
-        result.setAvatarUrl("no"); //mock ask which parameter from sportsdata needed
+        result.setCompetitionId(5466);
+        result.setCompetition("MLB");
+        result.setAvatarUrl(playerUrl);
         result.setParticipantId(player.getPlayerTeamId());
         result.setTeam(player.getPlayerTeamName());
         result.setPosition(player.getPosition());
         result.setShirtNr(player.getShirtNumber());
         result.setAreaName(player.getCountry());
         result.setAreaName(player.getCountry());
-        result.setGender("male"); //mock
+        result.setGender("male");
         result.setWeight(player.getWeight().toString());
         result.setHeight(player.getHeight().toString());
         result.setBirthDate(player.getBirthDate());

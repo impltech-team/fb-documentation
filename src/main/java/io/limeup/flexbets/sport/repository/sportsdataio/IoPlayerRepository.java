@@ -2,6 +2,7 @@ package io.limeup.flexbets.sport.repository.sportsdataio;
 
 
 import io.limeup.flexbets.sport.model.IoPlayer;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.PlayerPhotoView;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
 
@@ -99,4 +101,12 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
     """,
             nativeQuery = true)
     long countPlayersWithUpcomingEvent();
+
+    @Query("""
+           select p.playerId   as playerId,
+                  p.photoUrl   as photoUrl
+           from   IoPlayer p
+           where  p.playerId in :ids
+           """)
+    Optional<PlayerPhotoView> findPhotosByPlayerIdIn(Set<Integer> playerIds);
 }
