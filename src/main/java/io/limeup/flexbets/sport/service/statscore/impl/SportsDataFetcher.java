@@ -13,14 +13,19 @@ public class SportsDataFetcher {
 
     private final SportsDataMlbImportService importService;
 
-    @Scheduled(fixedDelay = 3_700_000)
-    public void poll() {
+    @Scheduled(fixedDelay = 7_200_000)
+    public void pollScore() {
         importService.importScores(LocalDate.now());
     }
 
     @Scheduled(fixedDelay = 7_200_000)
     public void pollPlayers() {
         importService.importPlayers();
+    }
+
+    @Scheduled(fixedDelay = 7_200_000)
+    public void importPlayerSeasonStats() {
+        importService.importPlayerGameStats();
     }
 
     @Scheduled(fixedDelay = 7_200_000)
@@ -32,4 +37,10 @@ public class SportsDataFetcher {
     public void pollPlayersStats() {
         importService.importPlayersStats();
     }
+
+    @Scheduled(fixedDelay = 7_200_000)
+    public void pollImportBetMarkets() {
+        importService.importBetMarkets(LocalDate.now());
+    }
+
 }
