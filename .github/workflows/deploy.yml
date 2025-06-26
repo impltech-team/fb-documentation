@@ -8,10 +8,16 @@ on:
 jobs:
   build-app:
     if:
-      (${{ github.event_name == 'push' }} && ${{ github.ref_name }} == 'feat/ci-docker') ||
-      (${{ github.event_name == 'pull_request' }} && (${{ github.base_ref }} == 'development' ||
-      (${{ github.head_ref }} == 'development' && ${{ github.base_ref }} == 'stage') ||
-      (${{ github.head_ref }} == 'stage' && ${{ github.base_ref }} == 'main'))
+      (
+      ${{ github.event_name == 'push' }} && ${{ github.ref_name == 'feat/ci-docker' }}
+      ) ||
+      (
+      ${{ github.event_name == 'pull_request' }} &&
+      (
+      ${{ github.base_ref == 'development' }} ||
+      (${{ github.head_ref == 'development' }} && ${{ github.base_ref  == 'stage'}}) ||
+      (${{ github.head_ref  == 'stage' }} && ${{ github.base_ref == 'main'}}
+      ))
 
     name: Build application
     runs-on: ubuntu-latest

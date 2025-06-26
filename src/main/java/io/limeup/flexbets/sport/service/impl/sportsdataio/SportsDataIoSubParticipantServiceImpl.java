@@ -3,10 +3,12 @@ package io.limeup.flexbets.sport.service.impl.sportsdataio;
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
+import io.limeup.flexbets.sport.model.IoPlayer;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import io.limeup.flexbets.sport.model.IoTeam;
 import io.limeup.flexbets.sport.model.dto.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.PlayerPhotoView;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
@@ -107,8 +109,21 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         .stream()
                         .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
 
+        Set<Long> playerIds = players.stream()
+                .map(SportsDataPlayerRow::getId)
+                .map(Integer::longValue)
+                .collect(Collectors.toUnmodifiableSet());
+
+        List<IoPlayer> ioPlayers = playerRepository.findByPlayerIdIn(playerIds);
+        Map<Long, String> playerPhotoMap = ioPlayers.stream()
+                .collect(Collectors.toMap(
+                        IoPlayer::getPlayerId,
+                        IoPlayer::getPhotoUrl,
+                        (u1, u2) -> u1
+                ));
+
         List<SubParticipantDTO> dtoList =
-                playerMapper.toSubParticipantDTOList(players, playerIdBetMap);
+                playerMapper.toSubParticipantDTOList(players, playerIdBetMap,playerPhotoMap);
 
         for (SubParticipantDTO dto : dtoList) {
             dto.setHistoricalStats(buildHistoricalStats((long) dto.getId()));
@@ -134,8 +149,8 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         IoBetMarketStatus.PLAYER_PROP.getName(),
                         Set.of(player.getEventId()),
                         player.getId().longValue());
-
-        SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets);
+        String photoUrl = playerRepository.findByPlayerId(Long.valueOf(player.getId())).get().getPhotoUrl();
+        SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets,photoUrl);
 
         List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue());
         if (maxHistoricalDataCount != null && maxHistoricalDataCount > 0) {
@@ -190,7 +205,8 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
 
             ev.add(EventStatisticDTO.builder()
                     .eventId(Math.toIntExact(g.getGameId()))
-                    .eventName(STR."\{teamNames.get(g.getTeamId())} - \{teamNames.get(g.getOpponentId())}")
+                    .eventName(ioTeamRepository.findByTeamId(g.getTeamId()).get().getName()
+                            + " - " + ioTeamRepository.findByTeamId(g.getOpponentId()).get().getName() )
                     .eventDate(g.getGameDatetime())
                     .value(v)
                     .rawValue(n.toString())
