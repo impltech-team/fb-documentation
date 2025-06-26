@@ -9,6 +9,7 @@ import io.limeup.flexbets.sport.model.IoPlayer;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class IoPlayerMapper {
     private final IoBetMapper betMapper;
 
@@ -131,27 +133,27 @@ public class IoPlayerMapper {
                 .build();
     }
 
-    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap, Map<Long, String> playerUrl) {
+    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap) {
         return players.stream()
                 .map(player -> {
                     Long playerId = Long.valueOf(player.getId());
                     List<SportsDataBetRow> bets =
                             playerIdBetMap.getOrDefault(playerId, List.of());
 
-                    String photo = playerUrl.get(playerId);
 
-                    return toSubParticipantDTO(player, bets, photo);
+
+                    return toSubParticipantDTO(player, bets);
                 })
                 .toList();
     }
 
-    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets,String playerUrl ){
+    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets ){
         SubParticipantDTO result = new SubParticipantDTO();
         result.setId(player.getId());
         result.setPlayerName(player.getPlayerName());
         result.setCompetitionId(5466);
         result.setCompetition("MLB");
-        result.setAvatarUrl(playerUrl);
+
         result.setParticipantId(player.getPlayerTeamId());
         result.setTeam(player.getPlayerTeamName());
         result.setPosition(player.getPosition());
