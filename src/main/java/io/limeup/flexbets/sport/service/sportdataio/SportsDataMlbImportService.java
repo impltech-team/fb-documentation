@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
@@ -277,24 +278,19 @@ public class SportsDataMlbImportService {
                         () -> playerRepo.save(playerMapper.toEntity(dto)));
     }
 
-    private void fetchAndUpsertPlayerGameStatsApi(IoPlayer player) {
+    private Flux<IoPlayerGameStats> fetchAndUpsertPlayerGameStatsApi(IoPlayer player) {
         String url = URL + SPORT_URL + "stats/json/PlayerGameStatsBySeason/"
                 + seasonYear + "/" + player.getPlayerId() + "/5?key=" + apiKey;
 
-         sportsDataWebClient.get()
+        return sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(IoPlayerGameStatsDto.class)
-                 .publishOn(Schedulers.boundedElastic())
-                .doOnNext(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
-                        .ifPresentOrElse(
-                                ex -> {
-                                    playerGameStatsMapper.merge(ex, dto);
-                                    playerGameStatsRepo.save(ex);
-                                },
-                                () -> playerGameStatsRepo.save(
-                                        playerGameStatsMapper.toEntity(dto))))
-                .blockLast();
+                .publishOn(Schedulers.boundedElastic())
+                .map(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
+                        .map(ex -> { playerGameStatsMapper.merge(ex, dto); return ex; })
+                        .orElseGet(() -> playerGameStatsMapper.toEntity(dto))
+                );
     }
 
     private void upsertTeam(SportsDataTeamDTO dto) {
