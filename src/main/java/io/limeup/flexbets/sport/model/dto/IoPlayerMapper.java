@@ -131,14 +131,14 @@ public class IoPlayerMapper {
                 .build();
     }
 
-    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap, Map<Integer, String> playerUrl) {
+    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap, Map<Long, String> playerUrl) {
         return players.stream()
                 .map(player -> {
-                    Long playerId = Long.valueOf(player.getId());       // ← зовнішній ID
+                    Long playerId = Long.valueOf(player.getId());
                     List<SportsDataBetRow> bets =
                             playerIdBetMap.getOrDefault(playerId, List.of());
 
-                    String photo = playerUrl.get(playerId.intValue());
+                    String photo = playerUrl.get(playerId);
 
                     return toSubParticipantDTO(player, bets, photo);
                 })
