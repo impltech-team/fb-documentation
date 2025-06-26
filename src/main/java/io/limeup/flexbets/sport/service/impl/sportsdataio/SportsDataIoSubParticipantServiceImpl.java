@@ -7,6 +7,7 @@ import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import io.limeup.flexbets.sport.model.IoTeam;
 import io.limeup.flexbets.sport.model.dto.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.PlayerPhotoView;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
@@ -107,8 +108,20 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         .stream()
                         .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
 
+        Set<Integer> playerIds = players.stream()
+                .map(SportsDataPlayerRow::getId)
+                .collect(Collectors.toSet());
+
+        Map<Integer, String> playerPhotoMap = playerRepository
+                .findPhotosByPlayerIdIn(playerIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        PlayerPhotoView::getPlayerId,
+                        PlayerPhotoView::getPhotoUrl
+                ));
+
         List<SubParticipantDTO> dtoList =
-                playerMapper.toSubParticipantDTOList(players, playerIdBetMap);
+                playerMapper.toSubParticipantDTOList(players, playerIdBetMap,playerPhotoMap);
 
         for (SubParticipantDTO dto : dtoList) {
             dto.setHistoricalStats(buildHistoricalStats((long) dto.getId()));
@@ -134,8 +147,8 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         IoBetMarketStatus.PLAYER_PROP.getName(),
                         Set.of(player.getEventId()),
                         player.getId().longValue());
-
-        SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets);
+        String photoUrl = playerRepository.findByPlayerId(Long.valueOf(player.getId())).get().getPhotoUrl();
+        SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets,photoUrl);
 
         List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue());
         if (maxHistoricalDataCount != null && maxHistoricalDataCount > 0) {
