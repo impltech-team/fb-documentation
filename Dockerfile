@@ -1,9 +1,9 @@
-FROM amazoncorretto:21-al2023
+FROM eclipse-temurin:21
 
 WORKDIR /app
 
 COPY build/libs/*.jar app.jar
 
-RUN dnf update -y && dnf install -y curl
+RUN apt update && apt install -y curl
 
 CMD ["java", "-jar", "app.jar"]
