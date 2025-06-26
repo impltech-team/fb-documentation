@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 public interface SportsDataPlayerRow {
     Integer getId();
+
     String getPlayerName();
     Integer getShirtNumber();
     Integer getPlayerTeamId();
