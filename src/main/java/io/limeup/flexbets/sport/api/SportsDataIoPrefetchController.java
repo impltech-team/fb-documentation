@@ -4,7 +4,6 @@ import io.limeup.flexbets.sport.service.sportdataio.SportsDataMlbImportService;
 import io.limeup.flexbets.sport.service.statscore.impl.PrefetchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,13 +51,13 @@ public class SportsDataIoPrefetchController {
     }
 
     @PostMapping("/player-game-stats")
-    public ResponseEntity<PrefetchResponse> prefetcPlayerGameStats() {
+    public ResponseEntity<PrefetchResponse> prefetchPlayerGameStats() {
         taskExecutor.execute(importService::importPlayerGameStats);
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("player-game-stats", Instant.now()));
     }
 
-    @PostMapping("/bet-market")
+    @PostMapping("/bet-markets")
     public ResponseEntity<PrefetchResponse> prefetchBetMarkets() {
         taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));
         return ResponseEntity.accepted()
