@@ -102,11 +102,6 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
             nativeQuery = true)
     long countPlayersWithUpcomingEvent();
 
-    @Query("""
-           select p.playerId   as playerId,
-                  p.photoUrl   as photoUrl
-           from   IoPlayer p
-           where  p.playerId in :ids
-           """)
-    Optional<PlayerPhotoView> findPhotosByPlayerIdIn(Set<Integer> playerIds);
+
+    List<IoPlayer> findByPlayerIdIn(Set<Long> playerIds);
 }

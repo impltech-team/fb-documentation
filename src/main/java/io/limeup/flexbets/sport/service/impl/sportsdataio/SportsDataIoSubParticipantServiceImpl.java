@@ -3,6 +3,7 @@ package io.limeup.flexbets.sport.service.impl.sportsdataio;
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
+import io.limeup.flexbets.sport.model.IoPlayer;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import io.limeup.flexbets.sport.model.IoTeam;
 import io.limeup.flexbets.sport.model.dto.IoPlayerMapper;
@@ -108,16 +109,17 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         .stream()
                         .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
 
-        Set<Integer> playerIds = players.stream()
+        Set<Long> playerIds = players.stream()
                 .map(SportsDataPlayerRow::getId)
-                .collect(Collectors.toSet());
+                .map(Integer::longValue)
+                .collect(Collectors.toUnmodifiableSet());
 
-        Map<Integer, String> playerPhotoMap = playerRepository
-                .findPhotosByPlayerIdIn(playerIds)
-                .stream()
+        List<IoPlayer> ioPlayers = playerRepository.findByPlayerIdIn(playerIds);
+        Map<Long, String> playerPhotoMap = ioPlayers.stream()
                 .collect(Collectors.toMap(
-                        PlayerPhotoView::getPlayerId,
-                        PlayerPhotoView::getPhotoUrl
+                        IoPlayer::getPlayerId,
+                        IoPlayer::getPhotoUrl,
+                        (u1, u2) -> u1
                 ));
 
         List<SubParticipantDTO> dtoList =
