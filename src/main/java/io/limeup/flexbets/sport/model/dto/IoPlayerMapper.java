@@ -9,6 +9,7 @@ import io.limeup.flexbets.sport.model.IoPlayer;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class IoPlayerMapper {
     private final IoBetMapper betMapper;
 
@@ -100,7 +102,7 @@ public class IoPlayerMapper {
                 .college(dto.getCollege())
                 .proDebut(dto.getProDebut())
                 .salary(dto.getSalary())
-               // .photoUrl(dto.getPhotoUrl())
+//                .photoUrl(dto.getPhotoUrl())
                 .sportRadarPlayerId(dto.getSportRadarPlayerID())
                 .rotoworldPlayerId(dto.getRotoworldPlayerID())
                 .rotoWirePlayerId(dto.getRotoWirePlayerID())
@@ -151,6 +153,7 @@ public class IoPlayerMapper {
         result.setPlayerName(player.getPlayerName());
         result.setCompetitionId(5466);
         result.setCompetition("MLB");
+        log.warn("player photo ="+playerUrl );
         result.setAvatarUrl(playerUrl);
         result.setParticipantId(player.getPlayerTeamId());
         result.setTeam(player.getPlayerTeamName());
