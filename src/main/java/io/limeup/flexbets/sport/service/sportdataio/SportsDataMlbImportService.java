@@ -1,9 +1,13 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
-import io.limeup.flexbets.sport.dto.sportsdata.*;
+import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
-import io.limeup.flexbets.sport.mapper.*;
+import io.limeup.flexbets.sport.mapper.IoBetMapper;
+import io.limeup.flexbets.sport.mapper.IoTeamMapper;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.model.dto.*;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
@@ -14,11 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,16 +37,16 @@ public class SportsDataMlbImportService {
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
 
-    private final IoEventRepository          eventRepo;
-    private final IoBetRepository            betRepo;
-    private final IoTeamRepository           teamRepo;
-    private final IoPlayerRepository         playerRepo;
-    private final IoPlayerStatsRepository    playerStatsRepo;
+    private final IoEventRepository eventRepo;
+    private final IoBetRepository betRepo;
+    private final IoTeamRepository teamRepo;
+    private final IoPlayerRepository playerRepo;
+    private final IoPlayerStatsRepository playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
     private final IoEventMapper eventMapper;
-    private final IoBetMapper            betMapper;
-    private final IoTeamMapper           teamMapper;
+    private final IoBetMapper betMapper;
+    private final IoTeamMapper teamMapper;
     private final IoPlayerMapper playerMapper;
     private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
@@ -53,21 +57,107 @@ public class SportsDataMlbImportService {
     @Value("${sportsdata.key}")
     private String apiKey;
 
-//    @Value("${flexbets.import-cooldown-minutes:5}")
     private long cooldownMinutes = 5;
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
     private final int seasonYear = Year.now().getValue();
 
 
+    @Transactional
+    public void importTeams() {
+        if (skipIfLaunchedRecently(FetchIoType.TEAMS)) return;
+        fetchAndUpsertTeams();
+    }
+
+    @Transactional
+    public void importBetMarkets(LocalDate date) {
+        if (skipIfLaunchedRecently(FetchIoType.BET)) return;
+        queryGamesFromDbAndUpdateMarkets(date);
+    }
+
+    private void queryGamesFromDbAndUpdateMarkets(LocalDate date) {
+        var log = fetchLogService.start(FetchIoType.BET, SportIoType.MLB);
+        LocalDateTime from = date.atStartOfDay();
+        LocalDateTime to = from.plusDays(1);
+        try {
+            eventRepo.findAllByDatetimeUtcBetween(from, to)
+                    .stream()
+                    .map(IoEvent::getGameId)
+                    .filter(Objects::nonNull)
+                    .forEach(this::fetchAndUpsertMarketsForGame);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
+        }
+    }
+
+    public void importPlayerGameStats() {
+        if (skipIfLaunchedRecently(FetchIoType.PLAYER_GAME_STATS)) return;
+        queryPlayersFromDbAndUpdateStats();
+    }
+
+    private void queryPlayersFromDbAndUpdateStats() {
+        var log = fetchLogService.start(FetchIoType.PLAYER_GAME_STATS, SportIoType.MLB);
+        try {
+            playerRepo.findAll()
+                    .forEach(this::fetchAndUpsertPlayerGameStatsApi);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
+        }
+    }
+
+    private void fetchAndUpsertMarketsForGame(Long gameId) {
+        String url = "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
+        sportsDataWebClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(SportsDataBettingMarketDTO.class)
+                .filter(this::isPlayerMarketWithBets)
+                .collectList()
+                .doOnNext(dtos -> {
+                    IoEvent event = eventRepo.findByGameId(gameId).orElse(null);
+                    if (event == null) return;
+                    Set<IoBet> toSave = reconcileBettingMarkets(event, dtos, betRepo.findByEventWithOutcomes(event));
+                    if (!toSave.isEmpty()) betRepo.saveAll(toSave);
+                })
+                .block();
+    }
+
+    private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
+        return PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+    }
+
+    private void fetchAndUpsertTeams() {
+        var log = fetchLogService.start(FetchIoType.TEAMS, SportIoType.MLB);
+        try {
+            String url = "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey;
+            List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToFlux(SportsDataTeamDTO.class)
+                    .collectList()
+                    .block();
+
+            if (dtos != null) dtos.forEach(this::upsertTeam);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
+        }
+    }
+
     public void importPlayersStats() {
         if (skipIfLaunchedRecently(FetchIoType.PLAYER_STATS)) return;
+        fetchAndUpsertPlayerSeasonStats();
+    }
 
-        var log = fetchLogService.start(FetchIoType.PLAYER_STATS, SportIoType.MLB, null);
+    private void fetchAndUpsertPlayerSeasonStats() {
+        var log = fetchLogService.start(FetchIoType.PLAYER_STATS, SportIoType.MLB);
         try {
-            String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/"
-                    + seasonYear + "?key=" + apiKey;
-
+            String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/" + seasonYear + "?key=" + apiKey;
             sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
@@ -84,41 +174,42 @@ public class SportsDataMlbImportService {
 
     public void importScores(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
+        fetchAndUpsertScores(date);
+    }
 
-        var log = fetchLogService.start(FetchIoType.SCORES, SportIoType.MLB, null);
+    private void fetchAndUpsertScores(LocalDate date) {
+        var log = fetchLogService.start(FetchIoType.SCORES, SportIoType.MLB);
         try {
-            List<ScoreBasicDto> games = fetchScores(date);
+            List<ScoreBasicDto> games = fetchScoresFromApi(date);
             if (games != null) games.forEach(this::upsertGame);
-
-            fetchLogService.runVoid(FetchIoType.BET, SportIoType.MLB, log,
-                    () -> fetchBetMarketsForGames(games).block());
-
             fetchLogService.finishSuccess(log);
         } catch (Exception ex) {
             fetchLogService.finishError(log, ex);
             throw ex;
         }
     }
+
+    private List<ScoreBasicDto> fetchScoresFromApi(LocalDate date) {
+        String url = "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/" + date + "?key=" + apiKey;
+        return sportsDataWebClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(ScoreBasicDto.class)
+                .collectList()
+                .block();
+    }
+
 
     public void importPlayers() {
         if (skipIfLaunchedRecently(FetchIoType.PLAYERS)) return;
+        fetchAndUpsertPlayers();
+    }
 
-        var log = fetchLogService.start(FetchIoType.PLAYERS, SportIoType.MLB, null);
+    private void fetchAndUpsertPlayers() {
+        var log = fetchLogService.start(FetchIoType.PLAYERS, SportIoType.MLB);
         try {
-            List<SportsDataPlayerDTO> players = fetchPlayers();
-            if (players != null) {
-                players.forEach(this::upsertPlayer);
-
-                fetchLogService.runVoid(FetchIoType.PLAYER_GAME_STATS, SportIoType.MLB, log,
-                        () -> Flux.fromIterable(players)
-                                .map(SportsDataPlayerDTO::getPlayerID)
-                                .filter(Objects::nonNull)
-                                .buffer(50)
-                                .delayElements(Duration.ofMillis(200))
-                                .flatMap(ids -> Flux.fromIterable(ids)
-                                        .flatMap(this::fetchAndUpsertPlayerGameStats, 5))
-                                .blockLast());
-            }
+            List<SportsDataPlayerDTO> players = fetchPlayersFromApi();
+            if (players != null) players.forEach(this::upsertPlayer);
             fetchLogService.finishSuccess(log);
         } catch (Exception ex) {
             fetchLogService.finishError(log, ex);
@@ -126,21 +217,15 @@ public class SportsDataMlbImportService {
         }
     }
 
-    @Transactional
-    public void importTeams() {
-        if (skipIfLaunchedRecently(FetchIoType.TEAMS)) return;
 
-        fetchLogService.runVoid(FetchIoType.TEAMS, SportIoType.MLB, null, () -> {
-            String url = "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey;
-            List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToFlux(SportsDataTeamDTO.class)
-                    .collectList()
-                    .block();
-
-            if (dtos != null) dtos.forEach(this::upsertTeam);
-        });
+    private List<SportsDataPlayerDTO> fetchPlayersFromApi() {
+        String url = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
+        return sportsDataWebClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(SportsDataPlayerDTO.class)
+                .collectList()
+                .block();
     }
 
 
@@ -167,17 +252,6 @@ public class SportsDataMlbImportService {
                         () -> playerStatsRepo.save(playersStatsMapper.toEntity(dto)));
     }
 
-    private List<ScoreBasicDto> fetchScores(LocalDate date) {
-        String url = "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/"
-                + date + "?key=" + apiKey;
-
-        return sportsDataWebClient.get()
-                .uri(url)
-                .retrieve()
-                .bodyToFlux(ScoreBasicDto.class)
-                .collectList()
-                .block();
-    }
 
     private IoEvent upsertGame(ScoreBasicDto dto) {
         return eventRepo.findByGameId(dto.gameId())
@@ -188,44 +262,6 @@ public class SportsDataMlbImportService {
                 .orElseGet(() -> eventRepo.save(eventMapper.toEntity(dto)));
     }
 
-    private Mono<Void> fetchBetMarketsForGames(List<ScoreBasicDto> games) {
-        if (games == null) return Mono.empty();
-
-        return Flux.fromIterable(games)
-                .delayElements(Duration.ofMillis(150))
-                .flatMap(gameDto -> {
-                    IoEvent game = eventRepo.findByGameId(gameDto.gameId()).orElse(null);
-                    if (game == null) return Mono.empty();
-
-                    String url = "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/"
-                            + game.getGameId() + "/G1000?key=" + apiKey + "&include=available";
-
-                    return sportsDataWebClient.get()
-                            .uri(url)
-                            .retrieve()
-                            .bodyToFlux(SportsDataBettingMarketDTO.class)
-                            .filter(b -> PLAYER_MARKET_NAME.equalsIgnoreCase(b.getBettingMarketType())
-                                    && Boolean.TRUE.equals(b.getAnyBetsAvailable()))
-                            .collectList()
-                            .doOnNext(dtos -> {
-                                Set<IoBet> toSave = reconcileBettingMarkets(
-                                        game, dtos, betRepo.findByEventWithOutcomes(game));
-                                if (!toSave.isEmpty()) betRepo.saveAll(toSave);
-                            })
-                            .then();
-                }, 5)
-                .then();
-    }
-
-    private List<SportsDataPlayerDTO> fetchPlayers() {
-        String url = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
-        return sportsDataWebClient.get()
-                .uri(url)
-                .retrieve()
-                .bodyToFlux(SportsDataPlayerDTO.class)
-                .collectList()
-                .block();
-    }
 
     private void upsertPlayer(SportsDataPlayerDTO dto) {
         if (dto.getPlayerID() == null) return;
@@ -239,9 +275,9 @@ public class SportsDataMlbImportService {
                         () -> playerRepo.save(playerMapper.toEntity(dto)));
     }
 
-    private Mono<Void> fetchAndUpsertPlayerGameStats(Long playerId) {
+    private Mono<Void> fetchAndUpsertPlayerGameStatsApi(IoPlayer player) {
         String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/"
-                + seasonYear + "/" + playerId + "/5?key=" + apiKey;
+                + seasonYear + "/" + player.getPlayerId() + "/5?key=" + apiKey;
 
         return sportsDataWebClient.get()
                 .uri(url)

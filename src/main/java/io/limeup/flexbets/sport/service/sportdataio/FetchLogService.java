@@ -22,7 +22,7 @@ public class FetchLogService {
     private final FetchIoLogRepository repo;
 
     public <T> T run(FetchIoType type, SportIoType sport, IoFetchLog parent, Supplier<T> supplier) {
-        IoFetchLog log = start(type, sport, parent);
+        IoFetchLog log = start(type, sport);
         try {
             T result = supplier.get();
             finishSuccess(log);
@@ -45,7 +45,7 @@ public class FetchLogService {
                 .existsRecently(
                         type, sport, LocalDateTime.now().minus(window));
     }
-    public IoFetchLog start(FetchIoType type, SportIoType sport, IoFetchLog parent) {
+    public IoFetchLog start(FetchIoType type, SportIoType sport) {
         return repo.save(
                 IoFetchLog.builder()
                         .fetchType(type)

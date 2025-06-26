@@ -26,7 +26,7 @@ public class IoEvent {
 
     private Integer season;
     private Integer seasonType;
-    private String  status;              // to doScheduled, Final, etc. need create enum
+    private String  status;
 
     private LocalDate      day;
     private LocalDateTime  datetime;
