@@ -11,7 +11,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.function.Supplier;
 
@@ -20,25 +19,6 @@ import java.util.function.Supplier;
 public class FetchLogService {
 
     private final FetchIoLogRepository repo;
-
-    public <T> T run(FetchIoType type, SportIoType sport, IoFetchLog parent, Supplier<T> supplier) {
-        IoFetchLog log = start(type, sport);
-        try {
-            T result = supplier.get();
-            finishSuccess(log);
-            return result;
-        } catch (Exception ex) {
-            finishError(log, ex);
-            throw ex;
-        }
-    }
-
-    public void runVoid(FetchIoType type, SportIoType sport, IoFetchLog parent, Runnable action) {
-        run(type, sport, parent, () -> {
-            action.run();
-            return null;
-        });
-    }
 
     public boolean wasRunRecently(FetchIoType type, SportIoType sport, Duration window) {
         return repo

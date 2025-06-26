@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SportsDataMlbImportService {
-
 
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
@@ -57,7 +56,9 @@ public class SportsDataMlbImportService {
     @Value("${sportsdata.key}")
     private String apiKey;
 
-    private long cooldownMinutes = 5;
+    private static final long cooldownMinutes = 5;
+    public static final String URL = "https://api.sportsdata.io/v3/";
+    public static final String SPORT_URL = "mlb/";
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
     private final int seasonYear = Year.now().getValue();
@@ -110,13 +111,14 @@ public class SportsDataMlbImportService {
     }
 
     private void fetchAndUpsertMarketsForGame(Long gameId) {
-        String url = "https://api.sportsdata.io/v3/mlb/odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
+        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
         sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(SportsDataBettingMarketDTO.class)
                 .filter(this::isPlayerMarketWithBets)
                 .collectList()
+                .publishOn(Schedulers.boundedElastic())
                 .doOnNext(dtos -> {
                     IoEvent event = eventRepo.findByGameId(gameId).orElse(null);
                     if (event == null) return;
@@ -133,7 +135,7 @@ public class SportsDataMlbImportService {
     private void fetchAndUpsertTeams() {
         var log = fetchLogService.start(FetchIoType.TEAMS, SportIoType.MLB);
         try {
-            String url = "https://api.sportsdata.io/v3/mlb/scores/json/teams?key=" + apiKey;
+            String url = URL + SPORT_URL + "scores/json/teams?key=" + apiKey;
             List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
@@ -157,7 +159,7 @@ public class SportsDataMlbImportService {
     private void fetchAndUpsertPlayerSeasonStats() {
         var log = fetchLogService.start(FetchIoType.PLAYER_STATS, SportIoType.MLB);
         try {
-            String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerSeasonStats/" + seasonYear + "?key=" + apiKey;
+            String url = URL + SPORT_URL + "stats/json/PlayerSeasonStats/" + seasonYear + "?key=" + apiKey;
             sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
@@ -190,7 +192,7 @@ public class SportsDataMlbImportService {
     }
 
     private List<ScoreBasicDto> fetchScoresFromApi(LocalDate date) {
-        String url = "https://api.sportsdata.io/v3/mlb/scores/json/ScoresBasicFinal/" + date + "?key=" + apiKey;
+        String url = URL + SPORT_URL + "scores/json/ScoresBasicFinal/" + date + "?key=" + apiKey;
         return sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
@@ -219,7 +221,7 @@ public class SportsDataMlbImportService {
 
 
     private List<SportsDataPlayerDTO> fetchPlayersFromApi() {
-        String url = "https://api.sportsdata.io/v3/mlb/scores/json/Players?key=" + apiKey;
+        String url = URL + SPORT_URL + "scores/json/Players?key=" + apiKey;
         return sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
@@ -253,8 +255,8 @@ public class SportsDataMlbImportService {
     }
 
 
-    private IoEvent upsertGame(ScoreBasicDto dto) {
-        return eventRepo.findByGameId(dto.gameId())
+    private void upsertGame(ScoreBasicDto dto) {
+         eventRepo.findByGameId(dto.gameId())
                 .map(ex -> {
                     eventMapper.merge(ex, dto);
                     return eventRepo.save(ex);
@@ -275,14 +277,15 @@ public class SportsDataMlbImportService {
                         () -> playerRepo.save(playerMapper.toEntity(dto)));
     }
 
-    private Mono<Void> fetchAndUpsertPlayerGameStatsApi(IoPlayer player) {
-        String url = "https://api.sportsdata.io/v3/mlb/stats/json/PlayerGameStatsBySeason/"
+    private void fetchAndUpsertPlayerGameStatsApi(IoPlayer player) {
+        String url = URL + SPORT_URL + "stats/json/PlayerGameStatsBySeason/"
                 + seasonYear + "/" + player.getPlayerId() + "/5?key=" + apiKey;
 
-        return sportsDataWebClient.get()
+         sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(IoPlayerGameStatsDto.class)
+                 .publishOn(Schedulers.boundedElastic())
                 .doOnNext(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
                         .ifPresentOrElse(
                                 ex -> {
@@ -291,7 +294,7 @@ public class SportsDataMlbImportService {
                                 },
                                 () -> playerGameStatsRepo.save(
                                         playerGameStatsMapper.toEntity(dto))))
-                .then();
+                .blockLast();
     }
 
     private void upsertTeam(SportsDataTeamDTO dto) {
