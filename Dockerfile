@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21
+FROM amazoncorretto:21-al2023
 
 WORKDIR /app
 
