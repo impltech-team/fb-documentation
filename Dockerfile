@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY build/libs/*.jar app.jar
 
-RUN apt update && apt install -y curl
+RUN dnf update -y && dnf install -y curl
 
 CMD ["java", "-jar", "app.jar"]
