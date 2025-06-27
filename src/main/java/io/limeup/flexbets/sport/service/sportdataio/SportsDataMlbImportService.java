@@ -75,6 +75,10 @@ public class SportsDataMlbImportService {
     public void importBetMarkets(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.BET)) return;
         queryGamesFromDbAndUpdateMarkets(date);
+        queryGamesFromDbAndUpdateMarkets(date.plusDays(1));
+        queryGamesFromDbAndUpdateMarkets(date.plusDays(2));
+        queryGamesFromDbAndUpdateMarkets(date.plusDays(3));
+        queryGamesFromDbAndUpdateMarkets(date.plusDays(4));
     }
 
     private void queryGamesFromDbAndUpdateMarkets(LocalDate date) {
@@ -178,6 +182,10 @@ public class SportsDataMlbImportService {
     public void importScores(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
         fetchAndUpsertScores(date);
+        fetchAndUpsertScores(date.plusDays(1));
+        fetchAndUpsertScores(date.plusDays(2));
+        fetchAndUpsertScores(date.plusDays(3));
+        fetchAndUpsertScores(date.plusDays(4));
     }
 
     private void fetchAndUpsertScores(LocalDate date) {
