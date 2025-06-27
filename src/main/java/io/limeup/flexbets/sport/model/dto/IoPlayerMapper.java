@@ -47,7 +47,7 @@ public class IoPlayerMapper {
         entity.setCollege(dto.getCollege());
         entity.setProDebut(dto.getProDebut());
         entity.setSalary(dto.getSalary());
-      // populate by script
+        // populate by script
         //  entity.setPhotoUrl(dto.getPhotoUrl());
         entity.setSportRadarPlayerId(dto.getSportRadarPlayerID());
         entity.setRotoworldPlayerId(dto.getRotoworldPlayerID());
@@ -102,7 +102,7 @@ public class IoPlayerMapper {
                 .college(dto.getCollege())
                 .proDebut(dto.getProDebut())
                 .salary(dto.getSalary())
-//                .photoUrl(dto.getPhotoUrl())
+                // .photoUrl(dto.getPhotoUrl())
                 .sportRadarPlayerId(dto.getSportRadarPlayerID())
                 .rotoworldPlayerId(dto.getRotoworldPlayerID())
                 .rotoWirePlayerId(dto.getRotoWirePlayerID())
@@ -153,7 +153,6 @@ public class IoPlayerMapper {
         result.setPlayerName(player.getPlayerName());
         result.setCompetitionId(5466);
         result.setCompetition("MLB");
-        log.warn("player photo ="+playerUrl );
         result.setAvatarUrl(playerUrl);
         result.setParticipantId(player.getPlayerTeamId());
         result.setTeam(player.getPlayerTeamName());
@@ -166,10 +165,10 @@ public class IoPlayerMapper {
         result.setHeight(player.getHeight().toString());
         result.setBirthDate(player.getBirthDate());
         result.setNextEvent(EventLiteDTO.builder()
-                        .eventId(player.getEventId())
-                        .eventName(player.getEventName())
-                        .eventDate(player.getEventDatetime())
-                        .opponent(player.getOpponentTeamKey())
+                .eventId(player.getEventId())
+                .eventName(player.getEventName())
+                .eventDate(player.getEventDatetime())
+                .opponent(player.getOpponentTeamKey())
                 .build());
         List<OddsDTO> odds = new ArrayList<>();
         if(!CollectionUtils.isEmpty(bets)){

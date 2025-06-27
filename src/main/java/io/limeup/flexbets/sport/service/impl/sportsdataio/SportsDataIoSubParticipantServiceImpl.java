@@ -205,7 +205,8 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
 
             ev.add(EventStatisticDTO.builder()
                     .eventId(Math.toIntExact(g.getGameId()))
-                    .eventName(STR."\{teamNames.get(g.getTeamId())} - \{teamNames.get(g.getOpponentId())}")
+                    .eventName(ioTeamRepository.findByTeamId(g.getTeamId()).get().getName()
+                            + " - " + ioTeamRepository.findByTeamId(g.getOpponentId()).get().getName() )
                     .eventDate(g.getGameDatetime())
                     .value(v)
                     .rawValue(n.toString())
