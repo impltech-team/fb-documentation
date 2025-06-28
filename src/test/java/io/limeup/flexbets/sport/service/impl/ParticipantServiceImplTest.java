@@ -21,6 +21,7 @@ import io.limeup.flexbets.sport.repository.ParticipantRepository;
 import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import io.limeup.flexbets.sport.service.MarketService;
+import io.limeup.flexbets.sport.service.impl.statscore.ParticipantServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
