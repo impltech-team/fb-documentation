@@ -15,7 +15,7 @@ public class SportsDataFetcher {
 
     @Scheduled(fixedDelay = 7_200_000)
     public void pollScore() {
-          importService.importScores(LocalDate.now());
+        //         importService.importScores(LocalDate.now());
     }
 
     @Scheduled(fixedDelay = 7_200_000)
