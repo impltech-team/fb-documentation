@@ -3,6 +3,8 @@ package io.limeup.flexbets.sport.repository.sportsdataio;
 
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,5 +13,15 @@ public interface IoPlayerGamesStatsRepository extends JpaRepository<IoPlayerGame
 
     Optional<IoPlayerGameStats> findByStatId(Long statId);
 
-    List<IoPlayerGameStats> findAllByPlayerIdOrderByGameDatetimeDesc(Long playerId);
+
+    @Query(value = """
+            SELECT * FROM sport.io_player_game_stats
+            WHERE player_id = :playerId
+            ORDER BY game_datetime DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<IoPlayerGameStats> findTopByPlayerIdLimit(
+            @Param("playerId") Long playerId,
+            @Param("limit") int limit
+    );
 }

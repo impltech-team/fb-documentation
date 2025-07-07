@@ -9,7 +9,7 @@ import java.util.List;
 public interface SubParticipantService {
 
     PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
-                                                             List<Integer> participantIds, Integer marketId,
+                                                             List<Integer> participantIds, Integer marketId, Boolean odds,
                                                              Integer maxHistoricalDataCount, RequestQueryDTO requestQuery);
 
     SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount);

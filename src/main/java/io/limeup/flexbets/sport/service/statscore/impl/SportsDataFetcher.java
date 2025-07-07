@@ -15,22 +15,22 @@ public class SportsDataFetcher {
 
     @Scheduled(fixedDelay = 7_200_000)
     public void pollScore() {
-          importService.importScores(LocalDate.now());
-    }
+   //       importService.importScores(LocalDate.now());
+   }
 
     @Scheduled(fixedDelay = 7_200_000)
     public void pollPlayers() {
-   //     importService.importPlayers();
+//        importService.importPlayers();
     }
 
     @Scheduled(fixedDelay = 7_200_000)
     public void importPlayerSeasonStats() {
-    //    importService.importPlayerGameStats();
+   //     importService.importPlayerGameStats();
     }
 
     @Scheduled(fixedDelay = 7_200_000)
     public void pollTeams() {
-   //     importService.importTeams();
+    //    importService.importTeams();
     }
 
     @Scheduled(fixedDelay = 7_200_000)
