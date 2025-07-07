@@ -48,23 +48,27 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                  AND (:positions IS NULL OR p.position IN (:positions))                                                                              \s
                  AND (:participantIds IS NULL OR p.player_id IN (:participantIds))
                  AND (
-                          :filter IS NULL OR EXISTS (
-                              SELECT 1
-                              FROM unnest(string_to_array(:filter, ' ')) AS token
-                              WHERE\s
-                                  p.first_name ILIKE CONCAT('%', token, '%')
-                                  OR p.last_name ILIKE CONCAT('%', token, '%')
-                                  OR t.name ILIKE CONCAT('%', token, '%')
-                                  OR p.position ILIKE CONCAT('%', token, '%')
-                          )
-                      )),
-             player_has_bet AS (
-                   SELECT DISTINCT bo.player_id
+                   :filter IS NULL OR NOT EXISTS (
+                       SELECT token
+                       FROM unnest(string_to_array(:filter, ' ')) AS token
+                       EXCEPT
+                       SELECT token
+                       FROM unnest(string_to_array(:filter, ' ')) AS token
+                       WHERE
+                           p.first_name ILIKE CONCAT('%', token, '%')
+                           OR p.last_name ILIKE CONCAT('%', token, '%')
+                           OR t.name ILIKE CONCAT('%', token, '%')
+                           OR p.position ILIKE CONCAT('%', token, '%')
+                   )
+                 )),
+            player_has_bet AS (
+                SELECT DISTINCT bo.player_id
                 FROM sport.io_bet          b
                 JOIN sport.io_bet_outcome  bo  ON bo.io_bet_id = b.id
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
                                                 AND sp.event_id  = b.io_event_id
-                WHERE   b.any_bets_available
+                WHERE b.any_bets_available
+                  AND (:betTypeId IS NULL OR b.bet_type_id = :betTypeId)
             ),  
           paged_players AS ( 
                 SELECT id
@@ -75,6 +79,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                              SELECT bo.player_id
                              FROM sport.io_bet b
                              JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
+                            JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
                              WHERE b.bet_type_id = :betTypeId
                          )
                       )
@@ -128,7 +133,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 sp.player_name desc
                                                                                                                
     """, nativeQuery = true)
-    List<SportsDataPlayerRow> listPlayersWithOdds2(
+    List<SportsDataPlayerRow> listPlayersWithFilters(
             @Param("offset") Integer offset,
             @Param("limit") Integer limit,
             @Param("onlyWithOdds") Boolean onlyWithOdds,

@@ -95,32 +95,35 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
         int offset = (rq.getPage() - 1) * limit;
 
 
-        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithOdds2(offset, limit, odds, rq.getSortBy(), rq.getSortOrder(), rq.getFilter()
+        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithFilters(offset, limit, odds, rq.getSortBy(), rq.getSortOrder(), rq.getFilter()
                 , marketId,
                 positions == null ? Collections.emptyList() : positions,
                 participantIds == null ? Collections.emptyList() : participantIds
         );
 
 
-//        Set<Integer> eventIds = rows.stream()
-//                .map(SportsDataPlayerRow::getEventId)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toSet());
-
         Set<Integer> playerIds = rows.stream()
                 .map(SportsDataPlayerRow::getId)
                 .collect(Collectors.toSet());
 
-        Map<Long, List<SportsDataBetRow>> playerIdBetMap =
-                betRepository.findAvailablePlayerBets(
-//                                eventIds.stream()
-//                                        .mapToInt(Integer::intValue)
-//                                        .toArray(),
-                                playerIds.stream()
-                                        .mapToInt(Integer::intValue)
-                                        .toArray())
-                        .stream()
-                        .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
+        Map<Long, List<SportsDataBetRow>> playerIdBetMap = new HashMap<>();
+
+        if (marketId == null) {
+            playerIdBetMap = betRepository.findAvailablePlayerBets(
+                            playerIds.stream()
+                                    .mapToInt(Integer::intValue)
+                                    .toArray())
+                    .stream()
+                    .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
+        } else {
+            playerIdBetMap = betRepository.findAvailablePlayerBetsWithMarketId(marketId,
+                            playerIds.stream()
+                                    .mapToInt(Integer::intValue)
+                                    .toArray())
+                    .stream()
+                    .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
+        }
+
 
         List<SubParticipantDTO> dtoList =
                 playerMapper.toSubParticipantDTOList(rows, playerIdBetMap);
