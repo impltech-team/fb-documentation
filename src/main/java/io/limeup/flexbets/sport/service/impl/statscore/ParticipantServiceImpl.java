@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service.impl;
+package io.limeup.flexbets.sport.service.impl.statscore;
 
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
