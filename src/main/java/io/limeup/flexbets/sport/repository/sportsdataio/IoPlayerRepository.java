@@ -46,7 +46,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 WHERE  e.datetime > NOW()
 
                  AND (:positions IS NULL OR p.position IN (:positions))                                                                              \s
-                 AND (:participantIds IS NULL OR p.player_id IN (:participantIds))
+                 AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                  AND (
                    :filter IS NULL OR NOT EXISTS (
                        SELECT token
