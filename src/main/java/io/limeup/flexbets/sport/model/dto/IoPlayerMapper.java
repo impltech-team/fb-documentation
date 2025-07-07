@@ -133,28 +133,27 @@ public class IoPlayerMapper {
                 .build();
     }
 
-    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap) {
+    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap, Map<Long, String> playerUrl) {
         return players.stream()
                 .map(player -> {
                     Long playerId = Long.valueOf(player.getId());
                     List<SportsDataBetRow> bets =
                             playerIdBetMap.getOrDefault(playerId, List.of());
 
-                    return toSubParticipantDTO(player, bets);
+                    String photo = playerUrl.get(playerId);
+
+                    return toSubParticipantDTO(player, bets, photo);
                 })
                 .toList();
     }
 
-    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets ){
-
-
+    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets,String playerUrl ){
         SubParticipantDTO result = new SubParticipantDTO();
         result.setId(player.getId());
         result.setPlayerName(player.getPlayerName());
         result.setCompetitionId(5466);
         result.setCompetition("MLB");
-        result.setAvatarUrl(player.getAvatarUrl());
-
+        result.setAvatarUrl(playerUrl);
         result.setParticipantId(player.getPlayerTeamId());
         result.setTeam(player.getPlayerTeamName());
         result.setPosition(player.getPosition());
@@ -176,7 +175,6 @@ public class IoPlayerMapper {
             odds = betMapper.toOddsDTOList(bets);
         }
         result.setOdds(odds);
-
 
         return result;
     }

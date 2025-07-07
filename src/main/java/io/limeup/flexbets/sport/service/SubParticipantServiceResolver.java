@@ -1,6 +1,5 @@
-package io.limeup.flexbets.sport.service.resolver;
+package io.limeup.flexbets.sport.service;
 
-import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.service.impl.sportsdataio.SportsDataIoSubParticipantServiceImpl;
 import io.limeup.flexbets.sport.service.impl.statscore.StatscoreSubParticipantServiceImpl;
 import org.springframework.stereotype.Component;

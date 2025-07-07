@@ -82,7 +82,7 @@ class StatscoreSubParticipantServiceImplTest {
         )).thenReturn(List.of(mock(SubParticipantStatRow.class), mock(SubParticipantStatRow.class)));
         when(mapper.toDTO(anyList()))
                 .thenReturn(List.of(mock(SubParticipantDTO.class), mock(SubParticipantDTO.class)));
-        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, null,5, requestQuery);
+        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, 5, requestQuery);
         assertThat(response.getItems()).hasSize(2);
         assertThat(response.getCount()).isEqualTo(2);
     }
@@ -154,7 +154,7 @@ class StatscoreSubParticipantServiceImplTest {
         )).thenReturn(0L);
 
         PaginatedResponse<SubParticipantDTO> result = subParticipantService.listSubParticipants(
-                competitionId, positions, participantIds, marketId, null,5, requestQuery
+                competitionId, positions, participantIds, marketId, 5, requestQuery
         );
 
         assertThat(result).isNotNull();
