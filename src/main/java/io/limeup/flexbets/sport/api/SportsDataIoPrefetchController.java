@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.service.sportdataio.SportsDataMlbImportService;
+import io.limeup.flexbets.sport.service.sportdataio.SportsDataNflImportService;
 import io.limeup.flexbets.sport.service.statscore.impl.PrefetchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,51 +20,69 @@ import java.time.LocalDate;
 @Validated
 public class SportsDataIoPrefetchController {
 
-    private final SportsDataMlbImportService importService;
+    private final SportsDataMlbImportService mlbImportService;
+    private final SportsDataNflImportService nflImportService;
     private final ThreadPoolTaskExecutor taskExecutor;
 
     @PostMapping("/players")
     public ResponseEntity<PrefetchResponse> prefetchPlayers() {
-        taskExecutor.execute(importService::importPlayers);
+        taskExecutor.execute(() -> {
+            mlbImportService.importPlayers();
+            nflImportService.importPlayers();
+        });
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/players", Instant.now()));
     }
 
     @PostMapping("/teams")
     public ResponseEntity<PrefetchResponse> prefetchTeams() {
-        taskExecutor.execute(importService::importTeams);
+        taskExecutor.execute(() -> {
+            mlbImportService.importTeams();
+           // nflImportService.importTeams();
+        });
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/teams", Instant.now()));
     }
 
     @PostMapping("/scores")
     public ResponseEntity<PrefetchResponse> prefetchScores() {
-        taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
+        taskExecutor.execute(() -> {
+            mlbImportService.importScores(LocalDate.now());
+           // nflImportService.importScores(LocalDate.now());
+        });
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/scores", Instant.now()));
     }
 
     @PostMapping("/player-stats")
     public ResponseEntity<PrefetchResponse> prefetchPlayerStats() {
-        taskExecutor.execute(importService::importPlayersStats);
+        taskExecutor.execute(() -> {
+            mlbImportService.importPlayersStats();
+         //   nflImportService.importPlayersStats();
+        });
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/player-stats", Instant.now()));
     }
 
     @PostMapping("/player-game-stats")
     public ResponseEntity<PrefetchResponse> prefetchPlayerGameStats() {
-        taskExecutor.execute(importService::importPlayerGameStats);
+        taskExecutor.execute(() -> {
+            mlbImportService.importPlayerGameStats();
+          //  nflImportService.importPlayerGameStats();
+        });
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/player-game-stats", Instant.now()));
     }
 
     @PostMapping("/bet-markets")
     public ResponseEntity<PrefetchResponse> prefetchBetMarkets() {
-        taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));
+        taskExecutor.execute(() -> {
+            mlbImportService.importBetMarkets(LocalDate.now());
+         //   nflImportService.importBetMarkets(LocalDate.now());
+        });
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/bet-markets", Instant.now()));
     }
-
-
 }
+
 
