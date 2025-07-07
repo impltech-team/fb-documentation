@@ -48,11 +48,16 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                  AND (:positions IS NULL OR p.position IN (:positions))                                                                              \s
                  AND (:participantIds IS NULL OR p.player_id IN (:participantIds))
                  AND (
-                     p.first_name ILIKE CONCAT('%', :filter, '%') OR
-                     p.last_name ILIKE CONCAT('%', :filter, '%') OR
-                     t.name ILIKE CONCAT('%', :filter, '%') OR
-                     p.position ILIKE CONCAT('%', :filter, '%')
-                   )),
+                          :filter IS NULL OR EXISTS (
+                              SELECT 1
+                              FROM unnest(string_to_array(:filter, ' ')) AS token
+                              WHERE\s
+                                  p.first_name ILIKE CONCAT('%', token, '%')
+                                  OR p.last_name ILIKE CONCAT('%', token, '%')
+                                  OR t.name ILIKE CONCAT('%', token, '%')
+                                  OR p.position ILIKE CONCAT('%', token, '%')
+                          )
+                      )),
              player_has_bet AS (
                    SELECT DISTINCT bo.player_id
                 FROM sport.io_bet          b

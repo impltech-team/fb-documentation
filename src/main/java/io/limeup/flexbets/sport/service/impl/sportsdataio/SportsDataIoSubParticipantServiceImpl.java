@@ -102,10 +102,10 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
         );
 
 
-        Set<Integer> eventIds = rows.stream()
-                .map(SportsDataPlayerRow::getEventId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+//        Set<Integer> eventIds = rows.stream()
+//                .map(SportsDataPlayerRow::getEventId)
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toSet());
 
         Set<Integer> playerIds = rows.stream()
                 .map(SportsDataPlayerRow::getId)
@@ -113,9 +113,9 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
 
         Map<Long, List<SportsDataBetRow>> playerIdBetMap =
                 betRepository.findAvailablePlayerBets(
-                                eventIds.stream()
-                                        .mapToInt(Integer::intValue)
-                                        .toArray(),
+//                                eventIds.stream()
+//                                        .mapToInt(Integer::intValue)
+//                                        .toArray(),
                                 playerIds.stream()
                                         .mapToInt(Integer::intValue)
                                         .toArray())
