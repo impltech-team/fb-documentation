@@ -111,13 +111,13 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
         FROM    sport.io_bet b
         JOIN    sport.io_bet_outcome bo ON bo.io_bet_id = b.id
         WHERE    b.any_bets_available
-          AND   b.event_id          = ANY(:eventIds)
+/*          AND   b.event_id          = ANY(:eventIds)*/
           AND   bo.player_id        = ANY(:playerIds)
 
         """,
             nativeQuery = true)
     List<SportsDataBetRow> findAvailablePlayerBets(
-            @Param("eventIds")  int[]  eventIds,
+//            @Param("eventIds")  int[]  eventIds,
             @Param("playerIds") int[]  playerIds
     );
 }

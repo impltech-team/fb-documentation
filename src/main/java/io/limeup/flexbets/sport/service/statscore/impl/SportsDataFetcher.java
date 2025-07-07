@@ -20,7 +20,7 @@ public class SportsDataFetcher {
 
     @Scheduled(fixedDelay = 7_200_000)
     public void pollPlayers() {
-   //     importService.importPlayers();
+        importService.importPlayers();
     }
 
     @Scheduled(fixedDelay = 7_200_000)
