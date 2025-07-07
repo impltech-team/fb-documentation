@@ -15,6 +15,7 @@ import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,6 +88,7 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
             List<Integer> participantIds, Integer marketId, Boolean odds,
             Integer maxHistoricalDataCount, RequestQueryDTO rq) {
 
+        ValidationUtils.validateSortFieldsInRequest(rq, SUPPORTED_SORT_FIELDS);
         if (odds == null) {
             odds = false;
         }
@@ -129,7 +131,7 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                 playerMapper.toSubParticipantDTOList(rows, playerIdBetMap);
         long count = rows.size();
         for (SubParticipantDTO dto : dtoList) {
-            dto.setHistoricalStats(buildHistoricalStats((long) dto.getId()));
+            dto.setHistoricalStats(buildHistoricalStats((long) dto.getId(),maxHistoricalDataCount));
         }
 
         return PaginationUtils.buildPaginatedResponse(
@@ -154,7 +156,7 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                         player.getId().longValue());
         SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets);
 
-        List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue());
+        List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue(), maxHistoricalDataCount);
         if (maxHistoricalDataCount != null && maxHistoricalDataCount > 0) {
             hist.forEach(h -> h.setEventStatistics(
                     h.getEventStatistics().stream()
@@ -166,10 +168,10 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
     }
 
 
-    public List<HistoricalStatDTO> buildHistoricalStats(Long playerId) {
+    public List<HistoricalStatDTO> buildHistoricalStats(Long playerId, Integer maxHistoricalDataCount) {
 
         List<IoPlayerGameStats> games =
-                gameStatsRepo.findAllByPlayerIdOrderByGameDatetimeDesc(playerId);
+                gameStatsRepo.findTopByPlayerIdLimit(playerId,maxHistoricalDataCount);
 
         Set<Long> teamIds = games.stream()
                 .flatMap(g -> Stream.of(g.getTeamId(), g.getOpponentId()))
