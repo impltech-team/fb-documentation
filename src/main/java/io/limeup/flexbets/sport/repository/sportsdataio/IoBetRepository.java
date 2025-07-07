@@ -45,7 +45,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
     List<SportsDataBetRow> findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(String marketType, Collection<Integer> gameIds, Long playerId);
 
     @Query(value = """
-        SELECT  bo.outcome_id       AS id,
+        SELECT  b.market_id     AS id,
                 bo.player_id        AS playerId,
                 b.bet_type_id       AS marketTypeId,
                 b.bet_type          AS marketType,
@@ -65,7 +65,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
     );
 
     @Query(value = """
-        SELECT  bo.market_id       AS id,
+        SELECT  b.market_id       AS id,
                 bo.player_id        AS playerId,
                 b.bet_type_id       AS marketTypeId,
                 b.bet_type          AS marketType,

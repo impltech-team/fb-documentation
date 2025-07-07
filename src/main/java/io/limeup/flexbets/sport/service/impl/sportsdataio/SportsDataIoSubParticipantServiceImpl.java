@@ -79,25 +79,24 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
     }
 
 
-//    @EventBasedCache(cacheName = "subParticipantsListCache",
-//            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
-
+    @EventBasedCache(cacheName = "subParticipantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(
             Integer competitionId, List<String> positions,
             List<Integer> participantIds, Integer marketId, Boolean odds,
-            Integer maxHistoricalDataCount, RequestQueryDTO rq) {
+            Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
 
-        ValidationUtils.validateSortFieldsInRequest(rq, SUPPORTED_SORT_FIELDS);
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         if (odds == null) {
             odds = false;
         }
 
-        int limit = rq.getPageSize();
-        int offset = (rq.getPage() - 1) * limit;
+        int limit = requestQuery.getPageSize();
+        int offset = (requestQuery.getPage() - 1) * limit;
 
 
-        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithFilters(offset, limit, odds, rq.getSortBy(), rq.getSortOrder(), rq.getFilter()
+        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter()
                 , marketId,
                 positions == null ? Collections.emptyList() : positions,
                 participantIds == null ? Collections.emptyList() : participantIds
@@ -135,7 +134,7 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
         }
 
         return PaginationUtils.buildPaginatedResponse(
-                dtoList, count, rq.getPage(), rq.getPageSize());
+                dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
 
