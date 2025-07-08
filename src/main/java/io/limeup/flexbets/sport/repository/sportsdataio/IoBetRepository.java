@@ -38,6 +38,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                   AND e.game_id IN (:gameIds)
                   AND bo.player_id = :playerId
                   AND b.any_bets_available = true
+                  AND    bo.updated_at > NOW() - INTERVAL '2 days'
             """, nativeQuery = true)
     List<SportsDataBetRow> findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(String marketType, Collection<Integer> gameIds, Long playerId);
 
@@ -52,7 +53,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                        bo.updated_at       AS lastUpdated
                FROM    sport.io_bet b
                JOIN    sport.io_bet_outcome bo ON bo.io_bet_id = b.id
-               WHERE    b.any_bets_available
+               WHERE    b.any_bets_available = true
             AND    bo.updated_at > NOW() - INTERVAL '2 days'
             
             """,
@@ -62,7 +63,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
     );
 
     @Query(value = """
-        SELECT  b.market_id       AS id,
+        SELECT  b.market_id         AS id,
                 bo.player_id        AS playerId,
                 b.bet_type_id       AS marketTypeId,
                 b.bet_type          AS marketType,

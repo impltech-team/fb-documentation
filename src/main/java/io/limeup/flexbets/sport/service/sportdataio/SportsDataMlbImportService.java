@@ -116,7 +116,7 @@ public class SportsDataMlbImportService {
     }
 
     private void fetchAndUpsertMarketsForGame(Long gameId) {
-        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
+        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "?include=available&key=" + apiKey;
         sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
