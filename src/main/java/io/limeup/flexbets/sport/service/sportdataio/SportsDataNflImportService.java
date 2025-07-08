@@ -26,9 +26,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service("nfl") // This is the map key used in the controller
+@Service // This is the map key used in the controller
 @RequiredArgsConstructor
-public class SportsDataNflImportService implements SportsDataImportService {
+public class SportsDataNflImportService {
 
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
