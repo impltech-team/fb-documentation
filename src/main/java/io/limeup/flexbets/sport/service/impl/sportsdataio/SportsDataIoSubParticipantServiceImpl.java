@@ -80,7 +80,8 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
 
 
     @EventBasedCache(cacheName = "subParticipantsListCache",
-            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
+            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount," +
+                    " #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(
             Integer competitionId, List<String> positions,
