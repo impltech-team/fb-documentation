@@ -13,9 +13,6 @@ import java.util.Set;
 
 public interface IoBetRepository extends JpaRepository<IoBet, Long> {
 
-    List<IoBet> findByEvent(IoEvent event);
-
-
     @Query("""
            select distinct b
            from IoBet b
@@ -26,7 +23,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
 
     @Query(value = """ 
             SELECT
-                  bo.outcome_id AS id,
+                  b.market_id  AS id,
                   bo.player_id AS playerId,
                   b.bet_type_id AS marketTypeId,
                   b.bet_type AS marketType,
@@ -45,20 +42,20 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
     List<SportsDataBetRow> findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(String marketType, Collection<Integer> gameIds, Long playerId);
 
     @Query(value = """
-        SELECT  b.market_id     AS id,
-                bo.player_id        AS playerId,
-                b.bet_type_id       AS marketTypeId,
-                b.bet_type          AS marketType,
-                bo.outcome_type     AS betType,
-                bo.value            AS betLine,
-                bo.payout_decimal   AS price,
-                bo.updated_at       AS lastUpdated
-        FROM    sport.io_bet b
-        JOIN    sport.io_bet_outcome bo ON bo.io_bet_id = b.id
-        WHERE    b.any_bets_available
-     AND    bo.updated_at > NOW() - INTERVAL '2 days'
-
-        """,
+               SELECT  b.market_id         AS id,
+                       bo.player_id        AS playerId,
+                       b.bet_type_id       AS marketTypeId,
+                       b.bet_type          AS marketType,
+                       bo.outcome_type     AS betType,
+                       bo.value            AS betLine,
+                       bo.payout_decimal   AS price,
+                       bo.updated_at       AS lastUpdated
+               FROM    sport.io_bet b
+               JOIN    sport.io_bet_outcome bo ON bo.io_bet_id = b.id
+               WHERE    b.any_bets_available
+            AND    bo.updated_at > NOW() - INTERVAL '2 days'
+            
+            """,
             nativeQuery = true)
     List<SportsDataBetRow> findAvailablePlayerBets(
             @Param("playerIds") int[]  playerIds
@@ -77,7 +74,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
         JOIN    sport.io_bet_outcome bo ON bo.io_bet_id = b.id
         WHERE    b.any_bets_available
           AND   bo.player_id        = ANY(:playerIds)
-          AND   b.bet_type_id  = :marketId
+          AND   b.bet_type_id       = :marketId
           AND    bo.updated_at > NOW() - INTERVAL '2 days'
         """,
             nativeQuery = true)
