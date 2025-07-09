@@ -1,10 +1,9 @@
-package io.limeup.flexbets.sport.model.dto;
+package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.EventLiteDTO;
 import io.limeup.flexbets.sport.dto.OddsDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
-import io.limeup.flexbets.sport.mapper.IoBetMapper;
 import io.limeup.flexbets.sport.model.IoPlayer;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
@@ -77,6 +76,7 @@ public class IoPlayerMapper {
         entity.setUsaTodayHeadshotUpdated(dto.getUsaTodayHeadshotUpdated());
         entity.setUsaTodayHeadshotNoBackgroundUpdated(dto.getUsaTodayHeadshotNoBackgroundUpdated());
     }
+
     public IoPlayer toEntity(SportsDataPlayerDTO dto) {
         return IoPlayer.builder()
                 .playerId(dto.getPlayerID())
@@ -145,7 +145,7 @@ public class IoPlayerMapper {
                 .toList();
     }
 
-    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets ){
+    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets) {
 
 
         SubParticipantDTO result = new SubParticipantDTO();
@@ -172,7 +172,7 @@ public class IoPlayerMapper {
                 .opponent(player.getOpponentTeamKey())
                 .build());
         List<OddsDTO> odds = new ArrayList<>();
-        if(!CollectionUtils.isEmpty(bets)){
+        if (!CollectionUtils.isEmpty(bets)) {
             odds = betMapper.toOddsDTOList(bets);
         }
         result.setOdds(odds);

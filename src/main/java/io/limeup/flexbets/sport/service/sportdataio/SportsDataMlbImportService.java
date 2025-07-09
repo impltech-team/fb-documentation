@@ -1,15 +1,12 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
-import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.*;
 import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
-import io.limeup.flexbets.sport.mapper.IoBetMapper;
-import io.limeup.flexbets.sport.mapper.IoTeamMapper;
+import io.limeup.flexbets.sport.mapper.*;
 import io.limeup.flexbets.sport.model.*;
-import io.limeup.flexbets.sport.model.dto.*;
+import io.limeup.flexbets.sport.model.dto.IoSportsDataPlayerStatsDTO;
+import io.limeup.flexbets.sport.model.dto.ScoreBasicDto;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +37,7 @@ public class SportsDataMlbImportService {
     private final IoEventRepository eventRepo;
     private final IoBetRepository betRepo;
     private final IoTeamRepository teamRepo;
+    private final IoVenueRepository venueReposirory;
     private final IoPlayerRepository playerRepo;
     private final IoPlayerStatsRepository playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
@@ -48,6 +46,7 @@ public class SportsDataMlbImportService {
     private final IoBetMapper betMapper;
     private final IoTeamMapper teamMapper;
     private final IoPlayerMapper playerMapper;
+    private final IoVenueMapper ioVenueMapper;
     private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
@@ -79,6 +78,41 @@ public class SportsDataMlbImportService {
         queryGamesFromDbAndUpdateMarkets(date.plusDays(2));
         queryGamesFromDbAndUpdateMarkets(date.plusDays(3));
         queryGamesFromDbAndUpdateMarkets(date.plusDays(4));
+    }
+
+    public void importVenue() {
+        if (skipIfLaunchedRecently(FetchIoType.VENUE)) return;
+        fetchAndUpsertVenue();
+    }
+
+    private void fetchAndUpsertVenue() {
+        var log = fetchLogService.start(FetchIoType.VENUE, SportIoType.MLB);
+        try {
+            String url = URL + SPORT_URL + "scores/json/Stadiums?key=" + apiKey;
+            List<VenueImportDTO> dtos = sportsDataWebClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToFlux(VenueImportDTO.class)
+                    .collectList()
+                    .block();
+
+            if (dtos != null) dtos.forEach(this::upsertVenue);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
+        }
+    }
+
+    private void upsertVenue(VenueImportDTO dto) {
+        venueReposirory.findByStadiumId(dto.getStadiumId())
+                .ifPresentOrElse(
+                        ex -> {
+                            ioVenueMapper.updateEntity(ex, dto);
+                            venueReposirory.save(ex);
+                        },
+                        () -> venueReposirory.save(ioVenueMapper.toEntity(dto)));
+
     }
 
     private void queryGamesFromDbAndUpdateMarkets(LocalDate date) {

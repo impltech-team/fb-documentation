@@ -1,6 +1,7 @@
-package io.limeup.flexbets.sport.model.dto;
+package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.model.IoEvent;
+import io.limeup.flexbets.sport.model.dto.ScoreBasicDto;
 import org.springframework.stereotype.Component;
 
 @Component

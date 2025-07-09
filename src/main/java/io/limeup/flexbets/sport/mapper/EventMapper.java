@@ -269,9 +269,11 @@ public class EventMapper {
         });
     }
 
-    private static FullEventDTO.Participant getParticipantInfoByMarketName(String marketName,
-                                                                           FullEventDTO.Participant homeTeam,
-                                                                           FullEventDTO.Participant awayTeam) {
+
+
+    public static FullEventDTO.Participant getParticipantInfoByMarketName(String marketName,
+                                                                          FullEventDTO.Participant homeTeam,
+                                                                          FullEventDTO.Participant awayTeam) {
         if (marketName.toLowerCase().contains(HOME_TEAM_MARKET_NAME)) {
             return homeTeam;
         } else if (marketName.toLowerCase().contains(AWAY_TEAM_MARKET_NAME)) {
