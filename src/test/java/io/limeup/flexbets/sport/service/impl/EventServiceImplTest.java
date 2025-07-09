@@ -1,7 +1,6 @@
 package io.limeup.flexbets.sport.service.impl;
 
 import io.limeup.flexbets.sport.dto.EventDTO;
-import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.*;
@@ -9,6 +8,7 @@ import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
 import io.limeup.flexbets.sport.service.VenueService;
+import io.limeup.flexbets.sport.service.impl.statscore.StatScoreEventServiceImpl;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class EventServiceImplTest {
     private VenueService venueService;
 
     @InjectMocks
-    private EventServiceImpl eventService;
+    private StatScoreEventServiceImpl eventService;
 
     private RequestQueryDTO requestQuery;
 
