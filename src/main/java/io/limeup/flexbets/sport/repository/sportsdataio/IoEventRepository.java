@@ -18,11 +18,10 @@ public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
             WITH sorted AS (
                 SELECT e.id
                 FROM sport.io_event e
-                WHERE 
-                              e.datetime_utc >= COALESCE(:dateFrom, e.datetime_utc)
-                         AND e.datetime_utc <= COALESCE(:dateTo, e.datetime_utc) \s
+                WHERE    e.datetime_utc >= COALESCE(:dateFrom, e.datetime_utc)
+                         AND e.datetime_utc <= COALESCE(:dateTo, e.datetime_utc) 
             
-                 AND e.status = COALESCE(:status, e.status)
+                  AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
                   AND (:venueIds IS NULL OR e.stadium_id IN (:venueIds))
                   AND (
                         :participantIds IS NULL OR
@@ -65,7 +64,7 @@ public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
             FROM sport.io_event e
             WHERE (:dateFrom IS NULL OR e.datetime_utc >= :dateFrom)
               AND (:dateTo IS NULL OR e.datetime_utc <= :dateTo)
-              AND (:status IS NULL OR e.status = :status)
+              AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
               AND (:venueIds IS NULL OR e.stadium_id IN (:venueIds))
               AND (
                     :participantIds IS NULL OR
@@ -73,7 +72,7 @@ public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
                     e.away_team_id IN (:participantIds)
               )
             """, nativeQuery = true)
-    int countEvents(
+    Long countEvents(
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
             @Param("status") String status,
