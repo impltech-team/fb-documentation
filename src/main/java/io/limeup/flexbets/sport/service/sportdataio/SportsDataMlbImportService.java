@@ -73,6 +73,7 @@ public class SportsDataMlbImportService {
     @Transactional
     public void importBetMarkets(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.BET)) return;
+        queryGamesFromDbAndUpdateMarkets(date.minusDays(1));
         queryGamesFromDbAndUpdateMarkets(date);
         queryGamesFromDbAndUpdateMarkets(date.plusDays(1));
         queryGamesFromDbAndUpdateMarkets(date.plusDays(2));
@@ -215,6 +216,7 @@ public class SportsDataMlbImportService {
 
     public void importScores(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
+        fetchAndUpsertScores(date.minusDays(1));
         fetchAndUpsertScores(date);
         fetchAndUpsertScores(date.plusDays(1));
         fetchAndUpsertScores(date.plusDays(2));
@@ -415,5 +417,21 @@ public class SportsDataMlbImportService {
                 });
 
         return toSave;
+    }
+
+    public void importScoresRange(LocalDate from, LocalDate to) {
+        if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
+
+        for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+            fetchAndUpsertScores(date);
+        }
+    }
+
+    public void importBetsRange(LocalDate from, LocalDate to) {
+        if (skipIfLaunchedRecently(FetchIoType.BET)) return;
+
+        for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+            queryGamesFromDbAndUpdateMarkets(date);
+        }
     }
 }

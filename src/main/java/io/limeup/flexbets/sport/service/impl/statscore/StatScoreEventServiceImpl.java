@@ -13,6 +13,7 @@ import io.limeup.flexbets.sport.repository.projection.EventRow;
 import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
+import jakarta.validation.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,14 @@ import java.util.Set;
 public class StatScoreEventServiceImpl implements EventService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("event_name", "event_date");
+    private static final Set<String> SUPPORTED_STATUS_SORT_FIELDS = Set.of("SCHEDULED",
+            "FINISHED",
+            "LIVE",
+            "CANCELLED",
+            "INTERRUPTED",
+            "DELETED",
+            "OTHER"
+    );
 
     private final EventRepository eventRepository;
 
@@ -35,12 +44,16 @@ public class StatScoreEventServiceImpl implements EventService {
     }
 
 
-//    @EventBasedCache(cacheName = "eventsListCache",
+    //    @EventBasedCache(cacheName = "eventsListCache",
 //            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
+        if(status != null && !status.isBlank() &&  SUPPORTED_STATUS_SORT_FIELDS.stream()
+                .noneMatch(s -> s.equalsIgnoreCase(status))) {
+            throw new ValidationException(String.format("Invalid status: %s. Available options: %s", status, SUPPORTED_STATUS_SORT_FIELDS));
+        }
 
         if (dateTo == null) {
             dateTo = LocalDateTime.now();
@@ -74,10 +87,10 @@ public class StatScoreEventServiceImpl implements EventService {
                 (requestQuery.getPage() - 1) * requestQuery.getPageSize());
 
         return PaginationUtils.buildPaginatedResponse(
-                EventMapper.toDTO(eventRows), count, requestQuery.getPage(), requestQuery.getPageSize());
+                EventMapper.toDTO(eventRows), (long) eventRows.size(), requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-//    @EventBasedCache(cacheName = "eventDetailsCache",
+    //    @EventBasedCache(cacheName = "eventDetailsCache",
 //            key = "#eventId")
     @Override
     public EventDTO getEventById(Integer eventId) {

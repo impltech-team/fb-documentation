@@ -23,7 +23,7 @@ public interface EventRepository extends ExternalIdRepository<Event, Long> {
                         WHERE c.external_id = :competitionId
                         AND e.start_date >= COALESCE(:dateFrom, e.start_date)
                         AND e.start_date <= COALESCE(:dateTo, e.start_date)
-                        AND e.status = COALESCE(:status, e.status)
+                        AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
                         AND (:venueIds IS NULL OR v.external_id IN (:venueIds))
                         AND (:participantIds IS NULL OR p.external_id IN (:participantIds))
                         GROUP BY e.id
@@ -88,7 +88,7 @@ public interface EventRepository extends ExternalIdRepository<Event, Long> {
                 WHERE c.external_id = :competitionId
                     AND e.start_date >= COALESCE(:dateFrom, e.start_date)
                     AND e.start_date <= COALESCE(:dateTo, e.start_date)
-                    AND e.status = COALESCE(:status, e.status)
+                    AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
                     AND (:venueIds IS NULL OR v.external_id IN (:venueIds))
                     AND (:participantIds IS NULL OR p.external_id IN (:participantIds))
             """, nativeQuery = true)

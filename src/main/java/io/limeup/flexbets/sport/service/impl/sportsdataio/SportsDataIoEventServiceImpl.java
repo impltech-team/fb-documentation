@@ -10,6 +10,7 @@ import io.limeup.flexbets.sport.repository.sportsdataio.IoVenueRepository;
 import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
+import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 @Service
 public class SportsDataIoEventServiceImpl implements EventService {
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("event_name", "event_date");
+    private static final Set<String> SUPPORTED_STATUS_SORT_FIELDS = Set.of("Final", "Scheduled", "InProgress", "Delayed", "Postponed");
+
     private static final int COMPETITION_ID = 5466;
     private static final String COMPETITION_NAME = "MLB";
 
@@ -42,7 +45,10 @@ public class SportsDataIoEventServiceImpl implements EventService {
                                                   List<Integer> venueIds, List<Integer> participantIds, String status,
                                                   RequestQueryDTO requestQuery) {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
-
+        if (status != null && !status.isBlank() && SUPPORTED_STATUS_SORT_FIELDS.stream()
+                .noneMatch(s -> s.equalsIgnoreCase(status))) {
+            throw new ValidationException(String.format("Invalid status: %s. Available options: %s", status, SUPPORTED_STATUS_SORT_FIELDS));
+        }
         if (dateTo == null) {
             dateTo = LocalDateTime.now();
         }
@@ -51,15 +57,25 @@ public class SportsDataIoEventServiceImpl implements EventService {
         }
 
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
-        List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>()  : participantIds;
+        List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>() : participantIds;
 
+//        Long count = eventRepository.countEvents(dateFrom,
+//
+//                dateTo,
+//                status,
+//                venueIdsSafe,
+//                participantIdsSafe
+//        );
+//        if (count == 0) {
+//            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
+//        }
 
         List<IoEvent> events = eventRepository.listEvents(
                 dateFrom,
                 dateTo,
                 status,
-                 venueIdsSafe,
-                 participantIdsSafe,
+                venueIdsSafe,
+                participantIdsSafe,
                 requestQuery.getSortBy(),
                 requestQuery.getSortOrder(),
                 requestQuery.getPageSize(),
@@ -68,10 +84,10 @@ public class SportsDataIoEventServiceImpl implements EventService {
 
         List<EventDTO> dtoList = events.stream().map(this::mapToDto).collect(Collectors.toList());
 
-        return PaginationUtils.buildPaginatedResponse(dtoList, (long) dtoList.size(), requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList,  (long) events.size(), requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-//    @EventBasedCache(cacheName = "eventDetailsCache",
+    //    @EventBasedCache(cacheName = "eventDetailsCache",
 //            key = "#eventId")
     @Override
     public EventDTO getEventById(Integer eventId) {
@@ -103,6 +119,7 @@ public class SportsDataIoEventServiceImpl implements EventService {
         }
         return dto;
     }
+
     private ParticipantSummaryDTO buildParticipantSummary(Integer teamId, String teamName) {
         String acronym = null;
         if (teamId != null) {

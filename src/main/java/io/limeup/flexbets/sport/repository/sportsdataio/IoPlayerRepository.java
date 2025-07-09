@@ -45,7 +45,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 JOIN   sport.io_team    at  ON at.team_id = e.away_team_id
                 WHERE  e.datetime > NOW()
 
-                 AND (:positions IS NULL OR p.position IN (:positions))                                                                              \s
+                 AND (:positions IS NULL OR p.position IN (:positions)) 
                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                  AND (
                    :filter IS NULL OR NOT EXISTS (
