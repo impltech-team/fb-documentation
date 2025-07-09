@@ -42,12 +42,14 @@ public class SportsDataIoEventServiceImpl implements EventService {
                                                   List<Integer> venueIds, List<Integer> participantIds, String status,
                                                   RequestQueryDTO requestQuery) {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
-        if (dateFrom == null) {
-            dateFrom = LocalDate.now().atStartOfDay();
-        }
+
         if (dateTo == null) {
-            dateTo = LocalDate.now().atTime(23, 59, 59);
+            dateTo = LocalDateTime.now();
         }
+        if (dateFrom == null) {
+            dateFrom = dateTo.minusHours(24);
+        }
+
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
         List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>()  : participantIds;
 
