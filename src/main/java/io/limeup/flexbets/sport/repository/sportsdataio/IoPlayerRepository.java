@@ -67,7 +67,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 JOIN sport.io_bet_outcome  bo  ON bo.io_bet_id = b.id
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
                                                 AND sp.event_id  = b.io_event_id
-                WHERE b.any_bets_available
+                WHERE b.any_bets_available = true
                   AND (:betTypeId IS NULL OR b.bet_type_id = :betTypeId)
             ),  
           paged_players AS ( 

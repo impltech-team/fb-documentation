@@ -64,6 +64,13 @@ public class SportsDataIoPrefetchController {
                 .body(new PrefetchResponse("io/bet-markets", Instant.now()));
     }
 
+    @PostMapping("/venue")
+    public ResponseEntity<PrefetchResponse> prefetchVenue() {
+        taskExecutor.execute(importService::importVenue);
+        return ResponseEntity.accepted()
+                .body(new PrefetchResponse("io/venue", Instant.now()));
+    }
+
 
 }
 

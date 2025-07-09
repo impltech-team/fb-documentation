@@ -3,9 +3,9 @@ package io.limeup.flexbets.sport.service.impl.sportsdataio;
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
+import io.limeup.flexbets.sport.mapper.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import io.limeup.flexbets.sport.model.IoTeam;
-import io.limeup.flexbets.sport.model.dto.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
@@ -151,7 +151,6 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
         List<SportsDataBetRow> playerBets =
                 betRepository.findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(
                         IoBetMarketStatus.PLAYER_PROP.getName(),
-                        Set.of(player.getEventId()),
                         player.getId().longValue());
         SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets);
 

@@ -1,24 +1,10 @@
 package io.limeup.flexbets.sport.service.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import io.limeup.flexbets.sport.dto.EventDTO;
 import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreGroupDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreResponse;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
-import io.limeup.flexbets.sport.dto.statscore.StatScoreStageDTO;
+import io.limeup.flexbets.sport.dto.statscore.*;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.EventRepository;
 import io.limeup.flexbets.sport.repository.projection.EventRow;
@@ -31,6 +17,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EventServiceImplTest {
@@ -104,6 +98,8 @@ class EventServiceImplTest {
 
     @Test
     void getEventByIdShouldReturnFullEventDTO() {
+        EventRow row = mock(EventRow.class);
+        when(eventRepository.getEventDetails(eq(1))).thenReturn(List.of(row));
         StatScoreCompetitionDTO competitionDTO = new StatScoreCompetitionDTO();
 
         StatScoreSeasonDTO season = new StatScoreSeasonDTO();
@@ -131,7 +127,7 @@ class EventServiceImplTest {
         when(venueService.readByExternalId(eq(10)))
                 .thenReturn(Optional.of(venue));
 
-        FullEventDTO fullEventDTO = eventService.getEventById(1);
+        EventDTO fullEventDTO = eventService.getEventById(1);
 
         assertThat(fullEventDTO).isNotNull();
         verify(statScoreClient).getEventById(anyInt(), eq(false));
