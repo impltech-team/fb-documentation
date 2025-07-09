@@ -1,8 +1,7 @@
-package io.limeup.flexbets.sport.service.impl;
+package io.limeup.flexbets.sport.service.impl.statscore;
 
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.EventDTO;
-import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
@@ -21,18 +20,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Transactional
 @Service
-public class EventServiceImpl implements EventService {
+public class StatScoreEventServiceImpl implements EventService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("event_name", "event_date");
 
     private final EventRepository eventRepository;
 
-    public EventServiceImpl(EventRepository eventRepository) {
+    public StatScoreEventServiceImpl(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
     }
 
