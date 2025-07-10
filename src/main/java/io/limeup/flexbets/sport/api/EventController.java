@@ -1,7 +1,6 @@
 package io.limeup.flexbets.sport.api;
 
 import io.limeup.flexbets.sport.dto.EventDTO;
-import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.EventService;

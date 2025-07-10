@@ -97,6 +97,12 @@ public class StatscoreSubParticipantServiceImpl extends ExternalIdReadServiceImp
         );
 
         List<SubParticipantDTO> subParticipantDTOList = mapper.toDTO(stats, retrieveEventIdSubParticipantBetMap(stats));
+        if (Boolean.TRUE.equals(odds)) {
+            subParticipantDTOList = subParticipantDTOList.stream()
+                    .filter(dto -> !CollectionUtils.isEmpty(dto.getOdds()))
+                    .toList();
+            count = (long) subParticipantDTOList.size();
+        }
 
         Optional<Settings> mockOddsSettings = settingsRepository.findByName(MOCK_ODDS);
         if(mockOddsSettings.isPresent() && mockOddsSettings.get().isEnabled()) {

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Transactional
 @Service
-public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participant, ParticipantDTO, Long> implements ParticipantService {
+public class ParticipantServiceImpl  implements ParticipantService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("team_name", "acronym");
 
@@ -40,7 +40,6 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     private final BetService betService;
 
     protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository, BetService betService) {
-        super(repository);
         this.participantRepository = repository;
         this.marketService = marketService;
         this.statRepository = statRepository;

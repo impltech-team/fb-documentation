@@ -2,11 +2,12 @@ package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
+import io.limeup.flexbets.sport.model.IoBet;
+import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.IoTeam;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoEventRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoVenueRepository;
+import io.limeup.flexbets.sport.repository.BetRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
@@ -29,13 +30,18 @@ public class SportsDataIoEventServiceImpl implements EventService {
     private final IoEventRepository eventRepository;
     private final IoVenueRepository venueRepository;
     private final IoTeamRepository teamRepository;
+    private final IoBetRepository betRepository;
+
+    private final IoBetOutcomeRepository ioBetOutcomeRepository;
 
     public SportsDataIoEventServiceImpl(IoEventRepository eventRepository,
                                         IoVenueRepository venueRepository,
-                                        IoTeamRepository teamRepository) {
+                                        IoTeamRepository teamRepository, IoBetRepository betRepository, IoBetOutcomeRepository ioBetOutcomeRepository) {
         this.eventRepository = eventRepository;
         this.venueRepository = venueRepository;
         this.teamRepository = teamRepository;
+        this.betRepository = betRepository;
+        this.ioBetOutcomeRepository = ioBetOutcomeRepository;
     }
 //    @EventBasedCache(cacheName = "eventsListCache",
 //            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
@@ -99,15 +105,50 @@ public class SportsDataIoEventServiceImpl implements EventService {
     private EventDTO mapToDto(IoEvent event) {
         EventDTO dto = new EventDTO();
         dto.setId(event.getGameId() != null ? event.getGameId().intValue() : 0);
-        dto.setEventName(event.getHomeTeam() + " vs " + event.getAwayTeam());
+        IoTeam home = teamRepository.findByTeamId(Long.valueOf(event.getHomeTeamId())).get();
+        IoTeam away = teamRepository.findByTeamId(Long.valueOf(event.getAwayTeamId())).get();
+        dto.setEventName(home.getCity()+ " " + home.getName()
+                + " vs " + away.getCity()+ " " + away.getName());
         dto.setEventDate(event.getDatetimeUtc());
         dto.setStatus(event.getStatus());
         dto.setCompetitionId(COMPETITION_ID);
         dto.setCompetition(COMPETITION_NAME);
         dto.setParticipants(List.of(
-                buildParticipantSummary(event.getHomeTeamId(), event.getHomeTeam()),
-                buildParticipantSummary(event.getAwayTeamId(), event.getAwayTeam())
+                new ParticipantSummaryDTO(event.getHomeTeamId() , home.getName(), home.getKey()),
+                new ParticipantSummaryDTO(event.getAwayTeamId(), away.getName(), away.getKey())
         ));
+        List<IoBet> allByEvent = betRepository.findAllByEvent(event);
+
+        List<EventMarketDTO> eventMarketsDto = allByEvent.stream()
+                .filter(s -> s.getMarketTypeId() == 2)
+                .map(bet -> {
+                    EventMarketDTO eventMarketDTO = new EventMarketDTO();
+                    eventMarketDTO.setMarketId(String.valueOf(bet.getBetTypeId()));
+                    eventMarketDTO.setMarketName(bet.getBetType());
+
+                    List<BetDTO> betDtos = ioBetOutcomeRepository.findAllByBet(bet).stream()
+                            .filter(s -> s.getValue() != null)
+                            .map(outcome -> {
+                                BetDTO betDTO = new BetDTO();
+                                betDTO.setId(outcome.getOutcomeId());
+                                betDTO.setParticipantId(outcome.getPlayerId());
+                                betDTO.setParticipantName(outcome.getParticipant());
+                                betDTO.setBetType(outcome.getOutcomeType());
+                                betDTO.setPrice(outcome.getValue());
+                                return betDTO;
+                            })
+                            .toList();
+
+                    eventMarketDTO.setBets(betDtos);
+                    return betDtos.isEmpty() ? null : eventMarketDTO;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+
+        dto.setMarkets(eventMarketsDto);
+
+
         if (event.getStadiumId() != null) {
             venueRepository.findByStadiumId(event.getStadiumId()).ifPresent(v -> dto.setVenue(
                     VenueDTO.builder()
@@ -120,14 +161,6 @@ public class SportsDataIoEventServiceImpl implements EventService {
         return dto;
     }
 
-    private ParticipantSummaryDTO buildParticipantSummary(Integer teamId, String teamName) {
-        String acronym = null;
-        if (teamId != null) {
-            acronym = teamRepository.findByTeamId(teamId.longValue())
-                    .map(IoTeam::getKey)
-                    .orElse(null);
-        }
-        return new ParticipantSummaryDTO(teamId != null ? teamId : 0, teamName, acronym);
-    }
+
 
 }
