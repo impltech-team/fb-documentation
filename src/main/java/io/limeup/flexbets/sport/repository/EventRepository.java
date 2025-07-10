@@ -23,7 +23,7 @@ public interface EventRepository extends ExternalIdRepository<Event, Long> {
                         WHERE c.external_id = :competitionId
                         AND e.start_date >= COALESCE(:dateFrom, e.start_date)
                         AND e.start_date <= COALESCE(:dateTo, e.start_date)
-                        AND e.status = COALESCE(:status, e.status)
+                        AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
                         AND (:venueIds IS NULL OR v.external_id IN (:venueIds))
                         AND (:participantIds IS NULL OR p.external_id IN (:participantIds))
                         GROUP BY e.id
@@ -88,7 +88,7 @@ public interface EventRepository extends ExternalIdRepository<Event, Long> {
                 WHERE c.external_id = :competitionId
                     AND e.start_date >= COALESCE(:dateFrom, e.start_date)
                     AND e.start_date <= COALESCE(:dateTo, e.start_date)
-                    AND e.status = COALESCE(:status, e.status)
+                    AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
                     AND (:venueIds IS NULL OR v.external_id IN (:venueIds))
                     AND (:participantIds IS NULL OR p.external_id IN (:participantIds))
             """, nativeQuery = true)
@@ -100,6 +100,31 @@ public interface EventRepository extends ExternalIdRepository<Event, Long> {
             @Param("venueIds") List<Integer> venueIds,
             @Param("participantIds") List<Integer> participantIds
     );
+
+    @Query(value = """
+                SELECT
+                    e.id,
+                    e.external_id,
+                    e.name AS event_name,
+                    e.start_date,
+                    e.status,
+                    c.external_id AS competition_id,
+                    c.name AS competition_name,
+                    p.external_id AS participant_id,
+                    p.team_name,
+                    p.acronym,
+                    COALESCE(v.country || ', ' || v.city, '') AS venue_location,
+                    v.name AS venue_name,
+                    v.external_id AS venue_id
+                FROM sport.event e
+                    JOIN sport.competition c ON e.competition_id = c.id
+                    LEFT JOIN sport.venue v ON e.venue_id = v.id
+                    LEFT JOIN sport.event_sub_participant esp ON esp.event_id = e.id
+                    LEFT JOIN sport.participant p ON p.id = esp.participant_id
+                WHERE e.external_id = :eventId
+                GROUP BY e.id, p.id, c.id, v.id
+            """, nativeQuery = true)
+    List<EventRow> getEventDetails(@Param("eventId") Integer eventId);
 
     Optional<Event> findByLsId(Long lsId);
 

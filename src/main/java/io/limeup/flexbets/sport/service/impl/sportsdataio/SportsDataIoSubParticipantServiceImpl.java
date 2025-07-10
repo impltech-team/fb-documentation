@@ -3,9 +3,9 @@ package io.limeup.flexbets.sport.service.impl.sportsdataio;
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
+import io.limeup.flexbets.sport.mapper.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import io.limeup.flexbets.sport.model.IoTeam;
-import io.limeup.flexbets.sport.model.dto.IoPlayerMapper;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
@@ -15,6 +15,7 @@ import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
+import io.limeup.flexbets.sport.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,25 +78,25 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
         this.ioTeamRepository = ioTeamRepository;
     }
 
-
-//    @EventBasedCache(cacheName = "subParticipantsListCache",
-//            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
-
+    @EventBasedCache(cacheName = "subParticipantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount," +
+                    " #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(
             Integer competitionId, List<String> positions,
             List<Integer> participantIds, Integer marketId, Boolean odds,
-            Integer maxHistoricalDataCount, RequestQueryDTO rq) {
+            Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
 
+        ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         if (odds == null) {
             odds = false;
         }
 
-        int limit = rq.getPageSize();
-        int offset = (rq.getPage() - 1) * limit;
+        int limit = requestQuery.getPageSize();
+        int offset = (requestQuery.getPage() - 1) * limit;
 
 
-        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithFilters(offset, limit, odds, rq.getSortBy(), rq.getSortOrder(), rq.getFilter()
+        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter()
                 , marketId,
                 positions == null ? Collections.emptyList() : positions,
                 participantIds == null ? Collections.emptyList() : participantIds
@@ -129,11 +130,11 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                 playerMapper.toSubParticipantDTOList(rows, playerIdBetMap);
         long count = rows.size();
         for (SubParticipantDTO dto : dtoList) {
-            dto.setHistoricalStats(buildHistoricalStats((long) dto.getId()));
+            dto.setHistoricalStats(buildHistoricalStats((long) dto.getId(),maxHistoricalDataCount));
         }
 
         return PaginationUtils.buildPaginatedResponse(
-                dtoList, count, rq.getPage(), rq.getPageSize());
+                dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
 
@@ -150,11 +151,10 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
         List<SportsDataBetRow> playerBets =
                 betRepository.findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(
                         IoBetMarketStatus.PLAYER_PROP.getName(),
-                        Set.of(player.getEventId()),
                         player.getId().longValue());
         SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets);
 
-        List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue());
+        List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue(), maxHistoricalDataCount);
         if (maxHistoricalDataCount != null && maxHistoricalDataCount > 0) {
             hist.forEach(h -> h.setEventStatistics(
                     h.getEventStatistics().stream()
@@ -166,10 +166,10 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
     }
 
 
-    public List<HistoricalStatDTO> buildHistoricalStats(Long playerId) {
+    public List<HistoricalStatDTO> buildHistoricalStats(Long playerId, Integer maxHistoricalDataCount) {
 
         List<IoPlayerGameStats> games =
-                gameStatsRepo.findAllByPlayerIdOrderByGameDatetimeDesc(playerId);
+                gameStatsRepo.findTopByPlayerIdLimit(playerId,maxHistoricalDataCount);
 
         Set<Long> teamIds = games.stream()
                 .flatMap(g -> Stream.of(g.getTeamId(), g.getOpponentId()))

@@ -5,17 +5,14 @@ import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.EventService;
+import io.limeup.flexbets.sport.service.resolver.EventServiceResolver;
 import io.limeup.flexbets.sport.validator.PositiveList;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class EventController {
-    private final EventService eventService;
+    private final EventServiceResolver serviceResolver;
 
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<EventDTO>> listEvents(
@@ -38,12 +35,15 @@ public class EventController {
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "status") String status,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
+        EventService eventService = serviceResolver.resolve(competitionId.toString());
         return ResponseEntity.ok(eventService.listEvents(
                 competitionId, dateFrom, dateTo, venueIds, participantIds, status, requestQuery));
     }
 
     @GetMapping("/{event_id}")
-    public ResponseEntity<FullEventDTO> getEventById(@PathVariable("event_id") Integer eventId) {
+    public ResponseEntity<EventDTO> getEventById(@PathVariable("event_id") Integer eventId,
+                                                     @RequestParam(name = "competition_id") Integer competitionId) {
+        EventService eventService = serviceResolver.resolve(competitionId.toString());
         return ResponseEntity.ok(eventService.getEventById(eventId));
     }
 }
