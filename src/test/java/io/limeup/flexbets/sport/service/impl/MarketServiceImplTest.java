@@ -1,15 +1,5 @@
 package io.limeup.flexbets.sport.service.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static io.limeup.flexbets.sport.TestDataFactory.*;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
@@ -18,12 +8,25 @@ import io.limeup.flexbets.sport.model.Market;
 import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.repository.MarketRepository;
 import io.limeup.flexbets.sport.service.CompetitionService;
+import io.limeup.flexbets.sport.service.impl.statscore.MarketServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static io.limeup.flexbets.sport.TestDataFactory.createTestCompetition;
+import static io.limeup.flexbets.sport.TestDataFactory.createTestMarket;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MarketServiceImplTest {

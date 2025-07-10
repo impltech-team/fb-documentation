@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service.impl;
+package io.limeup.flexbets.sport.service.impl.statscore;
 
 import com.github.tomakehurst.wiremock.admin.NotFoundException;
 import io.limeup.flexbets.sport.dto.MarketDTO;
@@ -16,7 +16,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

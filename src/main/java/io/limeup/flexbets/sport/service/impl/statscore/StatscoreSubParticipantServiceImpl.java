@@ -18,7 +18,6 @@ import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.SubParticipantStatRow;
 import io.limeup.flexbets.sport.service.BetService;
 import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
-import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
@@ -42,7 +41,7 @@ public class StatscoreSubParticipantServiceImpl extends ExternalIdReadServiceImp
 
     private final SubParticipantRepository subParticipantRepository;
 
-    private final MarketService marketService;
+    private final MarketServiceImpl marketService;
 
     private final SubParticipantMapper mapper;
 
@@ -51,7 +50,7 @@ public class StatscoreSubParticipantServiceImpl extends ExternalIdReadServiceImp
     private final SettingsRepository settingsRepository;
 
     protected StatscoreSubParticipantServiceImpl(SubParticipantRepository subParticipantRepository, StatRepository statRepository,
-                                                 MarketService marketService, SubParticipantMapper mapper, BetService betService,
+                                                 MarketServiceImpl marketService, SubParticipantMapper mapper, BetService betService,
                                                  SettingsRepository settingsRepository) {
         super(subParticipantRepository);
         this.statRepository = statRepository;
@@ -62,9 +61,9 @@ public class StatscoreSubParticipantServiceImpl extends ExternalIdReadServiceImp
         this.settingsRepository = settingsRepository;
     }
 
-    @EventBasedCache(cacheName = "subParticipantsListCache",
-            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
-    @Override
+//    @EventBasedCache(cacheName = "subParticipantsListCache",
+//            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
+//    @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
                                                                     List<Integer> participantIds, Integer marketId,Boolean odds,
                                                                     Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {

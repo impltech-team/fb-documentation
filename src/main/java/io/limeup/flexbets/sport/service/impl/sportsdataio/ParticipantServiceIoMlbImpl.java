@@ -19,14 +19,14 @@ import java.util.stream.Collectors;
 
 @Service("sportsDataIoParticipantService")
 @Transactional
-public class SportsDataIoParticipantServiceImpl implements ParticipantService {
+public class ParticipantServiceIoMlbImpl implements ParticipantService {
 
     private static final int COMPETITION_ID = 5466;
     private static final String COMPETITION_NAME = "MLB";
 
     private final IoTeamRepository teamRepository;
 
-    public SportsDataIoParticipantServiceImpl(IoTeamRepository teamRepository) {
+    public ParticipantServiceIoMlbImpl(IoTeamRepository teamRepository) {
         this.teamRepository = teamRepository;
     }
 

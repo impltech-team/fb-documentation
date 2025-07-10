@@ -1,12 +1,9 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
-import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.model.IoBet;
-import io.limeup.flexbets.sport.model.IoBetOutcome;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.IoTeam;
-import io.limeup.flexbets.sport.repository.BetRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import io.limeup.flexbets.sport.service.EventService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
@@ -14,13 +11,12 @@ import io.limeup.flexbets.sport.utils.ValidationUtils;
 import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class SportsDataIoEventServiceImpl implements EventService {
+public class EventServiceIoMlbImpl implements EventService {
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("event_name", "event_date");
     private static final Set<String> SUPPORTED_STATUS_SORT_FIELDS = Set.of("Final", "Scheduled", "InProgress", "Delayed", "Postponed");
 
@@ -34,9 +30,9 @@ public class SportsDataIoEventServiceImpl implements EventService {
 
     private final IoBetOutcomeRepository ioBetOutcomeRepository;
 
-    public SportsDataIoEventServiceImpl(IoEventRepository eventRepository,
-                                        IoVenueRepository venueRepository,
-                                        IoTeamRepository teamRepository, IoBetRepository betRepository, IoBetOutcomeRepository ioBetOutcomeRepository) {
+    public EventServiceIoMlbImpl(IoEventRepository eventRepository,
+                                 IoVenueRepository venueRepository,
+                                 IoTeamRepository teamRepository, IoBetRepository betRepository, IoBetOutcomeRepository ioBetOutcomeRepository) {
         this.eventRepository = eventRepository;
         this.venueRepository = venueRepository;
         this.teamRepository = teamRepository;

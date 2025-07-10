@@ -3,7 +3,8 @@ package io.limeup.flexbets.sport.api;
 import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
 import io.limeup.flexbets.sport.model.enums.MarketType;
-import io.limeup.flexbets.sport.service.MarketService;
+import io.limeup.flexbets.sport.service.impl.statscore.MarketServiceImpl;
+import io.limeup.flexbets.sport.service.resolver.MarketServiceResolver;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +24,16 @@ import java.util.List;
 @RequestMapping("/v1/markets")
 @RequiredArgsConstructor
 public class MarketController {
-    private final MarketService marketService;
+    private final MarketServiceImpl marketService;
+    private final MarketServiceResolver marketServiceResolver;
+
 
     @GetMapping("/list")
     public ResponseEntity<List<MarketLiteDTO>> listMarkets(
             @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(name = "marketType", required = false) MarketType marketType
     ) {
-        return ResponseEntity.ok(marketService.listMarkets(competitionId, marketType));
+        return ResponseEntity.ok(marketServiceResolver.resolve(String.valueOf(competitionId)).listMarkets(competitionId, marketType));
     }
 
     @Hidden
