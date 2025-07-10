@@ -32,7 +32,7 @@ import static java.util.Map.entry;
 @Transactional
 @Service("sportsDataIoProvider")
 @Slf4j
-public class SportsDataIoSubParticipantServiceImpl implements SubParticipantService {
+public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of(
             "player_name", "team_name", "position", "event_time");
@@ -65,7 +65,7 @@ public class SportsDataIoSubParticipantServiceImpl implements SubParticipantServ
                     entry("Caught stealing", IoPlayerGameStats::getCaughtStealing)
             );
 
-    public SportsDataIoSubParticipantServiceImpl(
+    public SubParticipantServiceIoMlbImpl(
             IoPlayerRepository playerRepository,
             IoBetRepository betRepository,
             IoPlayerMapper playerMapper,

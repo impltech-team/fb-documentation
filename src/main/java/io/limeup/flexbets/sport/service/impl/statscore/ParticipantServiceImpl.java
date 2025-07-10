@@ -14,8 +14,6 @@ import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import io.limeup.flexbets.sport.service.BetService;
-import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
-import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
@@ -33,13 +31,13 @@ public class ParticipantServiceImpl  implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
 
-    private final MarketService marketService;
+    private final MarketServiceImpl marketService;
 
     private final StatRepository statRepository;
 
     private final BetService betService;
 
-    protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository, BetService betService) {
+    protected ParticipantServiceImpl(ParticipantRepository repository, MarketServiceImpl marketService, StatRepository statRepository, BetService betService) {
         this.participantRepository = repository;
         this.marketService = marketService;
         this.statRepository = statRepository;

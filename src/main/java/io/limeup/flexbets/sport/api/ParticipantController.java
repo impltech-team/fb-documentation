@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.ParticipantService;
+import io.limeup.flexbets.sport.service.resolver.ParticipantServiceResolver;
 import io.limeup.flexbets.sport.validator.PositiveList;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
