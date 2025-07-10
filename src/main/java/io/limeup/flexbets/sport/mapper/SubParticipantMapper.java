@@ -43,7 +43,6 @@ public class SubParticipantMapper {
         entity.setPlayerName(dto.getName());
         entity.setPlayerShortName(dto.getShortName());
         entity.setShirtNumber(dto.getShirtNr());
-        entity.setAvatarUrl(dto.getLogo());
         entity.setGender(dto.getGender());
 
         if (dto.getDetails() != null) {

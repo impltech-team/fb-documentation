@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.config.webclient;
 
 import io.limeup.flexbets.sport.service.statscore.StatScoreAuthService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -26,6 +27,7 @@ public class SportsApiWebClientConfig {
     );
 
     @Bean
+    @Qualifier("statScoreWebClient")
     public WebClient webClient(StatScoreAuthService authService) {
         return WebClient.builder()
                 .baseUrl(BASE_URL)
@@ -57,5 +59,14 @@ public class SportsApiWebClientConfig {
                                 .build();
                     });
         });
+    }
+    @Qualifier("sportsDataWebClient")
+    public WebClient sportsDataWebClient(SportsDataProps props) {
+        return WebClient.builder()
+                .baseUrl(props.getBaseUrl())
+                .defaultHeader("Accept", "application/json")
+                .clientConnector(new ReactorClientHttpConnector(
+                        HttpClient.create().responseTimeout(Duration.ofSeconds(10))))
+                .build();
     }
 }

@@ -14,10 +14,8 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaCursorItemReader;
 import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -64,9 +62,9 @@ public class PreFetchStatScoreDataStep {
         return log -> {
             System.out.printf("prefetchProcessor has started for prefetch log with status - %s, for competition id - %s and date - %s%n",
                     log.getCompetitionId(), log.getPrefetchDate(), log.getStatus().name());
-            if (!PrefetchLog.Status.UPDATE.equals(log.getStatus())) {
+          //  if (!PrefetchLog.Status.UPDATE.equals(log.getStatus())) {
                 statsService.fetchStatDataForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
-            }
+         //   }
             dataService.fetchDataFromTrade360ApiForCompetitionAndDate(log.getCompetitionId(), log.getPrefetchDate());
             log.setStatus(PrefetchLog.Status.SUCCESS);
             log.setErrorMessage(null);
