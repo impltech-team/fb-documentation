@@ -2,7 +2,6 @@ package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
 import io.limeup.flexbets.sport.dto.MarketDTO;
 import io.limeup.flexbets.sport.dto.MarketLiteDTO;
-import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.Market;
 import io.limeup.flexbets.sport.model.enums.MarketType;
 import io.limeup.flexbets.sport.repository.ExternalIdRepository;

@@ -1,6 +1,5 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
-import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.mapper.IoPlayerMapper;
@@ -9,7 +8,10 @@ import io.limeup.flexbets.sport.model.IoTeam;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
-import io.limeup.flexbets.sport.repository.sportsdataio.*;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerGamesStatsRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;

@@ -3,13 +3,10 @@ package io.limeup.flexbets.sport.repository.sportsdataio;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
-import io.limeup.flexbets.sport.service.impl.sportsdataio.BetProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -70,10 +67,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
             @Param("playerIds") int[]  playerIds
     );
 
-    List<IoBet> findAllByEventAndAnyBetsAvailableTrue( IoEvent event);
-
     List<IoBet>  findAllByAnyBetsAvailableTrue();
-
 
     List<IoBet> findAllByEvent(IoEvent event);
 }
