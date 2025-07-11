@@ -9,10 +9,7 @@ import io.limeup.flexbets.sport.model.IoTeam;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerGamesStatsRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerRepository;
-import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
+import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import io.limeup.flexbets.sport.service.SubParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
@@ -27,15 +24,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Map.entry;
-
 @Transactional
 @Service("sportsDataIoProvider")
 @Slf4j
 public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
 
-    private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of(
-            "player_name", "team_name", "position", "event_time");
+    private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("player_name", "team_name", "position", "event_time");
 
     private final IoPlayerRepository playerRepository;
     private final IoBetRepository betRepository;
@@ -43,34 +37,9 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
     private final IoPlayerGamesStatsRepository gameStatsRepo;
     private final IoTeamRepository ioTeamRepository;
 
-
-    private static final Map<String, Function<IoPlayerGameStats, Number>> GAME_EXTRACT =
-            Map.ofEntries(
-                    entry("At bats", IoPlayerGameStats::getAtBats),
-                    entry("Runs", IoPlayerGameStats::getRuns),
-                    entry("Hits", IoPlayerGameStats::getHits),
-                    entry("Singles", IoPlayerGameStats::getSingles),
-                    entry("Doubles", IoPlayerGameStats::getDoubles),
-                    entry("Triples", IoPlayerGameStats::getTriples),
-                    entry("Home runs", IoPlayerGameStats::getHomeRuns),
-                    entry("Runs batted in", IoPlayerGameStats::getRunsBattedIn),
-                    entry("Strikeouts", IoPlayerGameStats::getStrikeouts),
-                    entry("Walks", IoPlayerGameStats::getWalks),
-                    entry("Hit by pitch", IoPlayerGameStats::getHitByPitch),
-                    entry("Outs", IoPlayerGameStats::getOuts),
-                    entry("Sacrifices", IoPlayerGameStats::getSacrifices),
-                    entry("Sacrifice flies", IoPlayerGameStats::getSacrificeFlies),
-                    entry("Ground into DP", IoPlayerGameStats::getGroundIntoDoublePlay),
-                    entry("Stolen bases", IoPlayerGameStats::getStolenBases),
-                    entry("Caught stealing", IoPlayerGameStats::getCaughtStealing)
-            );
-
-    public SubParticipantServiceIoMlbImpl(
-            IoPlayerRepository playerRepository,
-            IoBetRepository betRepository,
-            IoPlayerMapper playerMapper,
-            IoPlayerGamesStatsRepository gameStatsRepo,
-            IoTeamRepository ioTeamRepository) {
+    public SubParticipantServiceIoMlbImpl(IoPlayerRepository playerRepository, IoBetRepository betRepository,
+                                          IoPlayerMapper playerMapper, IoPlayerGamesStatsRepository gameStatsRepo,
+                                          IoTeamRepository ioTeamRepository) {
         this.playerRepository = playerRepository;
         this.betRepository = betRepository;
         this.playerMapper = playerMapper;
@@ -78,165 +47,143 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         this.ioTeamRepository = ioTeamRepository;
     }
 
-    @EventBasedCache(cacheName = "subParticipantsListCache",
-            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount," +
-                    " #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
-    @Override
-    public PaginatedResponse<SubParticipantDTO> listSubParticipants(
-            Integer competitionId, List<String> positions,
-            List<Integer> participantIds, Integer marketId, Boolean odds,
-            Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
+//    @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId,
+//    #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize,
+//    #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
+//    @Override
+    public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
+                                                                    List<Integer> participantIds, Integer marketId,
+                                                                    Boolean odds, Integer maxHistoricalDataCount,
+                                                                    RequestQueryDTO requestQuery) {
 
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
-        if (odds == null) {
-            odds = false;
-        }
+        odds = Boolean.TRUE.equals(odds);
 
         int limit = requestQuery.getPageSize();
         int offset = (requestQuery.getPage() - 1) * limit;
 
+        List<SportsDataPlayerRow> players = fetchFilteredPlayers(offset, limit, requestQuery, marketId, positions, participantIds, odds);
+        Map<Long, List<SportsDataBetRow>> playerBets = fetchPlayerBets(players, marketId);
 
-        List<SportsDataPlayerRow> rows = playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter()
-                , marketId,
-                positions == null ? Collections.emptyList() : positions,
-                participantIds == null ? Collections.emptyList() : participantIds
-        );
+        List<SubParticipantDTO> dtoList = mapPlayersToDTOs(players, playerBets, maxHistoricalDataCount);
 
-
-        Set<Integer> playerIds = rows.stream()
-                .map(SportsDataPlayerRow::getId)
-                .collect(Collectors.toSet());
-
-        Map<Long, List<SportsDataBetRow>> playerIdBetMap = new HashMap<>();
-
-        if (marketId == null) {
-            playerIdBetMap = betRepository.findAvailablePlayerBets(
-                            playerIds.stream()
-                                    .mapToInt(Integer::intValue)
-                                    .toArray())
-                    .stream()
-                    .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
-        } else {
-            playerIdBetMap = betRepository.findAvailablePlayerBetsWithMarketId(marketId,
-                            playerIds.stream()
-                                    .mapToInt(Integer::intValue)
-                                    .toArray())
-                    .stream()
-                    .collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
-        }
-
-
-        List<SubParticipantDTO> dtoList =
-                playerMapper.toSubParticipantDTOList(rows, playerIdBetMap);
-        long count = rows.size();
-        for (SubParticipantDTO dto : dtoList) {
-            dto.setHistoricalStats(buildHistoricalStats((long) dto.getId(),maxHistoricalDataCount));
-        }
-
-        return PaginationUtils.buildPaginatedResponse(
-                dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList, (long) players.size(), requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-
-    @EventBasedCache(cacheName = "subParticipantDetailsCache",
-            key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
-    @Override
-    public SubParticipantDTO getSubParticipantById(
-            Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
-
+//    @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
+//    @Override
+    public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
         SportsDataPlayerRow player = playerRepository.getPlayerWithBetsById(subParticipantId)
-                .orElseThrow(() -> new FlexBetsSportNotFoundException(
-                        "SubParticipant %s Not Found".formatted(subParticipantId)));
+                .orElseThrow(() -> new FlexBetsSportNotFoundException("SubParticipant %s Not Found".formatted(subParticipantId)));
 
-        List<SportsDataBetRow> playerBets =
-                betRepository.findAllByMarketTypeAndEventIdInAndPlayerIdAndAnyBetsAvailableTrue(
-                        IoBetMarketStatus.PLAYER_PROP.getName(),
-                        player.getId().longValue());
-        SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, playerBets);
+        List<SportsDataBetRow> bets = (marketId == null)
+                ? betRepository.findAvailablePlayerBets(IoBetMarketStatus.PLAYER_PROP.getName(), new int[]{player.getId()})
+                : betRepository.findAvailablePlayerBetsWithMarketId(IoBetMarketStatus.PLAYER_PROP.getName(), marketId, new int[]{player.getId()});
 
-        List<HistoricalStatDTO> hist = buildHistoricalStats(player.getId().longValue(), maxHistoricalDataCount);
-        if (maxHistoricalDataCount != null && maxHistoricalDataCount > 0) {
-            hist.forEach(h -> h.setEventStatistics(
-                    h.getEventStatistics().stream()
-                            .limit(maxHistoricalDataCount)
-                            .toList()));
-        }
-        dto.setHistoricalStats(hist);
+        SubParticipantDTO dto = playerMapper.toSubParticipantDTO(player, bets);
+        dto.setHistoricalStats(buildHistoricalStats((long) player.getId(), maxHistoricalDataCount));
         return dto;
     }
 
-
-    public List<HistoricalStatDTO> buildHistoricalStats(Long playerId, Integer maxHistoricalDataCount) {
-
-        List<IoPlayerGameStats> games =
-                gameStatsRepo.findTopByPlayerIdLimit(playerId,maxHistoricalDataCount);
-
-        Set<Long> teamIds = games.stream()
-                .flatMap(g -> Stream.of(g.getTeamId(), g.getOpponentId()))
-                .collect(Collectors.toSet());
-
-
-        Map<Long, String> teamNames = ioTeamRepository.findAllByTeamIdIn(teamIds)
-                .stream()
-                .collect(Collectors.toUnmodifiableMap(
-                        IoTeam::getTeamId,
-                        IoTeam::getName));
-
-        return GAME_EXTRACT.entrySet().stream()
-                .map(e -> buildStat(e.getKey(), e.getValue(), games, teamNames))
-                .filter(h -> h.getCount() > 0)
-                .toList();
+    private List<SportsDataPlayerRow> fetchFilteredPlayers(int offset, int limit, RequestQueryDTO requestQuery,
+                                                           Integer marketId, List<String> positions, List<Integer> participantIds, Boolean odds) {
+        return playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
+                marketId, positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
     }
 
+    private Map<Long, List<SportsDataBetRow>> fetchPlayerBets(List<SportsDataPlayerRow> players, Integer marketId) {
+        int[] playerIds = players.stream().mapToInt(SportsDataPlayerRow::getId).toArray();
 
-    private HistoricalStatDTO buildStat(
-            String name,
-            Function<IoPlayerGameStats, Number> gameGetter,
-            List<IoPlayerGameStats> games,
-            Map<Long, String> teamNames) {
+        List<SportsDataBetRow> bets = (marketId == null)
+                ? betRepository.findAvailablePlayerBets(IoBetMarketStatus.PLAYER_PROP.getName(), playerIds)
+                : betRepository.findAvailablePlayerBetsWithMarketId(IoBetMarketStatus.PLAYER_PROP.getName(), marketId, playerIds);
 
-        List<EventStatisticDTO> ev = new ArrayList<>(games.size());
-        DoubleSummaryStatistics stats = new DoubleSummaryStatistics();
+        return bets.stream().collect(Collectors.groupingBy(SportsDataBetRow::getPlayerId));
+    }
 
-        for (IoPlayerGameStats g : games) {
-            Number n = gameGetter.apply(g);
-            if (n == null) continue;
+    private List<SubParticipantDTO> mapPlayersToDTOs(List<SportsDataPlayerRow> players,
+                                                     Map<Long, List<SportsDataBetRow>> playerBets,
+                                                     Integer maxHistoricalDataCount) {
+        List<SubParticipantDTO> dtoList = playerMapper.toSubParticipantDTOList(players, playerBets);
+        dtoList.forEach(dto -> dto.setHistoricalStats(buildHistoricalStats((long) dto.getId(), maxHistoricalDataCount)));
+        return dtoList;
+    }
 
-            double v = n.doubleValue();
-            stats.accept(v);
+    private List<HistoricalStatDTO> buildHistoricalStats(Long playerId, Integer maxHistoricalDataCount) {
+        List<IoPlayerGameStats> games = gameStatsRepo.findTopByPlayerIdLimit(playerId, maxHistoricalDataCount);
 
-            ev.add(EventStatisticDTO.builder()
-                    .eventId(Math.toIntExact(g.getGameId()))
-                    .eventName(ioTeamRepository.findByTeamId(g.getTeamId()).get().getName()
-                            + " - " + ioTeamRepository.findByTeamId(g.getOpponentId()).get().getName())
-                    .eventDate(g.getGameDatetime())
-                    .value(v)
-                    .rawValue(n.toString())
-                    .opponent(teamNames.get(g.getOpponentId()))
-                    .build());
+        Map<Long, String> teamNames = ioTeamRepository.findAllByTeamIdIn(
+                        games.stream().flatMap(g -> Stream.of(g.getTeamId(), g.getOpponentId())).collect(Collectors.toSet()))
+                .stream().collect(Collectors.toUnmodifiableMap(IoTeam::getTeamId, IoTeam::getName));
+
+        return IoPlayerStatsUtils.buildStatsFromGames(games, teamNames);
+    }
+
+    static class IoPlayerStatsUtils {
+        private static final Map<String, Function<IoPlayerGameStats, Number>> GAME_EXTRACT = Map.ofEntries(
+                Map.entry("At bats", IoPlayerGameStats::getAtBats),
+                Map.entry("Runs", IoPlayerGameStats::getRuns),
+                Map.entry("Hits", IoPlayerGameStats::getHits),
+                Map.entry("Singles", IoPlayerGameStats::getSingles),
+                Map.entry("Doubles", IoPlayerGameStats::getDoubles),
+                Map.entry("Triples", IoPlayerGameStats::getTriples),
+                Map.entry("Home runs", IoPlayerGameStats::getHomeRuns),
+                Map.entry("Runs batted in", IoPlayerGameStats::getRunsBattedIn),
+                Map.entry("Strikeouts", IoPlayerGameStats::getStrikeouts),
+                Map.entry("Walks", IoPlayerGameStats::getWalks),
+                Map.entry("Hit by pitch", IoPlayerGameStats::getHitByPitch),
+                Map.entry("Outs", IoPlayerGameStats::getOuts),
+                Map.entry("Sacrifices", IoPlayerGameStats::getSacrifices),
+                Map.entry("Sacrifice flies", IoPlayerGameStats::getSacrificeFlies),
+                Map.entry("Ground into DP", IoPlayerGameStats::getGroundIntoDoublePlay),
+                Map.entry("Stolen bases", IoPlayerGameStats::getStolenBases),
+                Map.entry("Caught stealing", IoPlayerGameStats::getCaughtStealing)
+        );
+
+        public static List<HistoricalStatDTO> buildStatsFromGames(List<IoPlayerGameStats> games, Map<Long, String> teamNames) {
+            return GAME_EXTRACT.entrySet().stream()
+                    .map(e -> buildStat(e.getKey(), e.getValue(), games, teamNames))
+                    .filter(h -> h.getCount() > 0)
+                    .toList();
         }
 
-        if (stats.getCount() == 0)
+        private static HistoricalStatDTO buildStat(String name, Function<IoPlayerGameStats, Number> getter,
+                                                   List<IoPlayerGameStats> games, Map<Long, String> teamNames) {
+            List<EventStatisticDTO> ev = new ArrayList<>(games.size());
+            DoubleSummaryStatistics stats = new DoubleSummaryStatistics();
+
+            for (IoPlayerGameStats g : games) {
+                Number n = getter.apply(g);
+                if (n == null) continue;
+                double v = n.doubleValue();
+                stats.accept(v);
+
+                ev.add(EventStatisticDTO.builder()
+                        .eventId(Math.toIntExact(g.getGameId()))
+                        .eventName(teamNames.getOrDefault(g.getTeamId(), "") + " - " + teamNames.getOrDefault(g.getOpponentId(), ""))
+                        .eventDate(g.getGameDatetime())
+                        .value(v)
+                        .rawValue(n.toString())
+                        .opponent(teamNames.get(g.getOpponentId()))
+                        .build());
+            }
+
+            if (stats.getCount() == 0) {
+                return HistoricalStatDTO.builder().statName(name).count(0).eventStatistics(List.of()).build();
+            }
+
             return HistoricalStatDTO.builder()
                     .statName(name)
-                    .count(0)
-                    .eventStatistics(List.of())
+                    .average(round(stats.getAverage(), 2))
+                    .count((int) stats.getCount())
+                    .maxValue((int) stats.getMax())
+                    .minValue((int) stats.getMin())
+                    .eventStatistics(ev)
                     .build();
+        }
 
-        return HistoricalStatDTO.builder()
-                .statName(name)
-                .average(BigDecimal.valueOf(round(stats.getAverage(), 2)))
-                .count((int) stats.getCount())
-                .maxValue((int) stats.getMax())
-                .minValue((int) stats.getMin())
-                .eventStatistics(ev)
-                .build();
-    }
-
-
-    private static double round(double v, int scale) {
-        return BigDecimal.valueOf(v)
-                .setScale(scale, RoundingMode.HALF_UP)
-                .doubleValue();
+        private static BigDecimal round(double value, int scale) {
+            return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP);
+        }
     }
 }
