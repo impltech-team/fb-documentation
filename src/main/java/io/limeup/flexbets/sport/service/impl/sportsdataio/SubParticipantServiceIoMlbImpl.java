@@ -61,10 +61,9 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         odds = Boolean.TRUE.equals(odds);
 
-        int limit = requestQuery.getPageSize();
-        int offset = (requestQuery.getPage() - 1) * limit;
 
-        List<SportsDataPlayerRow> players = fetchFilteredPlayers(offset, limit, requestQuery, marketId, positions, participantIds, odds);
+
+        List<SportsDataPlayerRow> players = fetchFilteredPlayers(requestQuery, marketId, positions, participantIds, odds);
         Map<Long, List<SportsDataBetRow>> playerBets = fetchPlayerBets(players, marketId);
 
         List<SubParticipantDTO> dtoList = mapPlayersToDTOs(players, playerBets, maxHistoricalDataCount);
@@ -87,8 +86,11 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         return dto;
     }
 
-    private List<SportsDataPlayerRow> fetchFilteredPlayers(int offset, int limit, RequestQueryDTO requestQuery,
+    private List<SportsDataPlayerRow> fetchFilteredPlayers(RequestQueryDTO requestQuery,
                                                            Integer marketId, List<String> positions, List<Integer> participantIds, Boolean odds) {
+        int limit = requestQuery.getPageSize();
+        int offset = (requestQuery.getPage() - 1) * limit;
+
         return playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
                 marketId, positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
     }
