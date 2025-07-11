@@ -61,7 +61,7 @@ public class SportsDataMlbImportService {
     public static final String SPORT_URL = "mlb/";
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
-    private static final String TEAM_MARKET_NAME = "eam Prop";
+    private static final String TEAM_MARKET_NAME = "Team Prop";
     private final int seasonYear = Year.now().getValue();
 
 
