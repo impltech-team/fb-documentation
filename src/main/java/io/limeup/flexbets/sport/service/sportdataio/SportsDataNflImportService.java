@@ -395,4 +395,39 @@ public class SportsDataNflImportService {
 
         return toSave;
     }
+
+    public void importVenue() {
+        if (skipIfLaunchedRecently(FetchIoType.VENUE)) return;
+        fetchAndUpsertVenue();
+    }
+
+    private void fetchAndUpsertVenue() {
+        var log = fetchLogService.start(FetchIoType.VENUE, SportIoType.NFL);
+        try {
+            String url = URL + SPORT_URL + "scores/json/Stadiums?key=" + apiKey;
+            List<SportsDataNFLStadiumDTO> dtos = sportsDataWebClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToFlux(SportsDataNFLStadiumDTO.class)
+                    .collectList()
+                    .block();
+
+            if (dtos != null) dtos.forEach(this::upsertVenue);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
+        }
+    }
+
+    private void upsertVenue(SportsDataNFLStadiumDTO dto) {
+        stadiumRepo.findByStadiumId(dto.getStadiumID())
+                .ifPresentOrElse(
+                        ex -> {
+                            stadiumMapper.updateEntity(ex, dto);
+                            stadiumRepo.save(ex);
+                        },
+                        () -> stadiumRepo.save(stadiumMapper.toEntity(dto)));
+
+    }
 }

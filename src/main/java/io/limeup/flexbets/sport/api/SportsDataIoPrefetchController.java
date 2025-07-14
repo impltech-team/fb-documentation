@@ -78,6 +78,7 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/venue")
     public ResponseEntity<PrefetchResponse> prefetchVenue() {
         taskExecutor.execute(importService::importVenue);
+        taskExecutor.execute(importNflService::importVenue);
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/venue", Instant.now()));
     }
@@ -91,6 +92,7 @@ public class SportsDataIoPrefetchController {
         taskExecutor.execute(importNflService::importTeams);
         taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
         taskExecutor.execute(importService::importVenue);
+        taskExecutor.execute(importNflService::importVenue);
         taskExecutor.execute(importService::importPlayersStats);
         taskExecutor.execute(importNflService::importPlayerGameStats);
         taskExecutor.execute(importService::importPlayerGameStats);
