@@ -14,6 +14,7 @@ public class ParticipantServiceResolver {
     public ParticipantServiceResolver(List<ParticipantService> services) {
         this.serviceMap = Map.of(
                 "5466", findService(services, io.limeup.flexbets.sport.api.SportsDataIoParticipantServiceImpl.class),
+                "5611", findService(services, io.limeup.flexbets.sport.api.SportsDataIoParticipantServiceImpl.class),
                 "DEFAULT", findService(services, ParticipantServiceImpl.class)
         );
     }

@@ -24,13 +24,13 @@ import java.time.LocalDate;
 public class SportsDataIoPrefetchController {
 
     private final SportsDataMlbImportService importService;
-    private final SportsDataNflImportService importServiceNFL;
+    private final SportsDataNflImportService importNflService;
     private final ThreadPoolTaskExecutor taskExecutor;
 
     @PostMapping("/players")
     public ResponseEntity<PrefetchResponse> prefetchPlayers() {
         taskExecutor.execute(importService::importPlayers);
-        taskExecutor.execute(importServiceNFL::importPlayers);
+        taskExecutor.execute(importNflService::importPlayers);
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/players", Instant.now()));
     }
@@ -38,6 +38,7 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/teams")
     public ResponseEntity<PrefetchResponse> prefetchTeams() {
         taskExecutor.execute(importService::importTeams);
+        taskExecutor.execute(importNflService::importTeams);
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/teams", Instant.now()));
     }
@@ -52,6 +53,7 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/player-stats")
     public ResponseEntity<PrefetchResponse> prefetchPlayerStats() {
         taskExecutor.execute(importService::importPlayersStats);
+        taskExecutor.execute(importNflService::importPlayersStats);
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/player-stats", Instant.now()));
     }
@@ -59,6 +61,7 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/player-game-stats")
     public ResponseEntity<PrefetchResponse> prefetchPlayerGameStats() {
         taskExecutor.execute(importService::importPlayerGameStats);
+        taskExecutor.execute(importNflService::importPlayerGameStats);
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/player-game-stats", Instant.now()));
     }
@@ -66,6 +69,7 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/bet-markets")
     public ResponseEntity<PrefetchResponse> prefetchBetMarkets() {
         taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));
+        taskExecutor.execute(() -> importNflService.importBetMarkets(LocalDate.now()));
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/bet-markets", Instant.now()));
     }
@@ -81,11 +85,13 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/allData")
     public ResponseEntity<PrefetchResponse> prefetchAllData() {
         taskExecutor.execute(importService::importPlayers);
-        taskExecutor.execute(importServiceNFL::importPlayers);
+        taskExecutor.execute(importNflService::importPlayers);
         taskExecutor.execute(importService::importTeams);
+        taskExecutor.execute(importNflService::importTeams);
         taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
         taskExecutor.execute(importService::importVenue);
         taskExecutor.execute(importService::importPlayersStats);
+        taskExecutor.execute(importNflService::importPlayerGameStats);
         taskExecutor.execute(importService::importPlayerGameStats);
         taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));
         taskExecutor.execute(importService::importVenue);

@@ -14,6 +14,7 @@ public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
     Optional <IoEvent> findByGameId(Long aLong);
 
     List<IoEvent> findAllByDatetimeUtcBetween(LocalDateTime from, LocalDateTime to);
+
     @Query(value = """
             WITH sorted AS (
                 SELECT e.id

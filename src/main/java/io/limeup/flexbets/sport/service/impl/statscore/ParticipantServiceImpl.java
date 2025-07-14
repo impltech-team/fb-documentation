@@ -83,7 +83,7 @@ public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participan
     @EventBasedCache(cacheName = "participantDetailsCache",
             key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
-    public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
+    public ParticipantDTO getParticipantById(Integer competitionId, Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
         Participant rawParticipant = participantRepository.findByExternalId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Participant %s Not Found", participantId)));
         Set<String> statNames = marketService.getStatsByMarket(rawParticipant.getCompetition().getExternalId(), marketId, MarketType.PARTICIPANT);

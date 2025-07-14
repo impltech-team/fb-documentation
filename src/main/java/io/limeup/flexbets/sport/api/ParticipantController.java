@@ -45,6 +45,6 @@ public class ParticipantController {
             @RequestParam(required = false, name = "market_id") Integer marketId,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount) {
         ParticipantService service = serviceResolver.resolve(competitionId.toString());
-        return ResponseEntity.ok(service.getParticipantById(participantId, marketId, maxHistoricalDataCount));
+        return ResponseEntity.ok(service.getParticipantById(competitionId ,participantId, marketId, maxHistoricalDataCount));
     }
 }

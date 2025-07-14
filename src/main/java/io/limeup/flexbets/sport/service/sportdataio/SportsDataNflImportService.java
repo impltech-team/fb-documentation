@@ -10,12 +10,19 @@ import io.limeup.flexbets.sport.repository.sportsdataio.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
@@ -35,16 +42,18 @@ public class SportsDataNflImportService {
 
     private final IoEventRepository eventRepo;
     private final IoBetRepository betRepo;
-    private final IoTeamRepository teamRepo;
+    private final IoTeamNFLRepository teamNFLRepo;
+    private final IoStadiumNFLRepository stadiumRepo;
     private final IoPlayerNFLRepository playerRepo;
-    private final IoPlayerStatsRepository playerStatsRepo;
+    private final IoPlayerStatsNFLRepository playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
     private final IoEventMapper eventMapper;
     private final IoBetMapper betMapper;
-    private final IoTeamMapper teamMapper;
+    private final IoTeamNFLMapper teamNFLMapper;
+    private final IoStadiumNFLMapper stadiumMapper;
     private final IoPlayerNFLMapper playerMapper;
-    private final IoPlayersStatsMapper playersStatsMapper;
+    private final IoPlayersStatsNFLMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
     private final FetchLogService fetchLogService;
@@ -57,6 +66,9 @@ public class SportsDataNflImportService {
     public static final String SPORT_URL = "nfl/";
     private static final String PLAYER_MARKET_NAME = "Player Prop";
     private final int seasonYear = Year.now().getValue();
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     // 🏈 Scores
     @Transactional
@@ -95,10 +107,10 @@ public class SportsDataNflImportService {
         var log = fetchLogService.start(FetchIoType.TEAMS, SportIoType.NFL);
         try {
             String url = URL + SPORT_URL + "scores/json/teams?key=" + apiKey;
-            List<SportsDataTeamDTO> teams = sportsDataWebClient.get()
+            List<SportsDataNFLTeamDTO> teams = sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
-                    .bodyToFlux(SportsDataTeamDTO.class)
+                    .bodyToFlux(SportsDataNFLTeamDTO.class)
                     .collectList()
                     .block();
 
@@ -134,20 +146,48 @@ public class SportsDataNflImportService {
     // 📊 Player Season Stats
     public void importPlayersStats() {
         if (skipIfLaunchedRecently(FetchIoType.PLAYER_STATS)) return;
+
         var log = fetchLogService.start(FetchIoType.PLAYER_STATS, SportIoType.NFL);
-        try {
-            String url = URL + SPORT_URL + "stats/json/PlayerSeasonStats/" + seasonYear + "?key=" + apiKey;
+        try {                                                               // this need to be chnaged hardcoded year once the season is live
+            String url = URL + SPORT_URL + "stats/json/PlayerSeasonStats/" + 2024 + "?key=" + apiKey;
+
             sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
-                    .bodyToFlux(IoSportsDataPlayerStatsDTO.class)
-                    .doOnNext(this::upsertPlayerSeasonStat)
+                    .bodyToFlux(IoSportsDataNFLPlayerStatsDTO.class)
+                    .flatMap(dto -> Mono.fromCallable(() -> {
+                        transactionTemplate.execute(status -> {
+                            upsertPlayerSeasonStat(dto, dto.getScoringDetails());
+                            return null;
+                        });
+                        return dto;
+                    }).subscribeOn(Schedulers.boundedElastic()))
                     .blockLast();
+
             fetchLogService.finishSuccess(log);
         } catch (Exception ex) {
             fetchLogService.finishError(log, ex);
             throw ex;
         }
+    }
+
+    private void upsertPlayerSeasonStat(IoSportsDataNFLPlayerStatsDTO dto, List<IoSportsDataNFLScoringDetailDTO> scoringDetails) {
+        if (dto.getPlayerId() == null || dto.getSeason() == null) {
+            return;
+        }
+
+        Optional<IoPlayerStatsNFL> existingStat = playerStatsRepo
+                .findByPlayerIdAndSeason(dto.getPlayerId(), dto.getSeason());
+
+        IoPlayerStatsNFL stat = existingStat.orElseGet(() -> playersStatsMapper.toEntity(dto));
+        playersStatsMapper.merge(stat, dto);
+
+        if (existingStat.isPresent()) {
+            Hibernate.initialize(stat.getScoringDetails());
+        }
+
+        playersStatsMapper.mergeScoringDetails(stat, scoringDetails);
+        playerStatsRepo.save(stat);
     }
 
     // 🏟️ Player Game Stats
@@ -245,15 +285,33 @@ public class SportsDataNflImportService {
                 .orElseGet(() -> eventRepo.save(eventMapper.toEntity(dto)));
     }
 
-    private void upsertTeam(SportsDataTeamDTO dto) {
-        teamRepo.findByTeamId(dto.getTeamId())
-                .ifPresentOrElse(
-                        ex -> {
-                            teamMapper.updateEntity(ex, dto);
-                            teamRepo.save(ex);
-                        },
-                        () -> teamRepo.save(teamMapper.toEntity(dto))
-                );
+    private void upsertTeam(SportsDataNFLTeamDTO dto) {
+        IoStadiumNFL stadium = resolveStadium(dto.getStadiumDetails());
+
+        IoTeamNFL team = teamNFLRepo.findByTeamId(dto.getTeamId())
+                .map(existing -> {
+                    teamNFLMapper.updateEntity(existing, dto);
+                    existing.setStadium(stadium);
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    IoTeamNFL newTeam = teamNFLMapper.toEntity(dto);
+                    newTeam.setStadium(stadium);
+                    return newTeam;
+                });
+
+        teamNFLRepo.save(team);
+    }
+
+    private IoStadiumNFL resolveStadium(SportsDataNFLStadiumDTO stadiumDTO) {
+        if (stadiumDTO == null) return null;
+
+        return stadiumRepo.findByStadiumId(stadiumDTO.getStadiumID())
+                .map(existing -> {
+                    stadiumMapper.updateEntity(existing, stadiumDTO);
+                    return stadiumRepo.save(existing);
+                })
+                .orElseGet(() -> stadiumRepo.save(stadiumMapper.toEntity(stadiumDTO)));
     }
 
     private void upsertPlayer(SportsDataNFLPlayerDTO dto) {
@@ -268,20 +326,7 @@ public class SportsDataNflImportService {
                 );
     }
 
-    private void upsertPlayerSeasonStat(IoSportsDataPlayerStatsDTO dto) {
-        if (dto.getPlayerID() == null) return;
 
-        playerStatsRepo.findByStatId(dto.getStatID())
-                .stream()
-                .max(Comparator.comparing(IoPlayersStats::getUpdated))
-                .ifPresentOrElse(
-                        latest -> {
-                            playersStatsMapper.merge(latest, dto);
-                            playerStatsRepo.save(latest);
-                        },
-                        () -> playerStatsRepo.save(playersStatsMapper.toEntity(dto))
-                );
-    }
 
     private Set<IoBet> reconcileBettingMarkets(IoEvent event, List<SportsDataBettingMarketDTO> incoming, Set<IoBet> db) {
         Map<Long, IoBet> dbMap = db.stream()
