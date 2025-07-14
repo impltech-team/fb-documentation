@@ -1,19 +1,16 @@
 package io.limeup.flexbets.sport.service;
 
 import io.limeup.flexbets.sport.dto.EventDTO;
-import io.limeup.flexbets.sport.dto.FullEventDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
-import io.limeup.flexbets.sport.model.Event;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface EventService extends ExternalIdReadService<Event, EventDTO, Long> {
+public interface EventService  {
     PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery);
 
-    FullEventDTO getEventById(Integer eventId);
+    EventDTO getEventById(Integer eventId);
 
-    void updateEventByIdOrByName(Integer eventId, String name, Long lsId, String status, LocalDateTime startDate);
 }
