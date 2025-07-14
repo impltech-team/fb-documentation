@@ -46,6 +46,7 @@ public class SportsDataIoPrefetchController {
     @PostMapping("/scores")
     public ResponseEntity<PrefetchResponse> prefetchScores() {
         taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
+        taskExecutor.execute(() -> importNflService.importScores(LocalDate.now()));
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/scores", Instant.now()));
     }

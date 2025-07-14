@@ -40,7 +40,7 @@ public class SportsDataNflImportService {
     @Qualifier("sportsDataWebClient")
     private final WebClient sportsDataWebClient;
 
-    private final IoEventRepository eventRepo;
+    private final IoEventNFLRepository eventNflRepo;
     private final IoBetRepository betRepo;
     private final IoTeamNFLRepository teamNFLRepo;
     private final IoStadiumNFLRepository stadiumRepo;
@@ -48,7 +48,7 @@ public class SportsDataNflImportService {
     private final IoPlayerStatsNFLRepository playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
-    private final IoEventMapper eventMapper;
+    private final IoEventNFLMapper eventMapper;
     private final IoBetMapper betMapper;
     private final IoTeamNFLMapper teamNFLMapper;
     private final IoStadiumNFLMapper stadiumMapper;
@@ -84,11 +84,11 @@ public class SportsDataNflImportService {
     private void fetchAndUpsertScores(LocalDate date) {
         var log = fetchLogService.start(FetchIoType.SCORES, SportIoType.NFL);
         try {
-            String url = URL + SPORT_URL + "scores/json/ScoresBasicFinal/" + date + "?key=" + apiKey;
-            List<ScoreBasicDto> games = sportsDataWebClient.get()
+            String url = URL + SPORT_URL + "scores/json/ScoresByDateFinal/" + "2024-11-28" + "?key=" + apiKey;
+            List<ScoreNFLDto> games = sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
-                    .bodyToFlux(ScoreBasicDto.class)
+                    .bodyToFlux(ScoreNFLDto.class)
                     .collectList()
                     .block();
 
@@ -98,6 +98,15 @@ public class SportsDataNflImportService {
             fetchLogService.finishError(log, ex);
             throw ex;
         }
+    }
+
+    private void upsertGame(ScoreNFLDto dto) {
+        eventNflRepo.findByGameKey(dto.gameKey())
+                .map(existing -> {
+                    eventMapper.merge(existing, dto);
+                    return eventNflRepo.save(existing);
+                })
+                .orElseGet(() -> eventNflRepo.save(eventMapper.toEntity(dto)));
     }
 
     // 🧩 Teams
@@ -231,11 +240,11 @@ public class SportsDataNflImportService {
             LocalDateTime from = date.atStartOfDay();
             LocalDateTime to = from.plusDays(5);
 
-            eventRepo.findAllByDatetimeUtcBetween(from, to)
+           /* eventRepo.findAllByDatetimeUtcBetween(from, to)
                     .stream()
                     .map(IoEvent::getGameId)
                     .filter(Objects::nonNull)
-                    .forEach(this::fetchAndUpsertMarketsForGame);
+                    .forEach(this::fetchAndUpsertMarketsForGame);*/
 
             fetchLogService.finishSuccess(log);
         } catch (Exception ex) {
@@ -244,7 +253,7 @@ public class SportsDataNflImportService {
         }
     }
 
-    private void fetchAndUpsertMarketsForGame(Long gameId) {
+   /* private void fetchAndUpsertMarketsForGame(Long gameId) {
         String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
         sportsDataWebClient.get()
                 .uri(url)
@@ -260,7 +269,7 @@ public class SportsDataNflImportService {
                     if (!toSave.isEmpty()) betRepo.saveAll(toSave);
                 })
                 .block();
-    }
+    }*/
 
     // Utils
     private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
@@ -274,15 +283,6 @@ public class SportsDataNflImportService {
             return true;
         }
         return false;
-    }
-
-    private void upsertGame(ScoreBasicDto dto) {
-        eventRepo.findByGameId(dto.gameId())
-                .map(ex -> {
-                    eventMapper.merge(ex, dto);
-                    return eventRepo.save(ex);
-                })
-                .orElseGet(() -> eventRepo.save(eventMapper.toEntity(dto)));
     }
 
     private void upsertTeam(SportsDataNFLTeamDTO dto) {
