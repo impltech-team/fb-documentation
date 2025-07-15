@@ -27,8 +27,7 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                      t.city,
                      t.key AS acronym
                  FROM sport.io_team t
-               WHERE (:participantIds IS NULL OR t.team_id IN (:participantIds))
-                  
+                 WHERE (:participantIds IS NULL OR t.team_id IN (:participantIds))
                     AND (
                         :filter IS NULL OR
                         t.name ILIKE CONCAT('%', :filter, '%') OR
