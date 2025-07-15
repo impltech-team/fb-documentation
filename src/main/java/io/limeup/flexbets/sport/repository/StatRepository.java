@@ -31,7 +31,7 @@ public interface StatRepository extends ExternalIdRepository<EventStat, Long> {
                         AND sp.position NOT IN ('Coach')
                         AND (:competitionId IS NULL OR p.competition_id IN (
                             SELECT id FROM sport.competition WHERE external_id = :competitionId))
-                        AND (:positions IS NULL OR sp.position IN (:positions))                                                                              \s
+                        AND (:positions IS NULL OR sp.position IN (:positions))
                         AND (:participantIds IS NULL OR p.external_id IN (:participantIds))
                         AND (
                              :filter IS NULL OR

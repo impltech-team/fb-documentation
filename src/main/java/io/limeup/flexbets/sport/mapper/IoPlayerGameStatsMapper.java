@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.model.dto;
+package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;

@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.repository.*;
-import io.limeup.flexbets.sport.service.EventService;
+
+import io.limeup.flexbets.sport.service.impl.statscore.StatScoreEventServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -26,7 +27,7 @@ public class RedisSSEventMessageListener implements MessageListener {
     private final LiveEventBetStatusRepository betStatusRepository;
     private final LiveParticipantRepository participantRepository;
     private final LiveParticipantResultRepository resultRepository;
-    private final EventService eventService;
+    private final StatScoreEventServiceImpl eventService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -39,7 +40,8 @@ public class RedisSSEventMessageListener implements MessageListener {
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
-            if (ev.path("ls_id") == null) {
+            if (ev.path("ls_id") == null|| ev.path("ls_id").isEmpty()) {
+                log.info("ℹ️ Event {} is damaged ,dont have lsId. Skipping.", id);
                 return;
             }
             String lsIdString = ev.path("ls_id").asText();

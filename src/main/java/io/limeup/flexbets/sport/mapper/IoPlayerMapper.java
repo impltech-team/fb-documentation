@@ -1,10 +1,9 @@
-package io.limeup.flexbets.sport.model.dto;
+package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.EventLiteDTO;
 import io.limeup.flexbets.sport.dto.OddsDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
-import io.limeup.flexbets.sport.mapper.IoBetMapper;
 import io.limeup.flexbets.sport.model.IoPlayer;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataPlayerRow;
@@ -77,6 +76,7 @@ public class IoPlayerMapper {
         entity.setUsaTodayHeadshotUpdated(dto.getUsaTodayHeadshotUpdated());
         entity.setUsaTodayHeadshotNoBackgroundUpdated(dto.getUsaTodayHeadshotNoBackgroundUpdated());
     }
+
     public IoPlayer toEntity(SportsDataPlayerDTO dto) {
         return IoPlayer.builder()
                 .playerId(dto.getPlayerID())
@@ -133,27 +133,28 @@ public class IoPlayerMapper {
                 .build();
     }
 
-    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap, Map<Long, String> playerUrl) {
+    public List<SubParticipantDTO> toSubParticipantDTOList(List<SportsDataPlayerRow> players, Map<Long, List<SportsDataBetRow>> playerIdBetMap) {
         return players.stream()
                 .map(player -> {
                     Long playerId = Long.valueOf(player.getId());
                     List<SportsDataBetRow> bets =
                             playerIdBetMap.getOrDefault(playerId, List.of());
 
-                    String photo = playerUrl.get(playerId);
-
-                    return toSubParticipantDTO(player, bets, photo);
+                    return toSubParticipantDTO(player, bets);
                 })
                 .toList();
     }
 
-    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets,String playerUrl ){
+    public SubParticipantDTO toSubParticipantDTO(SportsDataPlayerRow player, List<SportsDataBetRow> bets) {
+
+
         SubParticipantDTO result = new SubParticipantDTO();
         result.setId(player.getId());
         result.setPlayerName(player.getPlayerName());
         result.setCompetitionId(5466);
         result.setCompetition("MLB");
-        result.setAvatarUrl(playerUrl);
+        result.setAvatarUrl(player.getAvatarUrl());
+
         result.setParticipantId(player.getPlayerTeamId());
         result.setTeam(player.getPlayerTeamName());
         result.setPosition(player.getPosition());
@@ -171,7 +172,7 @@ public class IoPlayerMapper {
                 .opponent(player.getOpponentTeamKey())
                 .build());
         List<OddsDTO> odds = new ArrayList<>();
-        if(!CollectionUtils.isEmpty(bets)){
+        if (!CollectionUtils.isEmpty(bets)) {
             odds = betMapper.toOddsDTOList(bets);
         }
         result.setOdds(odds);

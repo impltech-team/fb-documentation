@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.service.impl;
+package io.limeup.flexbets.sport.service.impl.statscore;
 
 import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
@@ -14,8 +14,6 @@ import io.limeup.flexbets.sport.repository.StatRepository;
 import io.limeup.flexbets.sport.repository.projection.BetRow;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import io.limeup.flexbets.sport.service.BetService;
-import io.limeup.flexbets.sport.service.ExternalIdReadServiceImpl;
-import io.limeup.flexbets.sport.service.MarketService;
 import io.limeup.flexbets.sport.service.ParticipantService;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
@@ -27,20 +25,19 @@ import java.util.stream.Collectors;
 
 @Transactional
 @Service
-public class ParticipantServiceImpl extends ExternalIdReadServiceImpl<Participant, ParticipantDTO, Long> implements ParticipantService {
+public class ParticipantServiceImpl  implements ParticipantService {
 
     private static final Set<String> SUPPORTED_SORT_FIELDS = Set.of("team_name", "acronym");
 
     private final ParticipantRepository participantRepository;
 
-    private final MarketService marketService;
+    private final MarketServiceImpl marketService;
 
     private final StatRepository statRepository;
 
     private final BetService betService;
 
-    protected ParticipantServiceImpl(ParticipantRepository repository, MarketService marketService, StatRepository statRepository, BetService betService) {
-        super(repository);
+    protected ParticipantServiceImpl(ParticipantRepository repository, MarketServiceImpl marketService, StatRepository statRepository, BetService betService) {
         this.participantRepository = repository;
         this.marketService = marketService;
         this.statRepository = statRepository;
