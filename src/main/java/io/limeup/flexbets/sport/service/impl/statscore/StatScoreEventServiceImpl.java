@@ -44,8 +44,8 @@ public class StatScoreEventServiceImpl implements EventService {
     }
 
 
-    //    @EventBasedCache(cacheName = "eventsListCache",
-//            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
+        @EventBasedCache(cacheName = "eventsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo, List<Integer> venueIds
             , List<Integer> participantIds, String status, RequestQueryDTO requestQuery) {
@@ -90,8 +90,8 @@ public class StatScoreEventServiceImpl implements EventService {
                 EventMapper.toDTO(eventRows), (long) eventRows.size(), requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-    //    @EventBasedCache(cacheName = "eventDetailsCache",
-//            key = "#eventId")
+        @EventBasedCache(cacheName = "eventDetailsCache",
+            key = "#eventId")
     @Override
     public EventDTO getEventById(Integer eventId) {
         List<EventRow> eventRows = eventRepository.getEventDetails(eventId);

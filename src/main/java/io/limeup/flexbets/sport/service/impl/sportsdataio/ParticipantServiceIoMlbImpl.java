@@ -56,11 +56,6 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         int page = requestQuery.getPage();
         int pageSize = requestQuery.getPageSize();
 
-
-        Integer[] ids = (participantIds == null || participantIds.isEmpty())
-                ? new Integer[0]
-                : participantIds.toArray(new Integer[0]);
-
         List<ParticipantStatRow> teams = (marketId == null)
                 ? teamRepository.listParticipantStats(participantIds == null ? Collections.emptyList() : participantIds,
                 requestQuery.getFilter(), requestQuery.getSortBy(), requestQuery.getSortOrder())
@@ -106,6 +101,7 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         IoTeam team = teamRepository.findByTeamId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(
                         String.format("Participant %s Not Found", participantId)));
+
 
         boolean includeAll = participantId == null ;
         Integer[] ids = includeAll ? new Integer[0] : new Integer[]{participantId};
