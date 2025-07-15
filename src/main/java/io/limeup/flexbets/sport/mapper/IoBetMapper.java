@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.OddsDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.IoBettingOutcomeResultDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
@@ -78,6 +79,16 @@ public class IoBetMapper {
         entity.setAlternate(dto.getIsAlternate());
         entity.setCreatedAt(dto.getCreated());
         entity.setUpdatedAt(dto.getUpdated());
+        return entity;
+    }
+
+    public static IoBetOutcome addResultData(IoBetOutcome entity, IoBettingOutcomeResultDto resultDto) {
+        if (entity == null || resultDto == null) {
+            return entity;
+        }
+        entity.setResultTypeId(resultDto.typeId());
+        entity.setResultType(resultDto.type());
+        entity.setResultValue(resultDto.actualValue());
         return entity;
     }
 

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,7 +119,7 @@ class SubParticipantMapperTest {
         when(row.getFutureEventStartDate()).thenReturn(LocalDateTime.now().plusDays(1));
         when(row.getBirthDate()).thenReturn(LocalDate.of(1990, 1, 1));
 
-        List<SubParticipantDTO> dtos = mapper.toDTO(List.of(row));
+        List<SubParticipantDTO> dtos = mapper.toDTO(List.of(row), new HashMap<>());
 
         assertThat(dtos).isNotEmpty();
         SubParticipantDTO dto = dtos.get(0);
@@ -164,7 +165,7 @@ class SubParticipantMapperTest {
         when(row.getValueRaw()).thenReturn("11");
         when(row.getBirthDate()).thenReturn(LocalDate.of(1990, 1, 1));
 
-        List<SubParticipantDTO> dtos = mapper.toDTO(List.of(row));
+        List<SubParticipantDTO> dtos = mapper.toDTO(List.of(row), new HashMap<>());
 
         assertThat(dtos).isNotEmpty();
         SubParticipantDTO dto = dtos.get(0);
@@ -207,7 +208,7 @@ class SubParticipantMapperTest {
         when(row.getHeight()).thenReturn("185");
         when(row.getBirthDate()).thenReturn(LocalDate.of(1990, 1, 1));
 
-        List<SubParticipantDTO> dtos = mapper.toDTO(List.of(row));
+        List<SubParticipantDTO> dtos = mapper.toDTO(List.of(row), new HashMap<>());
 
         assertThat(dtos).isNotEmpty();
         SubParticipantDTO dto = dtos.get(0);
@@ -275,7 +276,7 @@ class SubParticipantMapperTest {
         SubParticipantStatRow row = mock(SubParticipantStatRow.class);
         when(row.getId()).thenReturn(null);
 
-        List<SubParticipantDTO> result = mapper.toDTO(List.of(row));
+        List<SubParticipantDTO> result = mapper.toDTO(List.of(row), new HashMap<>());
         assertThat(result).isEmpty();
     }
 

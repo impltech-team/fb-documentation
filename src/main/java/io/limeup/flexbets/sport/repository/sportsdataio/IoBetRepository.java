@@ -21,6 +21,14 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
             """)
     Set<IoBet> findByEventWithOutcomes(@Param("event") IoEvent event);
 
+    @Query("""
+            select distinct b
+            from IoBet b
+            left join fetch b.betOutcomes
+            where b.event.gameId = :gameId
+            """)
+    Set<IoBet> findAllByEventGameId(@Param("gameId") Long gameId);
+
 
     @Query(value = """
                SELECT  b.market_id AS id,

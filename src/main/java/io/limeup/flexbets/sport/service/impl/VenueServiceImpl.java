@@ -2,7 +2,7 @@ package io.limeup.flexbets.sport.service.impl;
 
 import io.limeup.flexbets.sport.dto.VenueDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreVenueDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.VenueQueryParams;
 import io.limeup.flexbets.sport.mapper.VenueMapper;
 import io.limeup.flexbets.sport.model.Venue;
 import io.limeup.flexbets.sport.repository.VenueRepository;

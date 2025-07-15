@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.dto.statscore.prams;
+package io.limeup.flexbets.sport.dto.statscore.params;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

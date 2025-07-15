@@ -38,7 +38,7 @@ public class SportsDataMlbService {
     public MLBDataPlayerGameDTO getPlayerGameDataByGameIdAndPlayerId(Integer gameId, Long playerId) {
         var apiResponse = fetchPlayerGameStatsDataFromApi(gameId);
 
-        if(CollectionUtils.isEmpty(apiResponse)){
+        if (CollectionUtils.isEmpty(apiResponse)) {
             throw new FlexBetsSportNotFoundException(String.format("Can not find game with id - %s.", gameId));
         }
 
@@ -51,23 +51,25 @@ public class SportsDataMlbService {
     private List<MLBDataPlayerGameDTO> fetchPlayerGameStatsDataFromApi(Integer gameId) {
         String url = URL + SPORT_URL + "stats/json/BoxScore/" + gameId + "?key=" + apiKey;
 
-        return sportsDataWebClient.get()
+        JsonNode rootNode = sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                .<List<MLBDataPlayerGameDTO>>handle((jsonNode, sink) -> {
-                    JsonNode playerGamesNode = jsonNode.get("PlayerGames");
-                    if (playerGamesNode == null || !playerGamesNode.isArray()) {
-                        sink.next(Collections.emptyList());
-                        return;
-                    }
-
-                    try {
-                        sink.next(objectMapper.readerForListOf(MLBDataPlayerGameDTO.class).readValue(playerGamesNode));
-                    } catch (IOException e) {
-                        sink.error(new RuntimeException("Failed to parse response from Live Player Data SportsDataIo API endpoint", e));
-                    }
-                })
                 .block();
+
+        if (rootNode == null || rootNode.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        JsonNode playerGamesNode = rootNode.get("PlayerGames");
+        if (playerGamesNode == null || !playerGamesNode.isArray()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            return objectMapper.readerForListOf(MLBDataPlayerGameDTO.class).readValue(playerGamesNode);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse response from Live Player Data SportsDataIo API endpoint", e);
+        }
     }
 }

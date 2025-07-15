@@ -1,8 +1,8 @@
 package io.limeup.flexbets.sport.model;
 
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoStatus;
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoStatus;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.SportIoType;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -7,7 +7,7 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreResultDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStatDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSubParticipantDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.EventQueryParams;
 import io.limeup.flexbets.sport.mapper.EventMapper;
 import io.limeup.flexbets.sport.mapper.EventStatMapper;
 import io.limeup.flexbets.sport.mapper.ParticipantMapper;

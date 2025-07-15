@@ -12,7 +12,7 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreGroupDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStageDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.EventQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import org.junit.jupiter.api.Test;
