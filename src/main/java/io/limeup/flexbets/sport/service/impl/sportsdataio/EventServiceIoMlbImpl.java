@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
 import io.limeup.flexbets.sport.dto.*;
+import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.IoTeam;
@@ -60,8 +61,16 @@ public class EventServiceIoMlbImpl implements EventService {
 
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
         List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>() : participantIds;
-
-
+        long total = eventRepository.countEvents(
+                dateFrom,
+                dateTo,
+                status,
+                venueIdsSafe,
+                participantIdsSafe
+        );
+        if (total == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, total, requestQuery.getPage(), requestQuery.getPageSize());
+        }
 
         List<IoEvent> events = eventRepository.listEvents(
                 dateFrom,
@@ -77,7 +86,7 @@ public class EventServiceIoMlbImpl implements EventService {
 
         List<EventDTO> dtoList = events.stream().map(this::mapToDto).collect(Collectors.toList());
 
-        return PaginationUtils.buildPaginatedResponse(dtoList,  (long) events.size(), requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList,  total, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     //    @EventBasedCache(cacheName = "eventDetailsCache",
@@ -85,7 +94,7 @@ public class EventServiceIoMlbImpl implements EventService {
     @Override
     public EventDTO getEventById(Integer eventId) {
         IoEvent event = eventRepository.findByGameId(eventId.longValue())
-                .orElseThrow(() -> new RuntimeException("Event %s not found".formatted(eventId)));
+                .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Event %s Not Found", eventId)));
         return mapToDto(event);
     }
 
@@ -131,9 +140,7 @@ public class EventServiceIoMlbImpl implements EventService {
                 .filter(Objects::nonNull)
                 .toList();
 
-
         dto.setMarkets(eventMarketsDto);
-
 
         if (event.getStadiumId() != null) {
             venueRepository.findByStadiumId(event.getStadiumId()).ifPresent(v -> dto.setVenue(
@@ -146,7 +153,4 @@ public class EventServiceIoMlbImpl implements EventService {
         }
         return dto;
     }
-
-
-
 }
