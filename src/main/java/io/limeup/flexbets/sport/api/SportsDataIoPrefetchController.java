@@ -69,8 +69,8 @@ public class SportsDataIoPrefetchController {
 
     @PostMapping("/bet-markets")
     public ResponseEntity<PrefetchResponse> prefetchBetMarkets() {
-        taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));
-        taskExecutor.execute(() -> importNflService.importBetMarkets(LocalDate.now()));
+        //taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));
+        taskExecutor.execute(() -> importNflService.importNflBetMarkets(LocalDate.now()));
         return ResponseEntity.accepted()
                 .body(new PrefetchResponse("io/bet-markets", Instant.now()));
     }

@@ -118,4 +118,48 @@ public class IoBetMapper {
                 .lastUpdatedDate(bet.getLastUpdated())
                 .build();
     }
+
+    public IoBet toBetEntity(SportsDataBettingMarketDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        IoBet entity = new IoBet();
+        entity.setMarketId(dto.getBettingMarketId());
+        entity.setEventId(dto.getBettingEventId());
+        entity.setMarketTypeId(dto.getBettingMarketTypeId());
+        entity.setMarketType(dto.getBettingMarketType());
+        entity.setBetTypeId(dto.getBettingBetTypeId());
+        entity.setBetType(dto.getBettingBetType());
+        entity.setPeriodTypeId(dto.getBettingPeriodTypeId());
+        entity.setPeriodType(dto.getBettingPeriodType());
+        entity.setName(dto.getName());
+        entity.setTeamId(dto.getTeamId());
+        entity.setTeamKey(dto.getTeamKey());
+        entity.setPlayerId(dto.getPlayerId());
+        entity.setPlayerName(dto.getPlayerName());
+        entity.setAnyBetsAvailable(dto.getAnyBetsAvailable());
+        entity.setCreatedAt(dto.getCreated());
+        entity.setUpdatedAt(dto.getUpdated());
+
+        return entity;
+    }
+
+    public void mergeBet(IoBet existing, SportsDataBettingMarketDTO dto) {
+        if (existing == null || dto == null) return;
+
+        existing.setMarketTypeId(dto.getBettingMarketTypeId());
+        existing.setMarketType(dto.getBettingMarketType());
+        existing.setBetTypeId(dto.getBettingBetTypeId());
+        existing.setBetType(dto.getBettingBetType());
+        existing.setPeriodTypeId(dto.getBettingPeriodTypeId());
+        existing.setPeriodType(dto.getBettingPeriodType());
+        existing.setName(dto.getName());
+        existing.setTeamId(dto.getTeamId());
+        existing.setTeamKey(dto.getTeamKey());
+        existing.setPlayerId(dto.getPlayerId());
+        existing.setPlayerName(dto.getPlayerName());
+        existing.setAnyBetsAvailable(dto.getAnyBetsAvailable());
+        existing.setUpdatedAt(dto.getUpdated());
+    }
 }

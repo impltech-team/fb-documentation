@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
+import io.limeup.flexbets.sport.constants.NflMarketTypes;
 import io.limeup.flexbets.sport.dto.sportsdata.*;
 import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
@@ -32,7 +33,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,7 +47,7 @@ public class SportsDataNflImportService {
     private final WebClient sportsDataWebClient;
 
     private final IoEventNFLRepository eventNflRepo;
-    private final IoBetRepository betRepo;
+    private final IoBetNFLRepository betNflRepo;
     private final IoTeamNFLRepository teamNFLRepo;
     private final IoStadiumNFLRepository stadiumRepo;
     private final IoPlayerNFLRepository playerRepo;
@@ -52,7 +55,7 @@ public class SportsDataNflImportService {
     private final IoPlayerGameStatsNFLRepository playerGameStatsRepo;
 
     private final IoEventNFLMapper eventMapper;
-    private final IoBetMapper betMapper;
+    private final IoBetNFLMapper betMapper;
     private final IoTeamNFLMapper teamNFLMapper;
     private final IoStadiumNFLMapper stadiumMapper;
     private final IoPlayerNFLMapper playerMapper;
@@ -296,19 +299,18 @@ public class SportsDataNflImportService {
 
     // 💰 Betting Markets
     @Transactional
-    public void importBetMarkets(LocalDate date) {
-        if (skipIfLaunchedRecently(FetchIoType.BET)) return;
+    public void importNflBetMarkets(LocalDate date) {
+        if (skipIfLaunchedRecently(FetchIoType.BET)) {
+            return;
+        }
+
         var log = fetchLogService.start(FetchIoType.BET, SportIoType.NFL);
         try {
-            LocalDateTime from = date.atStartOfDay();
-            LocalDateTime to = from.plusDays(5);
-
-           /* eventRepo.findAllByDatetimeUtcBetween(from, to)
-                    .stream()
-                    .map(IoEvent::getGameId)
-                    .filter(Objects::nonNull)
-                    .forEach(this::fetchAndUpsertMarketsForGame);*/
-
+            processMarketsForDate(date);
+            processMarketsForDate(date.plusDays(1));
+            processMarketsForDate(date.plusDays(2));
+            processMarketsForDate(date.plusDays(3));
+            processMarketsForDate(date.plusDays(4));
             fetchLogService.finishSuccess(log);
         } catch (Exception ex) {
             fetchLogService.finishError(log, ex);
@@ -316,27 +318,85 @@ public class SportsDataNflImportService {
         }
     }
 
-   /* private void fetchAndUpsertMarketsForGame(Long gameId) {
-        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
+    private void processMarketsForDate(LocalDate date) {
+        LocalDateTime from = date.atStartOfDay();
+        LocalDateTime to = from.plusDays(1);
+
+        eventNflRepo.findAllByDatetimeUtcBetween(from, to)
+                .forEach(event -> {
+                    if (event.getGlobalGameId() != null) {
+                        fetchAndProcessNflMarketsForGame(event);
+                    }
+                });
+    }
+
+    private void fetchAndProcessNflMarketsForGame(IoEventNFL event) {
+        String url = String.format("nfl/odds/json/BettingMarketsByGameID/%d?key=%s",
+                event.getGlobalGameId(), apiKey);
+
         sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(SportsDataBettingMarketDTO.class)
-                .filter(this::isPlayerMarketWithBets)
+                .filter(this::isRelevantNflMarket)
                 .collectList()
                 .publishOn(Schedulers.boundedElastic())
-                .doOnNext(dtos -> {
-                    IoEvent event = eventRepo.findByGameId(gameId).orElse(null);
-                    if (event == null) return;
-                    Set<IoBet> toSave = reconcileBettingMarkets(event, dtos, betRepo.findByEventWithOutcomes(event));
-                    if (!toSave.isEmpty()) betRepo.saveAll(toSave);
-                })
-                .block();
-    }*/
+                .subscribe(markets -> {
+                    Set<IoBetNFL> existingBets = betNflRepo.findByEventIdAndMarketTypes(
+                            event.getId(),
+                            NflMarketTypes.PLAYER_MARKETS
+                    );
 
-    // Utils
-    private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
-        return PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+                    Set<IoBetNFL> updatedBets = reconcileNflMarkets(event, markets, existingBets);
+                    if (!updatedBets.isEmpty()) {
+                        betNflRepo.saveAll(updatedBets);
+                    }
+                });
+    }
+
+    private boolean isRelevantNflMarket(SportsDataBettingMarketDTO dto) {
+        return (NflMarketTypes.PLAYER_MARKETS.contains(dto.getBettingMarketType()) ||
+                NflMarketTypes.TEAM_MARKETS.contains(dto.getBettingMarketType())) &&
+                Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+    }
+
+    public Set<IoBetNFL> reconcileNflMarkets(IoEventNFL event,
+                                             List<SportsDataBettingMarketDTO> incomingMarkets,
+                                             Set<IoBetNFL> existingBets) {
+        // Create maps for existing data
+        Map<Long, IoBetNFL> existingBetMap = existingBets.stream()
+                .collect(Collectors.toMap(IoBetNFL::getMarketId, b -> b));
+
+        Set<Long> activeMarketIds = incomingMarkets.stream()
+                .map(SportsDataBettingMarketDTO::getBettingMarketId)
+                .collect(Collectors.toSet());
+
+        Set<IoBetNFL> betsToSave = new HashSet<>();
+
+        // Process incoming markets
+        for (SportsDataBettingMarketDTO dto : incomingMarkets) {
+            IoBetNFL existingBet = existingBetMap.get(dto.getBettingMarketId());
+
+            if (existingBet == null) {
+                // New market
+                betsToSave.add(betMapper.toEntity(dto, event));
+            } else if (!Objects.equals(existingBet.getUpdatedAt(), dto.getUpdated())) {
+                // Updated market
+                betMapper.updateEntity(existingBet, dto);
+                betsToSave.add(existingBet);
+            }
+        }
+
+        // Handle markets that are no longer active
+        existingBets.stream()
+                .filter(b -> !activeMarketIds.contains(b.getMarketId()) && b.isAnyBetsAvailable())
+                .forEach(b -> {
+                    b.setAnyBetsAvailable(false);
+                    b.getBettingOutcomes().forEach(o -> o.setAvailable(false));
+                    betsToSave.add(b);
+                });
+
+        return betsToSave;
     }
 
     private boolean skipIfLaunchedRecently(FetchIoType type) {
@@ -391,73 +451,9 @@ public class SportsDataNflImportService {
 
 
 
-    private Set<IoBet> reconcileBettingMarkets(IoEvent event, List<SportsDataBettingMarketDTO> incoming, Set<IoBet> db) {
-        Map<Long, IoBet> dbMap = db.stream()
-                .collect(Collectors.toMap(IoBet::getMarketId, it -> it));
 
-        Set<Long> active = incoming.stream()
-                .map(SportsDataBettingMarketDTO::getBettingMarketId)
-                .collect(Collectors.toSet());
 
-        Set<IoBet> toSave = new HashSet<>();
 
-        for (var dto : incoming) {
-            IoBet existing = dbMap.get(dto.getBettingMarketId());
-
-            if (existing == null) {
-                toSave.add(betMapper.toEntity(dto, event));
-            } else if (!Objects.equals(existing.getUpdatedAt(), dto.getUpdated())) {
-                IoBet replaced = betMapper.toEntity(dto, event);
-                replaced.setBetOutcomes(reconcileBetOutcomes(
-                        dto.getBettingOutcomes(), existing.getBetOutcomes(), replaced));
-                toSave.add(replaced);
-            }
-        }
-
-        db.stream()
-                .filter(b -> !active.contains(b.getMarketId()) && b.isAnyBetsAvailable())
-                .forEach(b -> {
-                    b.setAnyBetsAvailable(false);
-                    b.getBetOutcomes().forEach(o -> o.setAvailable(false));
-                    toSave.add(b);
-                });
-
-        return toSave;
-    }
-
-    private List<IoBetOutcome> reconcileBetOutcomes(
-            List<SportsDataBettingMarketDTO.BettingOutcomeDTO> incoming,
-            List<IoBetOutcome> db,
-            IoBet bet) {
-
-        Map<Long, IoBetOutcome> dbMap = db.stream()
-                .collect(Collectors.toMap(IoBetOutcome::getId, it -> it));
-
-        Set<Long> active = incoming.stream()
-                .map(SportsDataBettingMarketDTO.BettingOutcomeDTO::getBettingOutcomeId)
-                .collect(Collectors.toSet());
-
-        List<IoBetOutcome> toSave = new ArrayList<>();
-
-        for (var dto : incoming) {
-            IoBetOutcome ex = dbMap.get(dto.getBettingOutcomeId());
-
-            if (ex == null) {
-                toSave.add(betMapper.toBetOutcomeEntity(dto, bet));
-            } else if (!Objects.equals(ex.getUpdatedAt(), dto.getUpdated())) {
-                toSave.add(betMapper.updateEntity(ex, dto, bet));
-            }
-        }
-
-        db.stream()
-                .filter(o -> !active.contains(o.getId()) && o.isAvailable())
-                .forEach(o -> {
-                    o.setAvailable(false);
-                    toSave.add(o);
-                });
-
-        return toSave;
-    }
 
     public void importVenue() {
         if (skipIfLaunchedRecently(FetchIoType.VENUE)) return;
