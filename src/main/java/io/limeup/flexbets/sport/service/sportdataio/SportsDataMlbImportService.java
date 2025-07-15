@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
+import io.limeup.flexbets.sport.dto.sportsdata.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
@@ -41,6 +42,7 @@ public class SportsDataMlbImportService {
     private final IoEventRepository eventRepo;
     private final IoBetRepository betRepo;
     private final IoTeamRepository teamRepo;
+    private final IoVenueRepository venueReposirory;
     private final IoPlayerRepository playerRepo;
     private final IoPlayerStatsRepository playerStatsRepo;
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
@@ -49,6 +51,7 @@ public class SportsDataMlbImportService {
     private final IoBetMapper betMapper;
     private final IoTeamMapper teamMapper;
     private final IoPlayerMapper playerMapper;
+    private final IoVenueMapper ioVenueMapper;
     private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
@@ -65,6 +68,7 @@ public class SportsDataMlbImportService {
     public static final String SPORT_URL = "mlb/";
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
+    private static final String TEAM_MARKET_NAME = "Team Prop";
     private final int seasonYear = Year.now().getValue();
 
 
@@ -77,11 +81,47 @@ public class SportsDataMlbImportService {
     @Transactional
     public void importBetMarkets(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.BET)) return;
+        queryGamesFromDbAndUpdateMarkets(date.minusDays(1));
         queryGamesFromDbAndUpdateMarkets(date);
         queryGamesFromDbAndUpdateMarkets(date.plusDays(1));
         queryGamesFromDbAndUpdateMarkets(date.plusDays(2));
         queryGamesFromDbAndUpdateMarkets(date.plusDays(3));
         queryGamesFromDbAndUpdateMarkets(date.plusDays(4));
+    }
+
+    public void importVenue() {
+        if (skipIfLaunchedRecently(FetchIoType.VENUE)) return;
+        fetchAndUpsertVenue();
+    }
+
+    private void fetchAndUpsertVenue() {
+        var log = fetchLogService.start(FetchIoType.VENUE, SportIoType.MLB);
+        try {
+            String url = URL + SPORT_URL + "scores/json/Stadiums?key=" + apiKey;
+            List<VenueImportDTO> dtos = sportsDataWebClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToFlux(VenueImportDTO.class)
+                    .collectList()
+                    .block();
+
+            if (dtos != null) dtos.forEach(this::upsertVenue);
+            fetchLogService.finishSuccess(log);
+        } catch (Exception ex) {
+            fetchLogService.finishError(log, ex);
+            throw ex;
+        }
+    }
+
+    private void upsertVenue(VenueImportDTO dto) {
+        venueReposirory.findByStadiumId(dto.getStadiumId())
+                .ifPresentOrElse(
+                        ex -> {
+                            ioVenueMapper.updateEntity(ex, dto);
+                            venueReposirory.save(ex);
+                        },
+                        () -> venueReposirory.save(ioVenueMapper.toEntity(dto)));
+
     }
 
     private void queryGamesFromDbAndUpdateMarkets(LocalDate date) {
@@ -119,7 +159,7 @@ public class SportsDataMlbImportService {
     }
 
     private void fetchAndUpsertMarketsForGame(Long gameId) {
-        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "/G1000?include=available&key=" + apiKey;
+        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + gameId + "?include=available&key=" + apiKey;
         sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
@@ -137,7 +177,9 @@ public class SportsDataMlbImportService {
     }
 
     private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
-        return PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+        return (PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) ||
+                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))
+                && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
     }
 
     private void fetchAndUpsertTeams() {
@@ -184,6 +226,7 @@ public class SportsDataMlbImportService {
 
     public void importScores(LocalDate date) {
         if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
+        fetchAndUpsertScores(date.minusDays(1));
         fetchAndUpsertScores(date);
         fetchAndUpsertScores(date.plusDays(1));
         fetchAndUpsertScores(date.plusDays(2));
@@ -267,7 +310,7 @@ public class SportsDataMlbImportService {
 
 
     private void upsertGame(ScoreBasicDto dto) {
-        eventRepo.findByGameId(dto.gameId())
+         eventRepo.findByGameId(dto.gameId())
                 .map(ex -> {
                     eventMapper.merge(ex, dto);
                     return eventRepo.save(ex);
@@ -298,10 +341,7 @@ public class SportsDataMlbImportService {
                 .bodyToFlux(IoPlayerGameStatsDto.class)
                 .publishOn(Schedulers.boundedElastic())
                 .map(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
-                        .map(ex -> {
-                            playerGameStatsMapper.merge(ex, dto);
-                            return ex;
-                        })
+                        .map(ex -> { playerGameStatsMapper.merge(ex, dto); return ex; })
                         .orElseGet(() -> playerGameStatsMapper.toEntity(dto))
                 );
     }
@@ -386,5 +426,21 @@ public class SportsDataMlbImportService {
                 });
 
         return toSave;
+    }
+
+    public void importScoresRange(LocalDate from, LocalDate to) {
+        if (skipIfLaunchedRecently(FetchIoType.SCORES)) return;
+
+        for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+            fetchAndUpsertScores(date);
+        }
+    }
+
+    public void importBetsRange(LocalDate from, LocalDate to) {
+        if (skipIfLaunchedRecently(FetchIoType.BET)) return;
+
+        for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+            queryGamesFromDbAndUpdateMarkets(date);
+        }
     }
 }

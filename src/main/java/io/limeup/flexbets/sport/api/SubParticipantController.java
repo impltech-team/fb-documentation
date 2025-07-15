@@ -32,7 +32,7 @@ public class SubParticipantController {
     public ResponseEntity<PaginatedResponse<SubParticipantDTO>> listSubParticipants(
             @RequestParam(name = "competition_id") Integer competitionId,
             @PositiveList(checkPositive = false)
-            @RequestParam(required = false) List<String> positions,
+            @RequestParam(required = false, name = "positions") List<String> positions,
             @PositiveList
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "market_id") Integer marketId,

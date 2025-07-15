@@ -4,6 +4,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.service.ParticipantService;
+import io.limeup.flexbets.sport.service.resolver.ParticipantServiceResolver;
 import io.limeup.flexbets.sport.validator.PositiveList;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class ParticipantController {
-    private final ParticipantService participantService;
+    private final ParticipantServiceResolver serviceResolver;
 
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<ParticipantDTO>> listParticipants(
@@ -33,15 +34,18 @@ public class ParticipantController {
             @RequestParam(required = false, name = "market_id") Integer marketId,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
-        return ResponseEntity.ok(participantService.listParticipants(
+        ParticipantService service = serviceResolver.resolve(competitionId.toString());
+        return ResponseEntity.ok(service.listParticipants(
                 competitionId, participantIds, marketId, maxHistoricalDataCount, requestQuery));
     }
 
     @GetMapping("/{participant_id}")
     public ResponseEntity<ParticipantDTO> getParticipantById(
             @PathVariable("participant_id") Integer participantId,
+            @RequestParam(name = "competition_id") Integer competitionId,
             @RequestParam(required = false, name = "market_id") Integer marketId,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount) {
-        return ResponseEntity.ok(participantService.getParticipantById(participantId, marketId, maxHistoricalDataCount));
+        ParticipantService service = serviceResolver.resolve(competitionId.toString());
+        return ResponseEntity.ok(service.getParticipantById(participantId, marketId, maxHistoricalDataCount));
     }
 }
