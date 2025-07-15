@@ -91,9 +91,11 @@ public class SportsDataIoPrefetchController {
         taskExecutor.execute(importService::importTeams);
         taskExecutor.execute(importNflService::importTeams);
         taskExecutor.execute(() -> importService.importScores(LocalDate.now()));
+        taskExecutor.execute(() -> importNflService.importScores(LocalDate.now()));
         taskExecutor.execute(importService::importVenue);
         taskExecutor.execute(importNflService::importVenue);
         taskExecutor.execute(importService::importPlayersStats);
+        taskExecutor.execute(importNflService::importPlayersStats);
         taskExecutor.execute(importNflService::importPlayerGameStats);
         taskExecutor.execute(importService::importPlayerGameStats);
         taskExecutor.execute(() -> importService.importBetMarkets(LocalDate.now()));

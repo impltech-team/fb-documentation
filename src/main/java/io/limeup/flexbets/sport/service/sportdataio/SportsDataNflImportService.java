@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -24,12 +25,14 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,7 +49,7 @@ public class SportsDataNflImportService {
     private final IoStadiumNFLRepository stadiumRepo;
     private final IoPlayerNFLRepository playerRepo;
     private final IoPlayerStatsNFLRepository playerStatsRepo;
-    private final IoPlayerGamesStatsRepository playerGameStatsRepo;
+    private final IoPlayerGameStatsNFLRepository playerGameStatsRepo;
 
     private final IoEventNFLMapper eventMapper;
     private final IoBetMapper betMapper;
@@ -54,7 +57,7 @@ public class SportsDataNflImportService {
     private final IoStadiumNFLMapper stadiumMapper;
     private final IoPlayerNFLMapper playerMapper;
     private final IoPlayersStatsNFLMapper playersStatsMapper;
-    private final IoPlayerGameStatsMapper playerGameStatsMapper;
+    private final IoPlayerGameStatsNFLMapper playerGameStatsMapper;
 
     private final FetchLogService fetchLogService;
 
@@ -201,34 +204,94 @@ public class SportsDataNflImportService {
 
     // 🏟️ Player Game Stats
     public void importPlayerGameStats() {
-        if (skipIfLaunchedRecently(FetchIoType.PLAYER_GAME_STATS)) return;
-        var log = fetchLogService.start(FetchIoType.PLAYER_GAME_STATS, SportIoType.NFL);
-        try {
-            playerRepo.findAll()
-                    .forEach(this::fetchAndUpsertPlayerGameStatsApi);
-            fetchLogService.finishSuccess(log);
-        } catch (Exception ex) {
-            fetchLogService.finishError(log, ex);
-            throw ex;
+        if (skipIfLaunchedRecently(FetchIoType.PLAYER_GAME_STATS)) {
+            return;
         }
+
+        IoFetchLog log = fetchLogService.start(FetchIoType.PLAYER_GAME_STATS, SportIoType.NFL);
+        final int pageSize = 200;
+        final AtomicInteger pageCounter = new AtomicInteger(0);
+        final AtomicInteger processedCounter = new AtomicInteger(0);
+        final Logger logger = LoggerFactory.getLogger(getClass());
+
+        Flux.<List<IoPlayerNFL>>generate(sink -> {
+                    int currentPage = pageCounter.getAndIncrement();
+                    List<IoPlayerNFL> chunk = playerRepo.findAll(PageRequest.of(currentPage, pageSize)).getContent();
+
+                    if (chunk.isEmpty()) {
+                        sink.complete();
+                    } else {
+                        sink.next(chunk);
+                    }
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnSubscribe(sub -> logger.info("Starting import of approximately {} players...", playerRepo.count()))
+                .flatMap(chunk -> Flux.fromIterable(chunk), 1)
+                .flatMap(player ->
+                                fetchAndUpsertPlayerGameStatsApi(player)
+                                        .retryWhen(
+                                                Retry.backoff(3, Duration.ofSeconds(1))
+                                                        .doBeforeRetry(retry -> logger.warn("Retrying player {} (attempt {})",
+                                                                player.getId(), retry.totalRetries() + 1))
+                                                        .filter(throwable -> throwable instanceof Exception) // Ensure only Exceptions are retried
+                                        )
+                                        .onErrorResume(Exception.class, e -> {  // Explicitly handle Exception type
+                                            logger.error("Failed to process player {}: {}", player.getId(), e.getMessage());
+                                            return Mono.empty();
+                                        }),
+                        10)
+                .doOnNext(stat -> {
+                    int processed = processedCounter.incrementAndGet();
+                })
+                .doOnComplete(() -> {
+                    logger.info("Completed processing {} players", processedCounter.get());
+                    fetchLogService.finishSuccess(log);
+                })
+                .subscribe(
+                        null,
+                        error -> {
+                            if (error instanceof Exception) {
+                                logger.error("Fatal import error after {} players: {}",
+                                        processedCounter.get(), error.getMessage());
+                                fetchLogService.finishError(log, (Exception) error);
+                            } else {
+                                logger.error("Fatal non-Exception error after {} players", processedCounter.get());
+                                fetchLogService.finishError(log, new RuntimeException(error));
+                            }
+                        }
+                );
     }
 
-    private Flux<IoPlayerGameStats> fetchAndUpsertPlayerGameStatsApi(IoPlayerNFL player) {
+    private Flux<IoPlayerGameStatsNFL> fetchAndUpsertPlayerGameStatsApi(IoPlayerNFL player) {
         String url = URL + SPORT_URL + "stats/json/PlayerGameStatsBySeason/"
-                + seasonYear + "/" + player.getPlayerId() + "/5?key=" + apiKey;
+                + 2024 + "/" + player.getPlayerId() + "/5?key=" + apiKey;
 
         return sportsDataWebClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToFlux(IoPlayerGameStatsDto.class)
+                .bodyToFlux(IoPlayerGameStatsNFLDto.class)
                 .publishOn(Schedulers.boundedElastic())
-                .map(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
-                        .map(ex -> {
-                            playerGameStatsMapper.merge(ex, dto);
-                            return ex;
-                        })
-                        .orElseGet(() -> playerGameStatsMapper.toEntity(dto))
-                );
+                .flatMap(dto -> Mono.fromCallable(() -> {
+                    // Lookup by playerId and gameKey instead of statId
+                    Optional<IoPlayerGameStatsNFL> existingOpt = playerGameStatsRepo
+                            .findByPlayerIdAndGameKey(player.getPlayerId(), dto.getGameKey());
+
+                    if (existingOpt.isPresent()) {
+                        // Merge with existing entity
+                        IoPlayerGameStatsNFL existing = existingOpt.get();
+                        playerGameStatsMapper.merge(existing, dto);
+                        return playerGameStatsRepo.save(existing);
+                    } else {
+                        // Create new entity
+                        IoPlayerGameStatsNFL newEntity = playerGameStatsMapper.toEntity(dto);
+                        newEntity.setPlayerId(player.getPlayerId()); // Ensure playerId is set
+                        return playerGameStatsRepo.save(newEntity);
+                    }
+                }))
+                .onErrorResume(e -> {
+                    log.error("Error processing game stats for player {}: {}", player.getPlayerId(), e.getMessage());
+                    return Mono.empty();
+                });
     }
 
     // 💰 Betting Markets
