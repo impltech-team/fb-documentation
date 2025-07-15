@@ -15,13 +15,24 @@ public interface IoPlayerGamesStatsRepository extends JpaRepository<IoPlayerGame
 
 
     @Query(value = """
-            SELECT * FROM sport.io_player_game_stats
+            SELECT * FROM io_player_game_stats
             WHERE player_id = :playerId
             ORDER BY game_datetime DESC
             LIMIT :limit
             """, nativeQuery = true)
     List<IoPlayerGameStats> findTopByPlayerIdLimit(
             @Param("playerId") Long playerId,
+            @Param("limit") int limit
+    );
+
+    @Query(value = """
+            SELECT * FROM io_player_game_stats
+            WHERE team_id = :teamId
+            ORDER BY game_datetime DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<IoPlayerGameStats> findTopByTeamIdLimit(
+            @Param("teamId") Long teamId,
             @Param("limit") int limit
     );
 }

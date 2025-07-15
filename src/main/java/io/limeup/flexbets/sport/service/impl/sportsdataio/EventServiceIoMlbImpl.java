@@ -61,16 +61,7 @@ public class EventServiceIoMlbImpl implements EventService {
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
         List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>() : participantIds;
 
-//        Long count = eventRepository.countEvents(dateFrom,
-//
-//                dateTo,
-//                status,
-//                venueIdsSafe,
-//                participantIdsSafe
-//        );
-//        if (count == 0) {
-//            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
-//        }
+
 
         List<IoEvent> events = eventRepository.listEvents(
                 dateFrom,
@@ -101,8 +92,8 @@ public class EventServiceIoMlbImpl implements EventService {
     private EventDTO mapToDto(IoEvent event) {
         EventDTO dto = new EventDTO();
         dto.setId(event.getGameId() != null ? event.getGameId().intValue() : 0);
-        IoTeam home = teamRepository.findByTeamId(Long.valueOf(event.getHomeTeamId())).get();
-        IoTeam away = teamRepository.findByTeamId(Long.valueOf(event.getAwayTeamId())).get();
+        IoTeam home = teamRepository.findByTeamId((event.getHomeTeamId())).get();
+        IoTeam away = teamRepository.findByTeamId((event.getAwayTeamId())).get();
         dto.setEventName(home.getCity()+ " " + home.getName()
                 + " vs " + away.getCity()+ " " + away.getName());
         dto.setEventDate(event.getDatetimeUtc());
@@ -113,7 +104,7 @@ public class EventServiceIoMlbImpl implements EventService {
                 new ParticipantSummaryDTO(event.getHomeTeamId() , home.getName(), home.getKey()),
                 new ParticipantSummaryDTO(event.getAwayTeamId(), away.getName(), away.getKey())
         ));
-        List<IoBet> allByEvent = betRepository.findAllByEvent(event);
+        List<IoBet> allByEvent = betRepository.findAllByEventAndAnyBetsAvailableTrue(event);
 
         List<EventMarketDTO> eventMarketsDto = allByEvent.stream()
                 .filter(s -> s.getMarketTypeId() == 2)
@@ -121,8 +112,7 @@ public class EventServiceIoMlbImpl implements EventService {
                     EventMarketDTO eventMarketDTO = new EventMarketDTO();
                     eventMarketDTO.setMarketId(String.valueOf(bet.getBetTypeId()));
                     eventMarketDTO.setMarketName(bet.getBetType());
-
-                    List<BetDTO> betDtos = ioBetOutcomeRepository.findAllByBet(bet).stream()
+                    List<BetDTO> betDtos = ioBetOutcomeRepository.findAllByBetAndAvailableTrue(bet).stream()
                             .filter(s -> s.getValue() != null)
                             .map(outcome -> {
                                 BetDTO betDTO = new BetDTO();

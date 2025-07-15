@@ -59,25 +59,5 @@ public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
             @Param("offset") int offset
     );
 
-    @Query(value = """
-            SELECT COUNT(*)
-            FROM sport.io_event e
-            WHERE (:dateFrom IS NULL OR e.datetime_utc >= :dateFrom)
-              AND (:dateTo IS NULL OR e.datetime_utc <= :dateTo)
-              AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
-              AND (:venueIds IS NULL OR e.stadium_id IN (:venueIds))
-              AND (
-                    :participantIds IS NULL OR
-                    e.home_team_id IN (:participantIds) OR
-                    e.away_team_id IN (:participantIds)
-              )
-            """, nativeQuery = true)
-    Long countEvents(
-            @Param("dateFrom") LocalDateTime dateFrom,
-            @Param("dateTo") LocalDateTime dateTo,
-            @Param("status") String status,
-            @Param("venueIds") List<Integer> venueIds,
-            @Param("participantIds") List<Integer> participantIds
-    );
 }
 
