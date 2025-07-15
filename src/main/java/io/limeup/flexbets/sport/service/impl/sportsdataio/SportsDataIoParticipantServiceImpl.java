@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.api;
+package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.ParticipantDTO;

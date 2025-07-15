@@ -27,7 +27,7 @@ public interface SubParticipantRepository extends ExternalIdRepository<SubPartic
                            sp.position ILIKE CONCAT('%', :filter, '%')
                       )
             """, nativeQuery = true)
-    long countSubParticipants(
+    Long countSubParticipants(
             @Param("competitionId") Integer competitionId,
             @Param("positions") List<String> positions,
             @Param("participantIds") List<Integer> participantIds,

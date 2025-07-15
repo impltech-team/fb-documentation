@@ -3,7 +3,7 @@ package io.limeup.flexbets.sport.service.resolver;
 import io.limeup.flexbets.sport.service.EventService;
 
 import io.limeup.flexbets.sport.service.impl.statscore.StatScoreEventServiceImpl;
-import io.limeup.flexbets.sport.service.impl.sportsdataio.SportsDataIoEventServiceImpl;
+import io.limeup.flexbets.sport.service.impl.sportsdataio.EventServiceIoMlbImpl;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public class EventServiceResolver {
 
     public EventServiceResolver(List<EventService> services) {
         this.serviceMap = Map.of(
-                "5466", findService(services, SportsDataIoEventServiceImpl.class),
+                "5466", findService(services, EventServiceIoMlbImpl.class),
                 "DEFAULT", findService(services, StatScoreEventServiceImpl.class)
         );
     }

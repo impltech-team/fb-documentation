@@ -61,6 +61,7 @@ public class SportsDataMlbImportService {
     public static final String SPORT_URL = "mlb/";
 
     private static final String PLAYER_MARKET_NAME = "Player Prop";
+    private static final String TEAM_MARKET_NAME = "Team Prop";
     private final int seasonYear = Year.now().getValue();
 
 
@@ -169,7 +170,9 @@ public class SportsDataMlbImportService {
     }
 
     private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
-        return PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+        return (PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) ||
+                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))
+                && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
     }
 
     private void fetchAndUpsertTeams() {
