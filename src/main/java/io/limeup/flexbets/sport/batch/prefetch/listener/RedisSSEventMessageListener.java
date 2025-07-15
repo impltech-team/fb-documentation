@@ -40,7 +40,8 @@ public class RedisSSEventMessageListener implements MessageListener {
             JsonNode ev = root.path("data").path("event");
             long id = root.get("id").asLong();
             int eventDataId = ev.get("id").asInt();
-            if (ev.path("ls_id") == null) {
+            if (ev.path("ls_id") == null|| ev.path("ls_id").isEmpty()) {
+                log.info("ℹ️ Event {} is damaged ,dont have lsId. Skipping.", id);
                 return;
             }
             String lsIdString = ev.path("ls_id").asText();

@@ -9,6 +9,8 @@ import io.limeup.flexbets.sport.model.enums.BetStatus;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Component
@@ -92,13 +94,26 @@ public class IoBetMapper {
     }
 
     public OddsDTO toOddsDTO(SportsDataBetRow bet) {
+        String price = bet.getPrice();
+        String roundedPrice;
+
+        try {
+            roundedPrice = new BigDecimal(price)
+                    .setScale(3, RoundingMode.HALF_UP)
+                    .toPlainString();
+        } catch (Exception e) {
+            // fallback to original string if conversion fails
+            roundedPrice = price;
+        }
+
+
         return OddsDTO.builder()
                 .id(bet.getId())
                 .marketName(bet.getMarketType())
                 .marketId(bet.getMarketTypeId())
                 .betType(bet.getBetType())
                 .line(bet.getBetLine())
-                .price(bet.getPrice())
+                .price(roundedPrice)
                 .status(BetStatus.OPEN.name())
                 .lastUpdatedDate(bet.getLastUpdated())
                 .build();
