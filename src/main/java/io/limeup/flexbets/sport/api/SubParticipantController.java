@@ -4,7 +4,7 @@ import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SubParticipantDTO;
 import io.limeup.flexbets.sport.service.SubParticipantService;
-import io.limeup.flexbets.sport.service.SubParticipantServiceResolver;
+import io.limeup.flexbets.sport.service.resolver.SubParticipantServiceResolver;
 import io.limeup.flexbets.sport.validator.PositiveList;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -12,11 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -36,11 +32,12 @@ public class SubParticipantController {
             @PositiveList
             @RequestParam(required = false, name = "participant_ids") List<Integer> participantIds,
             @RequestParam(required = false, name = "market_id") Integer marketId,
+            @RequestParam(required = false, name = "odds") Boolean odds,
             @RequestParam(required = false, name = "max_historical_data_count", defaultValue = "5") Integer maxHistoricalDataCount,
             @ParameterObject @Valid RequestQueryDTO requestQuery) {
         SubParticipantService service = serviceResolver.resolve(competitionId.toString());
         return ResponseEntity.ok(service.listSubParticipants(
-                competitionId, positions, participantIds, marketId, maxHistoricalDataCount, requestQuery));
+                competitionId, positions, participantIds, marketId, odds, maxHistoricalDataCount, requestQuery));
     }
 
     @GetMapping("/{sub-participant_id}")

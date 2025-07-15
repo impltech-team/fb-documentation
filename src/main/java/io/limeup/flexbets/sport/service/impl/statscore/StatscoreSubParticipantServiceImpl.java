@@ -65,7 +65,7 @@ public class StatscoreSubParticipantServiceImpl extends ExternalIdReadServiceImp
 //            key = "T(java.util.Objects).hash(#competitionId, #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
 //    @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
-                                                                    List<Integer> participantIds, Integer marketId,
+                                                                    List<Integer> participantIds, Integer marketId, Boolean odds,
                                                                     Integer maxHistoricalDataCount, RequestQueryDTO requestQuery) {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
 

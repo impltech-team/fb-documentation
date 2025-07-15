@@ -80,9 +80,9 @@ class StatscoreSubParticipantServiceImplTest {
                 anyInt(),
                 anySet()
         )).thenReturn(List.of(mock(SubParticipantStatRow.class), mock(SubParticipantStatRow.class)));
-        when(mapper.toDTO(anyList()))
+        when(mapper.toDTO(anyList(), anyMap()))
                 .thenReturn(List.of(mock(SubParticipantDTO.class), mock(SubParticipantDTO.class)));
-        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, 5, requestQuery);
+        PaginatedResponse<SubParticipantDTO> response = subParticipantService.listSubParticipants(1, null, null, 1, null, 5, requestQuery);
         assertThat(response.getItems()).hasSize(2);
         assertThat(response.getCount()).isEqualTo(2);
     }
@@ -97,7 +97,7 @@ class StatscoreSubParticipantServiceImplTest {
         when(subParticipantRepository.findByExternalId(anyInt())).thenReturn(Optional.of(subParticipant));
         when(marketService.getStatsByMarket(anyInt(), any(), eq(MarketType.SUB_PARTICIPANT))).thenReturn(Set.of(ConstantUtils.TestConstants.REBOUNDS, ConstantUtils.TestConstants.ASSISTS));
         when(statRepository.getSubParticipantStatsDetails(anyInt(), any(), anySet())).thenReturn(List.of(mock(SubParticipantStatRow.class)));
-        when(mapper.toDTO(anyList())).thenReturn(List.of(mock(SubParticipantDTO.class)));
+        when(mapper.toDTO(anyList(), anyMap())).thenReturn(List.of(mock(SubParticipantDTO.class)));
 
         SubParticipantDTO dto = subParticipantService.getSubParticipantById(1, 1, 5);
 
@@ -154,7 +154,7 @@ class StatscoreSubParticipantServiceImplTest {
         )).thenReturn(0L);
 
         PaginatedResponse<SubParticipantDTO> result = subParticipantService.listSubParticipants(
-                competitionId, positions, participantIds, marketId, 5, requestQuery
+                competitionId, positions, participantIds, marketId, false, 5, requestQuery
         );
 
         assertThat(result).isNotNull();

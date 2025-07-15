@@ -1,17 +1,12 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
 import io.limeup.flexbets.sport.dto.sportsdata.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
-import io.limeup.flexbets.sport.dto.sportsdata.SportsDataTeamDTO;
 import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
 import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
-import io.limeup.flexbets.sport.mapper.IoBetMapper;
-import io.limeup.flexbets.sport.mapper.IoTeamMapper;
+import io.limeup.flexbets.sport.mapper.*;
 import io.limeup.flexbets.sport.model.*;
-import io.limeup.flexbets.sport.model.dto.*;
+import io.limeup.flexbets.sport.model.dto.IoSportsDataPlayerStatsDTO;
+import io.limeup.flexbets.sport.model.dto.ScoreBasicDto;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,16 +43,12 @@ public class SportsDataMlbImportService {
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
     private final IoEventMapper eventMapper;
-    private final IoBetMapper betMapper;
-    private final IoTeamMapper teamMapper;
     private final IoPlayerMapper playerMapper;
     private final IoVenueMapper ioVenueMapper;
     private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
     private final FetchLogService fetchLogService;
-
-    private final ObjectMapper objectMapper;
 
 
     @Value("${sportsdata.key}")
@@ -350,10 +341,10 @@ public class SportsDataMlbImportService {
         teamRepo.findByTeamId(dto.getTeamId())
                 .ifPresentOrElse(
                         ex -> {
-                            teamMapper.updateEntity(ex, dto);
+                            IoTeamMapper.updateEntity(ex, dto);
                             teamRepo.save(ex);
                         },
-                        () -> teamRepo.save(teamMapper.toEntity(dto)));
+                        () -> teamRepo.save(IoTeamMapper.toEntity(dto)));
     }
 
 
@@ -374,9 +365,9 @@ public class SportsDataMlbImportService {
             IoBet existing = dbMap.get(dto.getBettingMarketId());
 
             if (existing == null) {
-                toSave.add(betMapper.toEntity(dto, event));
+                toSave.add(IoBetMapper.toEntity(dto, event));
             } else if (!Objects.equals(existing.getUpdatedAt(), dto.getUpdated())) {
-                IoBet replaced = betMapper.toEntity(dto, event);
+                IoBet replaced = IoBetMapper.toEntity(dto, event);
                 replaced.setBetOutcomes(reconcileBetOutcomes(
                         dto.getBettingOutcomes(), existing.getBetOutcomes(), replaced));
                 toSave.add(replaced);
@@ -412,9 +403,9 @@ public class SportsDataMlbImportService {
             IoBetOutcome ex = dbMap.get(dto.getBettingOutcomeId());
 
             if (ex == null) {
-                toSave.add(betMapper.toBetOutcomeEntity(dto, bet));
+                toSave.add(IoBetMapper.toBetOutcomeEntity(dto, bet));
             } else if (!Objects.equals(ex.getUpdatedAt(), dto.getUpdated())) {
-                toSave.add(betMapper.updateEntity(ex, dto, bet));
+                toSave.add(IoBetMapper.updateEntity(ex, dto, bet));
             }
         }
 

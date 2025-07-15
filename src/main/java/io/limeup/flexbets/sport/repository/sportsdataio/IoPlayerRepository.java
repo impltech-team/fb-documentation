@@ -174,19 +174,4 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 WHERE p.player_id = :playerId
             """, nativeQuery = true)
     Optional<SportsDataPlayerRow> getPlayerWithBetsById(@Param("playerId") Integer playerId);
-
-    @Query(value = """
-    SELECT COUNT(*)
-    FROM io_player p
-    JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
-    LEFT JOIN sport.io_team t ON t.team_id = p.team_id
-    LEFT JOIN sport.io_team home_team ON home_team.team_id = e.home_team_id
-    LEFT JOIN sport.io_team away_team ON away_team.team_id = e.away_team_id
-    WHERE p.upcoming_game_id IS NOT NULL
-    """,
-            nativeQuery = true)
-    long countPlayersWithUpcomingEvent();
-
-
-    List<IoPlayer> findByPlayerIdIn(Set<Long> playerIds);
 }
