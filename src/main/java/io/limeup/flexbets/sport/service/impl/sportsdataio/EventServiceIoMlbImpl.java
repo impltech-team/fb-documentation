@@ -61,6 +61,16 @@ public class EventServiceIoMlbImpl implements EventService {
 
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
         List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>() : participantIds;
+        long total = eventRepository.countEvents(
+                dateFrom,
+                dateTo,
+                status,
+                venueIdsSafe,
+                participantIdsSafe
+        );
+        if (total == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, total, requestQuery.getPage(), requestQuery.getPageSize());
+        }
 
         List<IoEvent> events = eventRepository.listEvents(
                 dateFrom,
@@ -76,7 +86,7 @@ public class EventServiceIoMlbImpl implements EventService {
 
         List<EventDTO> dtoList = events.stream().map(this::mapToDto).collect(Collectors.toList());
 
-        return PaginationUtils.buildPaginatedResponse(dtoList,  (long) events.size(), requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList,  total, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     //    @EventBasedCache(cacheName = "eventDetailsCache",
