@@ -3,15 +3,12 @@ package io.limeup.flexbets.sport.dto.sportsdata;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 
 @Data
 public class SportsDataTeamDTO {
 
     @JsonProperty("TeamID")
-    private Long teamId;
+    private Integer teamId;
 
     @JsonProperty("Key")
     private String key;

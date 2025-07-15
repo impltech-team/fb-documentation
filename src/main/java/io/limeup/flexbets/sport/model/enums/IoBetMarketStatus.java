@@ -6,7 +6,8 @@ import java.util.Arrays;
 
 @Getter
 public enum IoBetMarketStatus {
-    PLAYER_PROP("Player Prop");
+    PLAYER_PROP("Player Prop"),
+    TEAM_PROP("Team Prop");
 
     private final String name;
 
