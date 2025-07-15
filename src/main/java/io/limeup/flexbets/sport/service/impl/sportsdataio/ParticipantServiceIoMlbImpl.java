@@ -42,8 +42,7 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
     }
 
 
-
-//    @EventBasedCache(cacheName = "participantsListCache",
+    //    @EventBasedCache(cacheName = "participantsListCache",
 //            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount," +
 //                    " #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
@@ -94,7 +93,7 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         return PaginationUtils.buildPaginatedResponse(dtoList, count, page, pageSize);
     }
 
-//    @EventBasedCache(cacheName = "participantDetailsCache",
+    //    @EventBasedCache(cacheName = "participantDetailsCache",
 //            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
@@ -103,11 +102,11 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
                         String.format("Participant %s Not Found", participantId)));
 
 
-        boolean includeAll = participantId == null ;
+        boolean includeAll = participantId == null;
         Integer[] ids = includeAll ? new Integer[0] : new Integer[]{participantId};
 
-        List<ParticipantStatRow> statRows =        teamRepository.listParticipantStats(List.of(ids),
-                null,null,null);
+        List<ParticipantStatRow> statRows = teamRepository.listParticipantStats(List.of(ids),
+                null, null, null);
 
         if (statRows.isEmpty()) {
             throw new FlexBetsSportNotFoundException("ParticipantStatRow not found for participantId = " + participantId);

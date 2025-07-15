@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.IoBet;
@@ -13,7 +14,13 @@ import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,11 +59,19 @@ public class EventServiceIoMlbImpl implements EventService {
                 .noneMatch(s -> s.equalsIgnoreCase(status))) {
             throw new ValidationException(String.format("Invalid status: %s. Available options: %s", status, SUPPORTED_STATUS_SORT_FIELDS));
         }
+
+        ZoneId utcZone = ZoneOffset.UTC;
         if (dateTo == null) {
-            dateTo = LocalDateTime.now();
+            dateTo = ZonedDateTime.now(utcZone).toLocalDateTime();
+        } else {
+            dateTo = dateTo.atZone(ZoneOffset.UTC).toLocalDateTime();
         }
+
         if (dateFrom == null) {
             dateFrom = dateTo.minusHours(24);
+        } else {
+
+            dateFrom = dateFrom.atZone(ZoneOffset.UTC).toLocalDateTime();
         }
 
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
@@ -86,11 +101,10 @@ public class EventServiceIoMlbImpl implements EventService {
 
         List<EventDTO> dtoList = events.stream().map(this::mapToDto).collect(Collectors.toList());
 
-        return PaginationUtils.buildPaginatedResponse(dtoList,  total, requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList, total, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-    //    @EventBasedCache(cacheName = "eventDetailsCache",
-//            key = "#eventId")
+    @EventBasedCache(cacheName = "eventDetailsCache", key = "#eventId")
     @Override
     public EventDTO getEventById(Integer eventId) {
         IoEvent event = eventRepository.findByGameId(eventId.longValue())
@@ -103,14 +117,14 @@ public class EventServiceIoMlbImpl implements EventService {
         dto.setId(event.getGameId() != null ? event.getGameId().intValue() : 0);
         IoTeam home = teamRepository.findByTeamId((event.getHomeTeamId())).get();
         IoTeam away = teamRepository.findByTeamId((event.getAwayTeamId())).get();
-        dto.setEventName(home.getCity()+ " " + home.getName()
-                + " vs " + away.getCity()+ " " + away.getName());
+        dto.setEventName(home.getCity() + " " + home.getName()
+                + " vs " + away.getCity() + " " + away.getName());
         dto.setEventDate(event.getDatetimeUtc());
         dto.setStatus(event.getStatus());
         dto.setCompetitionId(COMPETITION_ID);
         dto.setCompetition(COMPETITION_NAME);
         dto.setParticipants(List.of(
-                new ParticipantSummaryDTO(event.getHomeTeamId() , home.getName(), home.getKey()),
+                new ParticipantSummaryDTO(event.getHomeTeamId(), home.getName(), home.getKey()),
                 new ParticipantSummaryDTO(event.getAwayTeamId(), away.getName(), away.getKey())
         ));
         List<IoBet> allByEvent = betRepository.findAllByEventAndAnyBetsAvailableTrue(event);
