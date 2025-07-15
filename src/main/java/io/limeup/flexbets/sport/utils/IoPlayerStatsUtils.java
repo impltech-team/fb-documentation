@@ -1,9 +1,8 @@
-package io.limeup.flexbets.sport.service.impl.sportsdataio;
+package io.limeup.flexbets.sport.utils;
 
 import io.limeup.flexbets.sport.dto.EventStatisticDTO;
 import io.limeup.flexbets.sport.dto.HistoricalStatDTO;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
-import io.limeup.flexbets.sport.model.IoTeam;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

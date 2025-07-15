@@ -19,21 +19,23 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
     List<IoTeam> findAllByTeamIdIn(Set<Integer> collect);
 
     @Query(value = """ 
-           WITH base_teams AS (
+
+            WITH base_teams AS (
                 SELECT
                      t.team_id,
                      t.name AS team_name,
                      t.city,
                      t.key AS acronym
-            FROM io_team t
-                 WHERE (:participantIds IS NULL OR t.team_id IN (:participantIds))
+                 FROM sport.io_team t
+               WHERE (:participantIds IS NULL OR t.team_id IN (:participantIds))
+                  
                     AND (
                         :filter IS NULL OR
                         t.name ILIKE CONCAT('%', :filter, '%') OR
                         t.key ILIKE CONCAT('%', :filter, '%')
                          )
                      ),
-                        
+                      
                   future_events AS (
                            SELECT DISTINCT ON (t.team_id)
                                 t.team_id,
@@ -42,13 +44,13 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                                 e.datetime_utc AS future_event_start_date,
                                 ht.key || ',' || at.key AS future_event_acronyms
                             FROM base_teams t
-                            JOIN io_event e ON t.team_id = e.home_team_id OR t.team_id = e.away_team_id
-                            JOIN io_team ht ON ht.team_id = e.home_team_id
-                            JOIN io_team at ON at.team_id = e.away_team_id
+                            JOIN sport.io_event e ON t.team_id = e.home_team_id OR t.team_id = e.away_team_id
+                            JOIN sport.io_team ht ON ht.team_id = e.home_team_id
+                            JOIN sport.io_team at ON at.team_id = e.away_team_id
                             WHERE e.datetime_utc > NOW()
                             ORDER BY t.team_id, e.datetime_utc
                         )
-                        
+                  
                         SELECT
                             t.team_id AS id,
                             t.team_name AS team_name,
@@ -67,17 +69,14 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                             CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN t.team_name END ASC,
                             CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'desc' THEN t.team_name END DESC,
                             f.future_event_start_date
-                        OFFSET :offset
-                        LIMIT :limit
+
             """, nativeQuery = true)
     List<ParticipantStatRow> listParticipantStats(
-            @Param("participantIds") Collection<Integer> participantIds,
-
+            @Param("participantIds")  Collection<Integer>  participantIds,
             @Param("filter") String filter,
             @Param("sortBy") String sortBy,
-            @Param("sortOrder") String sortOrder,
-            @Param("offset") int offset,
-            @Param("limit") int limit
+            @Param("sortOrder") String sortOrder
+
     );
 
 
@@ -90,7 +89,7 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                                 t.city,
                                 t.key AS acronym
                             FROM io_team t
-                            WHERE (:participantIds IS NULL OR t.team_id IN (:participantIds))
+                          WHERE (:participantIds IS NULL OR t.team_id IN (:participantIds))
                               AND (
                                   :filter IS NULL OR
                                   t.name ILIKE CONCAT('%', :filter, '%') OR
@@ -115,9 +114,8 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                         bets AS (
                             SELECT DISTINCT b.team_id
                             FROM io_bet b
-                            JOIN base_teams  sp  ON sp.team_id    = b.team_id
-                             
-                            WHERE b.bet_type_id = :marketId and b.any_bets_available = true
+                            JOIN base_teams  sp  ON sp.team_id    = b.team_id                     
+                            WHERE b.bet_type_id = :marketId AND b.any_bets_available = true
                           
                         )
                         
@@ -141,16 +139,14 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                             CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN t.team_name END ASC,
                             CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'desc' THEN t.team_name END DESC,
                             f.future_event_start_date
-                        OFFSET :offset
-                        LIMIT :limit
+                    
             """, nativeQuery = true)
     List<ParticipantStatRow> listParticipantStatByTeamIdAndMarketId(
             @Param("marketId") Integer marketId,
-            @Param("participantIds") Collection<Integer> participantIds,
+            @Param("participantIds")   Collection<Integer>  participantIds,
             @Param("filter") String filter,
             @Param("sortBy") String sortBy,
-            @Param("sortOrder") String sortOrder,
-            @Param("offset") int offset,
-            @Param("limit") int limit
+            @Param("sortOrder") String sortOrder
+
     );
 }

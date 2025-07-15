@@ -1,16 +1,17 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
-import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
 import io.limeup.flexbets.sport.model.IoTeam;
 import io.limeup.flexbets.sport.model.enums.IoBetMarketStatus;
+import io.limeup.flexbets.sport.repository.projection.OddsRow;
 import io.limeup.flexbets.sport.repository.projection.ParticipantStatRow;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoBetRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoPlayerGamesStatsRepository;
 import io.limeup.flexbets.sport.repository.sportsdataio.IoTeamRepository;
 import io.limeup.flexbets.sport.service.ParticipantService;
+import io.limeup.flexbets.sport.utils.IoPlayerStatsUtils;
 import io.limeup.flexbets.sport.utils.PaginationUtils;
 import io.limeup.flexbets.sport.utils.ValidationUtils;
 import org.springframework.stereotype.Service;
@@ -55,53 +56,73 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         int page = requestQuery.getPage();
         int pageSize = requestQuery.getPageSize();
 
+
+        Integer[] ids = (participantIds == null || participantIds.isEmpty())
+                ? new Integer[0]
+                : participantIds.toArray(new Integer[0]);
+
         List<ParticipantStatRow> teams = (marketId == null)
                 ? teamRepository.listParticipantStats(participantIds == null ? Collections.emptyList() : participantIds,
-                requestQuery.getFilter(), requestQuery.getSortBy(), requestQuery.getSortOrder(), page, pageSize)
+                requestQuery.getFilter(), requestQuery.getSortBy(), requestQuery.getSortOrder())
                 : teamRepository.listParticipantStatByTeamIdAndMarketId(marketId, participantIds == null ? Collections.emptyList() : participantIds,
-                requestQuery.getFilter(), requestQuery.getSortBy(), requestQuery.getSortOrder(), page, pageSize);
-        long count = teams.size();
+                requestQuery.getFilter(), requestQuery.getSortBy(), requestQuery.getSortOrder());
+
 
         Set<Integer> teamIds = teams.stream()
                 .map(ParticipantStatRow::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
+        int total = teams.size();
+        int pageZeroBased = Math.max(page - 1, 0);
+        int fromIndex = Math.min(pageZeroBased * pageSize, total);
+        int toIndex = Math.min(fromIndex + pageSize, total);
+        List<ParticipantStatRow> paged = teams.subList(fromIndex, toIndex);
 
-        List<OddsProjection> allOdds = (marketId == null)
+        List<OddsRow> allOdds = (marketId == null)
                 ? betRepository.getBetsForTeam(teamIds, IoBetMarketStatus.TEAM_PROP.getName())
                 : betRepository.getBetsForTeamWithMarketId(teamIds, IoBetMarketStatus.TEAM_PROP.getName(), marketId);
-        Map<Integer, List<OddsProjection>> oddsByTeamId = allOdds.stream()
+        Map<Integer, List<OddsRow>> oddsByTeamId = allOdds.stream()
                 .filter(o -> o.getTeamId() != null)
-                .collect(Collectors.groupingBy(OddsProjection::getTeamId));
+                .collect(Collectors.groupingBy(OddsRow::getTeamId));
 
-        List<ParticipantDTO> dtoList = teams.stream()
-                .filter(team -> oddsByTeamId.containsKey(team.getId()))
+        List<ParticipantDTO> dtoList = paged.stream()
+                .filter(team -> marketId == null || oddsByTeamId.containsKey(team.getId()))
                 .map(team -> {
-                    List<OddsProjection> teamOdds = oddsByTeamId.getOrDefault(team.getId(), List.of());
+                    List<OddsRow> teamOdds = oddsByTeamId.getOrDefault(team.getId(), List.of());
                     List<OddsDTO> mappedOdds = mapOdds(teamOdds);
                     return toDto(team, mappedOdds, maxHistoricalDataCount);
                 })
                 .toList();
 
+        long count = paged.size();
         return PaginationUtils.buildPaginatedResponse(dtoList, count, page, pageSize);
     }
 
+//    @EventBasedCache(cacheName = "participantDetailsCache",
+//            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
         IoTeam team = teamRepository.findByTeamId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(
                         String.format("Participant %s Not Found", participantId)));
 
-        List<ParticipantStatRow> statRow = teamRepository.listParticipantStats(Collections.singleton((participantId)), null,
-                null, null, 1, 1);
+        boolean includeAll = participantId == null ;
+        Integer[] ids = includeAll ? new Integer[0] : new Integer[]{participantId};
 
-        List<OddsProjection> odds = (marketId == null)
+        List<ParticipantStatRow> statRows =        teamRepository.listParticipantStats(List.of(ids),
+                null,null,null);
+
+        if (statRows.isEmpty()) {
+            throw new FlexBetsSportNotFoundException("ParticipantStatRow not found for participantId = " + participantId);
+        }
+
+        List<OddsRow> odds = (marketId == null)
                 ? betRepository.getBetsForTeam(Set.of(team.getTeamId()), IoBetMarketStatus.TEAM_PROP.getName())
                 : betRepository.getBetsForTeamWithMarketId(Set.of(team.getTeamId()), IoBetMarketStatus.TEAM_PROP.getName(), marketId);
         List<OddsDTO> mappedOdds = mapOdds(odds);
 
-        return toDto(statRow.getFirst(), mappedOdds, maxHistoricalDataCount);
+        return toDto(statRows.getFirst(), mappedOdds, maxHistoricalDataCount);
     }
 
     private ParticipantDTO toDto(ParticipantStatRow team, List<OddsDTO> bet, Integer maxHistoricalDataCount) {
@@ -143,7 +164,7 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         return dto;
     }
 
-    private List<OddsDTO> mapOdds(List<OddsProjection> projections) {
+    private List<OddsDTO> mapOdds(List<OddsRow> projections) {
 
         return projections.stream()
                 .map(p -> {

@@ -3,7 +3,7 @@ package io.limeup.flexbets.sport.repository.sportsdataio;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
-import io.limeup.flexbets.sport.service.impl.sportsdataio.OddsProjection;
+import io.limeup.flexbets.sport.repository.projection.OddsRow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -96,8 +96,8 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                          OR e.away_team_id IN (:teamIds)
                   )
             """, nativeQuery = true)
-    List<OddsProjection> getBetsForTeam(@Param("teamIds") Set<Integer> teamIds,
-                                        @Param("betType") String betType);
+    List<OddsRow> getBetsForTeam(@Param("teamIds") Set<Integer> teamIds,
+                                 @Param("betType") String betType);
 
     @Query(value = """
                SELECT
@@ -124,9 +124,9 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                        OR e.away_team_id IN (:teamIds)
                        )
             """, nativeQuery = true)
-    List<OddsProjection> getBetsForTeamWithMarketId(@Param("teamIds") Set<Integer> teamIds,
-                                                    @Param("betType") String betType,
-                                                    @Param("marketId") Integer marketId
+    List<OddsRow> getBetsForTeamWithMarketId(@Param("teamIds") Set<Integer> teamIds,
+                                             @Param("betType") String betType,
+                                             @Param("marketId") Integer marketId
     );
 }
 

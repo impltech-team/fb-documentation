@@ -1,8 +1,8 @@
-package io.limeup.flexbets.sport.service.impl.sportsdataio;
+package io.limeup.flexbets.sport.repository.projection;
 
 import java.time.LocalDateTime;
 
-public interface OddsProjection {
+public interface OddsRow {
     Long getId();
     String getMarketName();
     Integer getMarketId();
