@@ -71,4 +71,3 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
 
     List<IoBet> findAllByEvent(IoEvent event);
 }
-

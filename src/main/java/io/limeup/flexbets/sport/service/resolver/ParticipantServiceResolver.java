@@ -1,8 +1,8 @@
 package io.limeup.flexbets.sport.service.resolver;
 
 import io.limeup.flexbets.sport.service.ParticipantService;
-import io.limeup.flexbets.sport.service.impl.sportsdataio.ParticipantServiceIoMlbImpl;
 import io.limeup.flexbets.sport.service.impl.statscore.ParticipantServiceImpl;
+import io.limeup.flexbets.sport.service.impl.sportsdataio.ParticipantServiceIoMlbImpl;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
