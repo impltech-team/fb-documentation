@@ -129,4 +129,3 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                                              @Param("marketId") Integer marketId
     );
 }
-

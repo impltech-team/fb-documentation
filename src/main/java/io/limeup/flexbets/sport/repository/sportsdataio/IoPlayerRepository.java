@@ -174,5 +174,4 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 WHERE p.player_id = :playerId
             """, nativeQuery = true)
     Optional<SportsDataPlayerRow> getPlayerWithBetsById(@Param("playerId") Integer playerId);
-
 }

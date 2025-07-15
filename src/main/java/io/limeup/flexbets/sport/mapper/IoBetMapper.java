@@ -94,7 +94,6 @@ public class IoBetMapper {
     }
 
     public OddsDTO toOddsDTO(SportsDataBetRow bet) {
-
         String price = bet.getPrice();
         String roundedPrice;
 
@@ -106,6 +105,7 @@ public class IoBetMapper {
             // fallback to original string if conversion fails
             roundedPrice = price;
         }
+
 
         return OddsDTO.builder()
                 .id(bet.getId())
