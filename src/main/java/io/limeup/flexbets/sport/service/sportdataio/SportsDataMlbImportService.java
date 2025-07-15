@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.dto.sportsdata.IoPlayerGameStatsDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataPlayerDTO;
@@ -52,6 +53,8 @@ public class SportsDataMlbImportService {
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
     private final FetchLogService fetchLogService;
+
+    private final ObjectMapper objectMapper;
 
 
     @Value("${sportsdata.key}")
@@ -210,7 +213,6 @@ public class SportsDataMlbImportService {
                 .block();
     }
 
-
     public void importPlayers() {
         if (skipIfLaunchedRecently(FetchIoType.PLAYERS)) return;
         fetchAndUpsertPlayers();
@@ -265,7 +267,7 @@ public class SportsDataMlbImportService {
 
 
     private void upsertGame(ScoreBasicDto dto) {
-         eventRepo.findByGameId(dto.gameId())
+        eventRepo.findByGameId(dto.gameId())
                 .map(ex -> {
                     eventMapper.merge(ex, dto);
                     return eventRepo.save(ex);
@@ -296,7 +298,10 @@ public class SportsDataMlbImportService {
                 .bodyToFlux(IoPlayerGameStatsDto.class)
                 .publishOn(Schedulers.boundedElastic())
                 .map(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
-                        .map(ex -> { playerGameStatsMapper.merge(ex, dto); return ex; })
+                        .map(ex -> {
+                            playerGameStatsMapper.merge(ex, dto);
+                            return ex;
+                        })
                         .orElseGet(() -> playerGameStatsMapper.toEntity(dto))
                 );
     }
