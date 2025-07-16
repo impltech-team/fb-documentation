@@ -241,7 +241,7 @@ public class SportsDataMlbImportService {
 
                 if(IoEventStatus.FINAL.getName().equals(game.status())){
                     Map<Long, IoBet> marketBetsMap = betRepo.findAllByEventGameId(game.gameId()).stream()
-                            .collect(Collectors.toMap(IoBet::getMarketId, it -> it));
+                            .collect(Collectors.toMap(IoBet::getMarketId, Function.identity()));
                     List<IoBetOutcome> betOutcomesToUpdate = collectBetOutcomesToUpdate(marketBetsMap);
 
                     if (!betOutcomesToUpdate.isEmpty()) {
