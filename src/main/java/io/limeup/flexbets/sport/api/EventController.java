@@ -9,6 +9,7 @@ import io.limeup.flexbets.sport.validator.PositiveList;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,8 @@ public class EventController {
     @GetMapping("/list")
     public ResponseEntity<PaginatedResponse<EventDTO>> listEvents(
             @RequestParam(name = "competition_id") Integer competitionId,
-            @RequestParam(required = false, name = "date_from") LocalDateTime dateFrom,
-            @RequestParam(required = false, name = "date_to") LocalDateTime dateTo,
+            @RequestParam(required = false, name = "date_from")@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
+            @RequestParam(required = false, name = "date_to")@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
             @PositiveList
             @RequestParam(required = false, name = "venue_ids") List<Integer> venueIds,
             @PositiveList
