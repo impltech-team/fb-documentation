@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.OddsDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.IoBettingOutcomeResultDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
@@ -81,6 +82,16 @@ public class IoBetMapper {
         return entity;
     }
 
+    public static IoBetOutcome addResultData(IoBetOutcome entity, IoBettingOutcomeResultDto resultDto) {
+        if (entity == null || resultDto == null) {
+            return entity;
+        }
+        entity.setResultTypeId(resultDto.typeId());
+        entity.setResultType(resultDto.type());
+        entity.setResultValue(resultDto.actualValue());
+        return entity;
+    }
+
     public static List<IoBetOutcome> toBetOutcomeEntityList(IoBet bet, List<SportsDataBettingMarketDTO.BettingOutcomeDTO> betOutcomeDTOList) {
         return betOutcomeDTOList.stream()
                 .map(betOutcomeDTO -> toBetOutcomeEntity(betOutcomeDTO, bet))
@@ -94,7 +105,6 @@ public class IoBetMapper {
     }
 
     public OddsDTO toOddsDTO(SportsDataBetRow bet) {
-
         String price = bet.getPrice();
         String roundedPrice;
 
@@ -106,6 +116,7 @@ public class IoBetMapper {
             // fallback to original string if conversion fails
             roundedPrice = price;
         }
+
 
         return OddsDTO.builder()
                 .id(bet.getId())

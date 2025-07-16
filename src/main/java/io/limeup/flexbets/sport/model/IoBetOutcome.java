@@ -52,6 +52,15 @@ public class IoBetOutcome {
     @Column(name = "is_alternate")
     private boolean alternate;
 
+    @Column(name = "result_type_id")
+    private Integer resultTypeId;
+
+    @Column(name = "result_type")
+    private String resultType;
+
+    @Column(name = "result_value")
+    private String resultValue;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface IoBetOutcomeRepository extends JpaRepository<IoBetOutcome, Long> {
 
-
-    List<IoBetOutcome> findAllByBet(IoBet ioBet);
+    List<IoBetOutcome> findAllByBetAndAvailableTrue(IoBet bet);
 }
 

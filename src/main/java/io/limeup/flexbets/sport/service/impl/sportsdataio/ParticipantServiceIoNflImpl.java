@@ -16,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service("sportsDataIoParticipantService")
+@Service("sportsDataIoParticipantServiceNfl")
 @Transactional
-public class SportsDataIoParticipantServiceImpl implements ParticipantService {
+public class ParticipantServiceIoNflImpl implements ParticipantService {
 
     private static final int COMPETITION_ID_NFL = 5611;
     private static final int COMPETITION_ID_MLB = 5466;
@@ -26,7 +26,7 @@ public class SportsDataIoParticipantServiceImpl implements ParticipantService {
     private final IoTeamRepository teamRepository;
     private final IoTeamNFLRepository teamNFLRepository;
 
-    public SportsDataIoParticipantServiceImpl(IoTeamRepository teamRepository, IoTeamNFLRepository teamNFLRepository) {
+    public ParticipantServiceIoNflImpl(IoTeamRepository teamRepository, IoTeamNFLRepository teamNFLRepository) {
         this.teamRepository = teamRepository;
         this.teamNFLRepository = teamNFLRepository;
     }
@@ -80,7 +80,7 @@ public class SportsDataIoParticipantServiceImpl implements ParticipantService {
                     .orElseThrow(() -> new FlexBetsSportNotFoundException("NFL Participant " + participantId + " Not Found"));
         } else if (competitionId.equals(COMPETITION_ID_MLB)) {
             // Fetch from MLB repository
-            return teamRepository.findByTeamId(participantId.longValue())
+            return teamRepository.findByTeamId(participantId)
                     .map(team -> toDto(team, COMPETITION_ID_MLB, "MLB"))
                     .orElseThrow(() -> new FlexBetsSportNotFoundException("MLB Participant " + participantId + " Not Found"));
         } else {
@@ -100,7 +100,7 @@ public class SportsDataIoParticipantServiceImpl implements ParticipantService {
 
     private List<IoTeam> getMLBTeams(List<Integer> participantIds) {
         if (participantIds != null && !participantIds.isEmpty()) {
-            Set<Long> ids = participantIds.stream().map(Integer::longValue).collect(Collectors.toSet());
+            Set<Integer> ids = participantIds.stream().collect(Collectors.toSet());
             return teamRepository.findAllByTeamIdIn(ids);
         }
         return teamRepository.findAll();

@@ -4,7 +4,7 @@ import io.limeup.flexbets.sport.dto.CompetitionDTO;
 import io.limeup.flexbets.sport.dto.PaginatedResponse;
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreCompetitionDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.CompetitionQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.CompetitionQueryParams;
 import io.limeup.flexbets.sport.mapper.CompetitionMapper;
 import io.limeup.flexbets.sport.model.Area;
 import io.limeup.flexbets.sport.model.Competition;

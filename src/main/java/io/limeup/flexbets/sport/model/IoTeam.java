@@ -19,8 +19,8 @@ public class IoTeam {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "team_id", nullable = false)
-    private Long teamId;
+    @Column(name = "team_id", unique = true)
+    private Integer teamId;
 
     @Column(name = "key", nullable = false)
     private String key;

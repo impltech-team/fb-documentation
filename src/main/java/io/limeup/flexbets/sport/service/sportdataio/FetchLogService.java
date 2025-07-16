@@ -1,9 +1,9 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
 
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoStatus;
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoStatus;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.SportIoType;
 import io.limeup.flexbets.sport.model.IoFetchLog;
 import io.limeup.flexbets.sport.repository.sportsdataio.FetchIoLogRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor

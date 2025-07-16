@@ -38,11 +38,11 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                         WHEN p.team_id = e.home_team_id THEN at.key
                         WHEN p.team_id = e.away_team_id THEN ht.key
                     END                                                  AS opponent_team_key
-                FROM   sport.io_player  p
-                JOIN   sport.io_team    t   ON t.team_id  = p.team_id
-                JOIN   sport.io_event   e   ON e.game_id  = CAST(p.upcoming_game_id AS BIGINT)
-                JOIN   sport.io_team    ht  ON ht.team_id = e.home_team_id
-                JOIN   sport.io_team    at  ON at.team_id = e.away_team_id
+                FROM   io_player  p
+                JOIN   io_team    t   ON t.team_id  = p.team_id
+                JOIN   io_event   e   ON e.game_id  = CAST(p.upcoming_game_id AS BIGINT)
+                JOIN   io_team    ht  ON ht.team_id = e.home_team_id
+                JOIN   io_team    at  ON at.team_id = e.away_team_id
                 WHERE  e.datetime > NOW()
 
                  AND (:positions IS NULL OR p.position IN (:positions)) 
@@ -68,23 +68,23 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
                                                 AND sp.event_id  = b.io_event_id
                 WHERE b.any_bets_available = true
-                  AND (:betTypeId IS NULL OR b.bet_type_id = :betTypeId)
+                  AND (:marketId IS NULL OR b.bet_type_id = :marketId)
             ),  
           paged_players AS ( 
                 SELECT id
                 FROM   selected_players sp
                 WHERE (
-                         :betTypeId IS NOT NULL
+                         :marketId IS NOT NULL
                          AND id IN (
                              SELECT bo.player_id
                              FROM sport.io_bet b
                              JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
                             JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
-                             WHERE b.bet_type_id = :betTypeId
+                             WHERE b.bet_type_id = :marketId
                          )
                       )
                    OR (
-                        :betTypeId IS NULL AND (
+                        :marketId IS NULL AND (
                             (:onlyWithOdds = TRUE AND id IN (SELECT player_id FROM player_has_bet))
                             OR :onlyWithOdds = FALSE
                         )
@@ -140,7 +140,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
             @Param("sortBy") String sortBy,
             @Param("sortOrder") String sortOrder,
             @Param("filter") String filter,
-            @Param("betTypeId") Integer betTypeId,
+            @Param("marketId") Integer marketId,
             @Param("positions") Collection<String> positions,
             @Param("participantIds") Collection<Integer> participantIds
     );
@@ -168,11 +168,75 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                         END AS opponentTeamKey
                 FROM io_player p
                         JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
-                        LEFT JOIN sport.io_team t ON t.team_id = p.team_id
-                        LEFT JOIN sport.io_team home_team ON home_team.team_id = e.home_team_id
-                        LEFT JOIN sport.io_team away_team ON away_team.team_id = e.away_team_id
+                        LEFT JOIN io_team t ON t.team_id = p.team_id
+                        LEFT JOIN io_team home_team ON home_team.team_id = e.home_team_id
+                        LEFT JOIN io_team away_team ON away_team.team_id = e.away_team_id
                 WHERE p.player_id = :playerId
             """, nativeQuery = true)
     Optional<SportsDataPlayerRow> getPlayerWithBetsById(@Param("playerId") Integer playerId);
+
+
+    @Query(value = """
+            WITH selected_players AS (
+                SELECT
+                    p.player_id AS id,
+                    p.team_id AS player_team_id,
+                    e.id AS event_id
+                FROM io_player p
+                JOIN io_team t ON t.team_id = p.team_id
+                JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
+                WHERE e.datetime > NOW()
+                  AND (:positions IS NULL OR p.position IN (:positions)) 
+                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
+                  AND (
+                    :filter IS NULL OR NOT EXISTS (
+                        SELECT token
+                        FROM unnest(string_to_array(:filter, ' ')) AS token
+                        EXCEPT
+                        SELECT token
+                        FROM unnest(string_to_array(:filter, ' ')) AS token
+                        WHERE
+                            p.first_name ILIKE CONCAT('%', token, '%')
+                            OR p.last_name ILIKE CONCAT('%', token, '%')
+                            OR t.name ILIKE CONCAT('%', token, '%')
+                            OR p.position ILIKE CONCAT('%', token, '%')
+                    )
+                )
+            ),
+            player_has_bet AS (
+                SELECT DISTINCT bo.player_id
+                FROM sport.io_bet b
+                JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
+                JOIN selected_players sp ON sp.id = bo.player_id AND sp.event_id = b.io_event_id
+                WHERE b.any_bets_available = true
+                  AND (:marketId IS NULL OR b.bet_type_id = :marketId)
+            ),
+            paged_players AS (
+                SELECT id
+                FROM selected_players
+                WHERE (
+                    :marketId IS NOT NULL AND id IN (
+                        SELECT bo.player_id
+                        FROM sport.io_bet b
+                        JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
+                        JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
+                        WHERE b.bet_type_id = :marketId
+                    )
+                ) OR (
+                    :marketId IS NULL AND (
+                        (:onlyWithOdds = TRUE AND id IN (SELECT player_id FROM player_has_bet))
+                        OR :onlyWithOdds = FALSE
+                    )
+                )
+            )
+            SELECT COUNT(*) FROM paged_players
+            """, nativeQuery = true)
+    long countPlayersWithFilters(
+            @Param("onlyWithOdds") Boolean onlyWithOdds,
+            @Param("filter") String filter,
+            @Param("marketId") Integer marketId,
+            @Param("positions") Collection<String> positions,
+            @Param("participantIds") Collection<Integer> participantIds
+    );
 
 }

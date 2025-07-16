@@ -177,7 +177,6 @@ public class IoPlayerMapper {
         }
         result.setOdds(odds);
 
-
         return result;
     }
 }

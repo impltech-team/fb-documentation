@@ -1,6 +1,8 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
+import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoEvent;
 import io.limeup.flexbets.sport.model.IoTeam;
@@ -12,7 +14,13 @@ import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,26 +59,33 @@ public class EventServiceIoMlbImpl implements EventService {
                 .noneMatch(s -> s.equalsIgnoreCase(status))) {
             throw new ValidationException(String.format("Invalid status: %s. Available options: %s", status, SUPPORTED_STATUS_SORT_FIELDS));
         }
+
+        ZoneId utcZone = ZoneOffset.UTC;
         if (dateTo == null) {
-            dateTo = LocalDateTime.now();
+            dateTo = ZonedDateTime.now(utcZone).toLocalDateTime();
+        } else {
+            dateTo = dateTo.atZone(ZoneOffset.UTC).toLocalDateTime();
         }
+
         if (dateFrom == null) {
             dateFrom = dateTo.minusHours(24);
+        } else {
+
+            dateFrom = dateFrom.atZone(ZoneOffset.UTC).toLocalDateTime();
         }
 
         List<Integer> venueIdsSafe = (venueIds == null || venueIds.isEmpty()) ? new ArrayList<>() : venueIds;
         List<Integer> participantIdsSafe = (participantIds == null || participantIds.isEmpty()) ? new ArrayList<>() : participantIds;
-
-//        Long count = eventRepository.countEvents(dateFrom,
-//
-//                dateTo,
-//                status,
-//                venueIdsSafe,
-//                participantIdsSafe
-//        );
-//        if (count == 0) {
-//            return PaginationUtils.buildPaginatedResponse(null, count, requestQuery.getPage(), requestQuery.getPageSize());
-//        }
+        long total = eventRepository.countEvents(
+                dateFrom,
+                dateTo,
+                status,
+                venueIdsSafe,
+                participantIdsSafe
+        );
+        if (total == 0) {
+            return PaginationUtils.buildPaginatedResponse(null, total, requestQuery.getPage(), requestQuery.getPageSize());
+        }
 
         List<IoEvent> events = eventRepository.listEvents(
                 dateFrom,
@@ -86,34 +101,34 @@ public class EventServiceIoMlbImpl implements EventService {
 
         List<EventDTO> dtoList = events.stream().map(this::mapToDto).collect(Collectors.toList());
 
-        return PaginationUtils.buildPaginatedResponse(dtoList,  (long) events.size(), requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList, total, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-    //    @EventBasedCache(cacheName = "eventDetailsCache",
-//            key = "#eventId")
+    @EventBasedCache(cacheName = "eventDetailsCache", key = "#eventId")
     @Override
     public EventDTO getEventById(Integer eventId) {
         IoEvent event = eventRepository.findByGameId(eventId.longValue())
-                .orElseThrow(() -> new RuntimeException("Event %s not found".formatted(eventId)));
+                .orElseThrow(() -> new FlexBetsSportNotFoundException(String.format("Event %s Not Found", eventId)));
         return mapToDto(event);
     }
 
     private EventDTO mapToDto(IoEvent event) {
         EventDTO dto = new EventDTO();
         dto.setId(event.getGameId() != null ? event.getGameId().intValue() : 0);
-        IoTeam home = teamRepository.findByTeamId(Long.valueOf(event.getHomeTeamId())).get();
-        IoTeam away = teamRepository.findByTeamId(Long.valueOf(event.getAwayTeamId())).get();
-        dto.setEventName(home.getCity()+ " " + home.getName()
-                + " vs " + away.getCity()+ " " + away.getName());
+        IoTeam home = teamRepository.findByTeamId((event.getHomeTeamId())).get();
+        IoTeam away = teamRepository.findByTeamId((event.getAwayTeamId())).get();
+
+        dto.setEventName(filterNull(home.getCity(), home.getName())
+                + " vs " + filterNull(away.getCity(), away.getName()));
         dto.setEventDate(event.getDatetimeUtc());
         dto.setStatus(event.getStatus());
         dto.setCompetitionId(COMPETITION_ID);
         dto.setCompetition(COMPETITION_NAME);
         dto.setParticipants(List.of(
-                new ParticipantSummaryDTO(event.getHomeTeamId() , home.getName(), home.getKey()),
+                new ParticipantSummaryDTO(event.getHomeTeamId(), home.getName(), home.getKey()),
                 new ParticipantSummaryDTO(event.getAwayTeamId(), away.getName(), away.getKey())
         ));
-        List<IoBet> allByEvent = betRepository.findAllByEvent(event);
+        List<IoBet> allByEvent = betRepository.findAllByEventAndAnyBetsAvailableTrue(event);
 
         List<EventMarketDTO> eventMarketsDto = allByEvent.stream()
                 .filter(s -> s.getMarketTypeId() == 2)
@@ -121,8 +136,7 @@ public class EventServiceIoMlbImpl implements EventService {
                     EventMarketDTO eventMarketDTO = new EventMarketDTO();
                     eventMarketDTO.setMarketId(String.valueOf(bet.getBetTypeId()));
                     eventMarketDTO.setMarketName(bet.getBetType());
-
-                    List<BetDTO> betDtos = ioBetOutcomeRepository.findAllByBet(bet).stream()
+                    List<BetDTO> betDtos = ioBetOutcomeRepository.findAllByBetAndAvailableTrue(bet).stream()
                             .filter(s -> s.getValue() != null)
                             .map(outcome -> {
                                 BetDTO betDTO = new BetDTO();
@@ -141,9 +155,7 @@ public class EventServiceIoMlbImpl implements EventService {
                 .filter(Objects::nonNull)
                 .toList();
 
-
         dto.setMarkets(eventMarketsDto);
-
 
         if (event.getStadiumId() != null) {
             venueRepository.findByStadiumId(event.getStadiumId()).ifPresent(v -> dto.setVenue(
@@ -157,6 +169,9 @@ public class EventServiceIoMlbImpl implements EventService {
         return dto;
     }
 
-
-
+    String filterNull(String cityName, String teamName) {
+        if (cityName == null) {
+            return teamName;
+        } else return cityName + " " + teamName;
+    }
 }
