@@ -60,23 +60,23 @@ public interface IoEventNFLRepository extends JpaRepository<IoEventNFL, Long> {
     );
 
     @Query(value = """
-            SELECT COUNT(*)
-            FROM sport.io_event_nfl e
-            WHERE (:dateFrom IS NULL OR e.datetime_utc >= :dateFrom)
-              AND (:dateTo IS NULL OR e.datetime_utc <= :dateTo)
-              AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
-              AND (:venueIds IS NULL OR e.stadium_id IN (:venueIds))
-              AND (
-                    :participantIds IS NULL OR
-                    e.home_team_id IN (:participantIds) OR
-                    e.away_team_id IN (:participantIds)
-              )
-            """, nativeQuery = true)
-    Long countEvents(
+    SELECT COUNT(*)
+    FROM sport.io_event_nfl e
+    WHERE e.datetime_utc >= COALESCE(:dateFrom, e.datetime_utc)
+      AND e.datetime_utc <= COALESCE(:dateTo, e.datetime_utc)
+      AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
+      AND (:stadiumIds IS NULL OR e.stadium_id IN (:stadiumIds))
+      AND (
+            :participantIds IS NULL OR
+            e.home_team_id IN (:participantIds) OR
+            e.away_team_id IN (:participantIds)
+      )
+    """, nativeQuery = true)
+    long countEvents(
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
             @Param("status") String status,
-            @Param("venueIds") List<Integer> venueIds,
+            @Param("stadiumIds") List<Integer> stadiumIds,
             @Param("participantIds") List<Integer> participantIds
     );
 }

@@ -2,8 +2,8 @@ package io.limeup.flexbets.sport.service.sportdataio;
 
 import io.limeup.flexbets.sport.constants.NflMarketTypes;
 import io.limeup.flexbets.sport.dto.sportsdata.*;
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.SportIoType;
 import io.limeup.flexbets.sport.mapper.*;
 import io.limeup.flexbets.sport.model.*;
 import io.limeup.flexbets.sport.model.dto.*;
@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -422,15 +423,27 @@ public class SportsDataNflImportService {
         teamNFLRepo.save(team);
     }
 
+    @Transactional
     private IoStadiumNFL resolveStadium(SportsDataNFLStadiumDTO stadiumDTO) {
         if (stadiumDTO == null) return null;
 
-        return stadiumRepo.findByStadiumId(stadiumDTO.getStadiumID())
-                .map(existing -> {
-                    stadiumMapper.updateEntity(existing, stadiumDTO);
-                    return stadiumRepo.save(existing);
-                })
-                .orElseGet(() -> stadiumRepo.save(stadiumMapper.toEntity(stadiumDTO)));
+        try {
+            return stadiumRepo.findByStadiumId(stadiumDTO.getStadiumID())
+                    .map(existing -> {
+                        stadiumMapper.updateEntity(existing, stadiumDTO);
+                        return stadiumRepo.save(existing);
+                    })
+                    .orElseGet(() -> stadiumRepo.save(stadiumMapper.toEntity(stadiumDTO)));
+
+        } catch (DataIntegrityViolationException e) {
+            // In case another thread inserts the same stadium concurrently
+            return stadiumRepo.findByStadiumId(stadiumDTO.getStadiumID())
+                    .map(existing -> {
+                        stadiumMapper.updateEntity(existing, stadiumDTO);
+                        return stadiumRepo.save(existing);
+                    })
+                    .orElseThrow(() -> new RuntimeException("Stadium insert failed and was not found on retry", e));
+        }
     }
 
     private void upsertPlayer(SportsDataNFLPlayerDTO dto) {
@@ -475,14 +488,23 @@ public class SportsDataNflImportService {
         }
     }
 
+    @Transactional
     private void upsertVenue(SportsDataNFLStadiumDTO dto) {
-        stadiumRepo.findByStadiumId(dto.getStadiumID())
-                .ifPresentOrElse(
-                        ex -> {
-                            stadiumMapper.updateEntity(ex, dto);
-                            stadiumRepo.save(ex);
-                        },
-                        () -> stadiumRepo.save(stadiumMapper.toEntity(dto)));
-
+        try {
+            stadiumRepo.findByStadiumId(dto.getStadiumID())
+                    .ifPresentOrElse(
+                            ex -> {
+                                stadiumMapper.updateEntity(ex, dto);
+                                stadiumRepo.save(ex);
+                            },
+                            () -> stadiumRepo.save(stadiumMapper.toEntity(dto))
+                    );
+        } catch (DataIntegrityViolationException e) {
+            // In case another thread inserted the record
+            stadiumRepo.findByStadiumId(dto.getStadiumID()).ifPresent(ex -> {
+                stadiumMapper.updateEntity(ex, dto);
+                stadiumRepo.save(ex);
+            });
+        }
     }
 }
