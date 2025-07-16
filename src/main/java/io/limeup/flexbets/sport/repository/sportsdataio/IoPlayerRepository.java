@@ -71,25 +71,14 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
     
             ),  
-          paged_players AS ( 
-                SELECT id
-                FROM   selected_players sp
-                WHERE (
-                         :marketId IS NOT NULL
-                         AND id IN (
-                             SELECT bo.player_id
-                             FROM sport.io_bet b
-                             JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
-                            JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
-                             WHERE b.bet_type_id = :marketId
-                         )
-                      )
-                   OR (
-                        :marketId IS NULL AND (
+          paged_players AS (
+                        SELECT id
+                        FROM selected_players sp
+                        WHERE (
                             (:onlyWithOdds = TRUE AND id IN (SELECT player_id FROM player_has_bet))
                             OR :onlyWithOdds = FALSE
                         )
-                   )
+                    
                 ORDER BY
                     CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'asc' THEN sp.player_name END ASC,
                     CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'desc' THEN sp.player_name END DESC,
@@ -212,24 +201,14 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 WHERE b.any_bets_available = true AND b.updated_at > NOW()
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
             ),
-            paged_players AS (
-                SELECT id
-                FROM selected_players
-                WHERE (
-                    :marketId IS NOT NULL AND id IN (
-                        SELECT bo.player_id
-                        FROM sport.io_bet b
-                        JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
-                         JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
-                        WHERE b.bet_type_id = :marketId
-                    )
-                ) OR (
-                    :marketId IS NULL AND (
-                        (:onlyWithOdds = TRUE AND id IN (SELECT player_id FROM player_has_bet))
-                        OR :onlyWithOdds = FALSE
-                    )
-                )
-            )
+           paged_players AS (
+                        SELECT id
+                        FROM selected_players sp
+                        WHERE (
+                            (:onlyWithOdds = TRUE AND id IN (SELECT player_id FROM player_has_bet))
+                            OR :onlyWithOdds = FALSE
+                        )
+                       )
             SELECT COUNT(*) FROM paged_players
             """, nativeQuery = true)
     long countPlayersWithFilters(
