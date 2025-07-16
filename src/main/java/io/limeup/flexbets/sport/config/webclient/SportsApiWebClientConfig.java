@@ -60,7 +60,8 @@ public class SportsApiWebClientConfig {
                     });
         });
     }
-    @Qualifier("sportsDataWebClient")
+
+    @Bean("sportsDataWebClient")
     public WebClient sportsDataWebClient(SportsDataProps props) {
         return WebClient.builder()
                 .baseUrl(props.getBaseUrl())

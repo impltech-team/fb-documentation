@@ -25,7 +25,7 @@ public class IoPlayerGameStats {
     private Long statId;
 
     @Column(name = "team_id")
-    private Long teamId;
+    private Integer teamId;
 
     @Column(name = "player_id")
     private Long playerId;
@@ -122,7 +122,7 @@ public class IoPlayerGameStats {
 
 
     @Column(name = "opponent_id")
-    private Long opponentId;
+    private Integer opponentId;
 
     @Column(name = "global_opponent_id")
     private Long globalOpponentId;

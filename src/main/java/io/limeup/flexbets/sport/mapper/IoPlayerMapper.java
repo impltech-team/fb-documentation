@@ -165,18 +165,19 @@ public class IoPlayerMapper {
         result.setWeight(player.getWeight().toString());
         result.setHeight(player.getHeight().toString());
         result.setBirthDate(player.getBirthDate());
-        result.setNextEvent(EventLiteDTO.builder()
-                .eventId(player.getEventId())
-                .eventName(player.getEventName())
-                .eventDate(player.getEventDatetime())
-                .opponent(player.getOpponentTeamKey())
-                .build());
+        if (player.getEventId() != null) {
+            result.setNextEvent(EventLiteDTO.builder()
+                    .eventId(player.getEventId())
+                    .eventName(player.getEventName())
+                    .eventDate(player.getEventDatetime())
+                    .opponent(player.getOpponentTeamKey())
+                    .build());
+        }
         List<OddsDTO> odds = new ArrayList<>();
         if (!CollectionUtils.isEmpty(bets)) {
             odds = betMapper.toOddsDTOList(bets);
         }
         result.setOdds(odds);
-
 
         return result;
     }

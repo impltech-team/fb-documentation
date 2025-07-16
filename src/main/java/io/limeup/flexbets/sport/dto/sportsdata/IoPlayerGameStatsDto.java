@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class IoPlayerGameStatsDto {
 
     @JsonProperty("StatID")                    private Long statId;
-    @JsonProperty("TeamID")                    private Long teamId;
+    @JsonProperty("TeamID")                    private Integer teamId;
     @JsonProperty("PlayerID")                  private Long playerId;
     @JsonProperty("SeasonType")                private Integer seasonType;
     @JsonProperty("Season")                    private Integer season;
@@ -49,7 +49,7 @@ public class IoPlayerGameStatsDto {
     @JsonProperty("IsGameOver")                private Boolean isGameOver;
     @JsonProperty("Updated")                   private LocalDateTime updated;
 
-    @JsonProperty("OpponentID")                private Long opponentId;
+    @JsonProperty("OpponentID")                private Integer opponentId;
     @JsonProperty("GlobalOpponentID")          private Long globalOpponentId;
     @JsonProperty("Opponent")                  private String opponent;
     @JsonProperty("OpponentRank")              private Integer opponentRank;

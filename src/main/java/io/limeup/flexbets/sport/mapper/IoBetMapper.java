@@ -1,6 +1,7 @@
 package io.limeup.flexbets.sport.mapper;
 
 import io.limeup.flexbets.sport.dto.OddsDTO;
+import io.limeup.flexbets.sport.dto.sportsdata.IoBettingOutcomeResultDto;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.model.IoBet;
 import io.limeup.flexbets.sport.model.IoBetOutcome;
@@ -81,6 +82,16 @@ public class IoBetMapper {
         return entity;
     }
 
+    public static IoBetOutcome addResultData(IoBetOutcome entity, IoBettingOutcomeResultDto resultDto) {
+        if (entity == null || resultDto == null) {
+            return entity;
+        }
+        entity.setResultTypeId(resultDto.typeId());
+        entity.setResultType(resultDto.type());
+        entity.setResultValue(resultDto.actualValue());
+        return entity;
+    }
+
     public static List<IoBetOutcome> toBetOutcomeEntityList(IoBet bet, List<SportsDataBettingMarketDTO.BettingOutcomeDTO> betOutcomeDTOList) {
         return betOutcomeDTOList.stream()
                 .map(betOutcomeDTO -> toBetOutcomeEntity(betOutcomeDTO, bet))
@@ -94,7 +105,6 @@ public class IoBetMapper {
     }
 
     public OddsDTO toOddsDTO(SportsDataBetRow bet) {
-
         String price = bet.getPrice();
         String roundedPrice;
 
@@ -107,6 +117,7 @@ public class IoBetMapper {
             roundedPrice = price;
         }
 
+
         return OddsDTO.builder()
                 .id(bet.getId())
                 .marketName(bet.getMarketType())
@@ -117,5 +128,49 @@ public class IoBetMapper {
                 .status(BetStatus.OPEN.name())
                 .lastUpdatedDate(bet.getLastUpdated())
                 .build();
+    }
+
+    public IoBet toBetEntity(SportsDataBettingMarketDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        IoBet entity = new IoBet();
+        entity.setMarketId(dto.getBettingMarketId());
+        entity.setEventId(dto.getBettingEventId());
+        entity.setMarketTypeId(dto.getBettingMarketTypeId());
+        entity.setMarketType(dto.getBettingMarketType());
+        entity.setBetTypeId(dto.getBettingBetTypeId());
+        entity.setBetType(dto.getBettingBetType());
+        entity.setPeriodTypeId(dto.getBettingPeriodTypeId());
+        entity.setPeriodType(dto.getBettingPeriodType());
+        entity.setName(dto.getName());
+        entity.setTeamId(dto.getTeamId());
+        entity.setTeamKey(dto.getTeamKey());
+        entity.setPlayerId(dto.getPlayerId());
+        entity.setPlayerName(dto.getPlayerName());
+        entity.setAnyBetsAvailable(dto.getAnyBetsAvailable());
+        entity.setCreatedAt(dto.getCreated());
+        entity.setUpdatedAt(dto.getUpdated());
+
+        return entity;
+    }
+
+    public void mergeBet(IoBet existing, SportsDataBettingMarketDTO dto) {
+        if (existing == null || dto == null) return;
+
+        existing.setMarketTypeId(dto.getBettingMarketTypeId());
+        existing.setMarketType(dto.getBettingMarketType());
+        existing.setBetTypeId(dto.getBettingBetTypeId());
+        existing.setBetType(dto.getBettingBetType());
+        existing.setPeriodTypeId(dto.getBettingPeriodTypeId());
+        existing.setPeriodType(dto.getBettingPeriodType());
+        existing.setName(dto.getName());
+        existing.setTeamId(dto.getTeamId());
+        existing.setTeamKey(dto.getTeamKey());
+        existing.setPlayerId(dto.getPlayerId());
+        existing.setPlayerName(dto.getPlayerName());
+        existing.setAnyBetsAvailable(dto.getAnyBetsAvailable());
+        existing.setUpdatedAt(dto.getUpdated());
     }
 }

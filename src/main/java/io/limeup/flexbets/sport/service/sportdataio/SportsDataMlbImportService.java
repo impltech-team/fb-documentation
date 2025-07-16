@@ -1,12 +1,14 @@
 package io.limeup.flexbets.sport.service.sportdataio;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.dto.sportsdata.*;
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.SportIoType;
 import io.limeup.flexbets.sport.mapper.*;
 import io.limeup.flexbets.sport.model.*;
-import io.limeup.flexbets.sport.model.dto.IoSportsDataPlayerStatsDTO;
-import io.limeup.flexbets.sport.model.dto.ScoreBasicDto;
+import io.limeup.flexbets.sport.model.dto.*;
+import io.limeup.flexbets.sport.model.enums.IoEventStatus;
 import io.limeup.flexbets.sport.repository.sportsdataio.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +20,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -36,6 +40,7 @@ public class SportsDataMlbImportService {
 
     private final IoEventRepository eventRepo;
     private final IoBetRepository betRepo;
+    private final IoBetOutcomeRepository betOutcomeRepo;
     private final IoTeamRepository teamRepo;
     private final IoVenueRepository venueReposirory;
     private final IoPlayerRepository playerRepo;
@@ -43,14 +48,14 @@ public class SportsDataMlbImportService {
     private final IoPlayerGamesStatsRepository playerGameStatsRepo;
 
     private final IoEventMapper eventMapper;
-    private final IoBetMapper betMapper;
-    private final IoTeamMapper teamMapper;
     private final IoPlayerMapper playerMapper;
     private final IoVenueMapper ioVenueMapper;
     private final IoPlayersStatsMapper playersStatsMapper;
     private final IoPlayerGameStatsMapper playerGameStatsMapper;
 
     private final FetchLogService fetchLogService;
+
+    private final ObjectMapper objectMapper;
 
 
     @Value("${sportsdata.key}")
@@ -171,14 +176,13 @@ public class SportsDataMlbImportService {
 
     private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
         return (PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) ||
-                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))
-                && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))                ;
     }
 
     private void fetchAndUpsertTeams() {
         var log = fetchLogService.start(FetchIoType.TEAMS, SportIoType.MLB);
         try {
-            String url = URL + SPORT_URL + "scores/json/teams?key=" + apiKey;
+            String url = URL + SPORT_URL + "scores/json/Allteams?key=" + apiKey;
             List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()
@@ -231,7 +235,20 @@ public class SportsDataMlbImportService {
         var log = fetchLogService.start(FetchIoType.SCORES, SportIoType.MLB);
         try {
             List<ScoreBasicDto> games = fetchScoresFromApi(date);
-            if (games != null) games.forEach(this::upsertGame);
+            if (games != null) games.forEach(game -> {
+                upsertGame(game);
+
+                if(IoEventStatus.FINAL.getName().equals(game.status())){
+                    Map<Long, IoBet> marketBetsMap = betRepo.findAllByEventGameId(game.gameId()).stream()
+                            .collect(Collectors.toMap(IoBet::getMarketId, Function.identity()));
+                    List<IoBetOutcome> betOutcomesToUpdate = collectBetOutcomesToUpdate(marketBetsMap);
+
+                    if (!betOutcomesToUpdate.isEmpty()) {
+                        betOutcomeRepo.saveAll(betOutcomesToUpdate);
+                    }
+                }
+
+            });
             fetchLogService.finishSuccess(log);
         } catch (Exception ex) {
             fetchLogService.finishError(log, ex);
@@ -248,7 +265,6 @@ public class SportsDataMlbImportService {
                 .collectList()
                 .block();
     }
-
 
     public void importPlayers() {
         if (skipIfLaunchedRecently(FetchIoType.PLAYERS)) return;
@@ -304,7 +320,7 @@ public class SportsDataMlbImportService {
 
 
     private void upsertGame(ScoreBasicDto dto) {
-         eventRepo.findByGameId(dto.gameId())
+        eventRepo.findByGameId(dto.gameId())
                 .map(ex -> {
                     eventMapper.merge(ex, dto);
                     return eventRepo.save(ex);
@@ -335,7 +351,10 @@ public class SportsDataMlbImportService {
                 .bodyToFlux(IoPlayerGameStatsDto.class)
                 .publishOn(Schedulers.boundedElastic())
                 .map(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
-                        .map(ex -> { playerGameStatsMapper.merge(ex, dto); return ex; })
+                        .map(ex -> {
+                            playerGameStatsMapper.merge(ex, dto);
+                            return ex;
+                        })
                         .orElseGet(() -> playerGameStatsMapper.toEntity(dto))
                 );
     }
@@ -344,10 +363,30 @@ public class SportsDataMlbImportService {
         teamRepo.findByTeamId(dto.getTeamId())
                 .ifPresentOrElse(
                         ex -> {
-                            teamMapper.updateEntity(ex, dto);
+                            IoTeamMapper.updateEntity(ex, dto);
                             teamRepo.save(ex);
                         },
-                        () -> teamRepo.save(teamMapper.toEntity(dto)));
+                        () -> teamRepo.save(IoTeamMapper.toEntity(dto)));
+    }
+
+    private IoBettingMarketResultDto fetchBettingMarketResultFromApi(Long marketId) {
+        String url = URL + SPORT_URL + "odds/json/BettingMarketResults/" + marketId + "?key=" + apiKey;
+
+        JsonNode bettingMarketResult = sportsDataWebClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(JsonNode.class)
+                .block();
+
+        if (bettingMarketResult == null || bettingMarketResult.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return objectMapper.readerFor(IoBettingMarketResultDto.class).readValue(bettingMarketResult);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse response from Betting Results - by Market SportsDataIo API endpoint", e);
+        }
     }
 
 
@@ -368,9 +407,9 @@ public class SportsDataMlbImportService {
             IoBet existing = dbMap.get(dto.getBettingMarketId());
 
             if (existing == null) {
-                toSave.add(betMapper.toEntity(dto, event));
+                toSave.add(IoBetMapper.toEntity(dto, event));
             } else if (!Objects.equals(existing.getUpdatedAt(), dto.getUpdated())) {
-                IoBet replaced = betMapper.toEntity(dto, event);
+                IoBet replaced = IoBetMapper.toEntity(dto, event);
                 replaced.setBetOutcomes(reconcileBetOutcomes(
                         dto.getBettingOutcomes(), existing.getBetOutcomes(), replaced));
                 toSave.add(replaced);
@@ -381,7 +420,11 @@ public class SportsDataMlbImportService {
                 .filter(b -> !active.contains(b.getMarketId()) && b.isAnyBetsAvailable())
                 .forEach(b -> {
                     b.setAnyBetsAvailable(false);
-                    b.getBetOutcomes().forEach(o -> o.setAvailable(false));
+                    b.setUpdatedAt(LocalDateTime.now());
+                    b.getBetOutcomes().forEach(o -> {
+                        o.setAvailable(false);
+                        o.setUpdatedAt(LocalDateTime.now());
+                    });
                     toSave.add(b);
                 });
 
@@ -406,9 +449,9 @@ public class SportsDataMlbImportService {
             IoBetOutcome ex = dbMap.get(dto.getBettingOutcomeId());
 
             if (ex == null) {
-                toSave.add(betMapper.toBetOutcomeEntity(dto, bet));
+                toSave.add(IoBetMapper.toBetOutcomeEntity(dto, bet));
             } else if (!Objects.equals(ex.getUpdatedAt(), dto.getUpdated())) {
-                toSave.add(betMapper.updateEntity(ex, dto, bet));
+                toSave.add(IoBetMapper.updateEntity(ex, dto, bet));
             }
         }
 
@@ -436,5 +479,35 @@ public class SportsDataMlbImportService {
         for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
             queryGamesFromDbAndUpdateMarkets(date);
         }
+    }
+
+    private List<IoBetOutcome> collectBetOutcomesToUpdate(Map<Long, IoBet> marketBetsMap) {
+        List<IoBetOutcome> updatedOutcomes = new ArrayList<>();
+
+        for (Map.Entry<Long, IoBet> entry : marketBetsMap.entrySet()) {
+            Long marketId = entry.getKey();
+            IoBet ioBet = entry.getValue();
+
+            List<IoBetOutcome> pendingOutcomes = ioBet.getBetOutcomes().stream()
+                    .filter(o -> o.getResultTypeId() == null)
+                    .toList();
+
+            if (pendingOutcomes.isEmpty()) continue;
+
+            IoBettingMarketResultDto result = fetchBettingMarketResultFromApi(marketId);
+            if (result == null || !result.isResultSupported()) continue;
+
+            Map<Long, IoBettingOutcomeResultDto> resultMap = result.getResults().stream()
+                    .collect(Collectors.toMap(IoBettingOutcomeResultDto::outcomeId, Function.identity()));
+
+            for (IoBetOutcome outcome : pendingOutcomes) {
+                IoBettingOutcomeResultDto outcomeResult = resultMap.get(outcome.getOutcomeId());
+                if (outcomeResult != null) {
+                    updatedOutcomes.add(IoBetMapper.addResultData(outcome, outcomeResult));
+                }
+            }
+        }
+
+        return updatedOutcomes;
     }
 }

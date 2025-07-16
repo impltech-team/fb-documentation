@@ -1,14 +1,13 @@
 package io.limeup.flexbets.sport.repository.sportsdataio;
 
-import io.limeup.flexbets.sport.dto.statscore.prams.FetchIoType;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.FetchIoType;
+import io.limeup.flexbets.sport.dto.statscore.params.SportIoType;
 import io.limeup.flexbets.sport.model.IoFetchLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Repository

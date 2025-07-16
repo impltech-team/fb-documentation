@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,7 +86,7 @@ class ParticipantMapperTest {
         when(row.getFutureEventStartDate()).thenReturn(LocalDateTime.now().plusDays(1));
         when(row.getFutureEventAcronyms()).thenReturn("OC,TC");
 
-        List<ParticipantDTO> result = ParticipantMapper.toDTO(List.of(row));
+        List<ParticipantDTO> result = ParticipantMapper.toDTO(List.of(row), new HashMap<>());
 
         assertThat(result).isNotEmpty();
         ParticipantDTO dto = result.get(0);

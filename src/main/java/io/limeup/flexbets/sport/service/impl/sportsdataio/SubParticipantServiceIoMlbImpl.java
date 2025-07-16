@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.mapper.IoPlayerMapper;
@@ -49,10 +50,10 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         this.ioTeamRepository = ioTeamRepository;
     }
 
-//    @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId,
-//    #positions, #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize,
-//    #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
-//    @Override
+        @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId, #positions," +
+            " #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize,   " +
+            "  #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
+    @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
                                                                     List<Integer> participantIds, Integer marketId,
                                                                     Boolean odds, Integer maxHistoricalDataCount,
@@ -60,19 +61,30 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
 
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         odds = Boolean.TRUE.equals(odds);
-
-
+        long count;
+        if (marketId == null) {
+            count = playerRepository.countPlayersWithFilters(odds, requestQuery.getFilter(),
+                    positions == null ? Collections.emptyList() : positions,
+                    participantIds == null ? Collections.emptyList() : participantIds
+            );
+        }
+        else {
+            count = playerRepository.countPlayersWithFiltersWithMarkets(odds, requestQuery.getFilter(), marketId,
+                    positions == null ? Collections.emptyList() : positions,
+                    participantIds == null ? Collections.emptyList() : participantIds
+            );
+        }
 
         List<SportsDataPlayerRow> players = fetchFilteredPlayers(requestQuery, marketId, positions, participantIds, odds);
         Map<Long, List<SportsDataBetRow>> playerBets = fetchPlayerBets(players, marketId);
 
         List<SubParticipantDTO> dtoList = mapPlayersToDTOs(players, playerBets, maxHistoricalDataCount);
 
-        return PaginationUtils.buildPaginatedResponse(dtoList, (long) players.size(), requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-//    @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
-//    @Override
+        @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
+    @Override
     public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
         SportsDataPlayerRow player = playerRepository.getPlayerWithBetsById(subParticipantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException("SubParticipant %s Not Found".formatted(subParticipantId)));
@@ -91,8 +103,12 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         int limit = requestQuery.getPageSize();
         int offset = (requestQuery.getPage() - 1) * limit;
 
-        return playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
-                marketId, positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
+        if (marketId != null) {
+            return playerRepository.listPlayersWithFiltersWithMarkets(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
+                    marketId, positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
+        } else
+            return playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
+                    positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
     }
 
     private Map<Long, List<SportsDataBetRow>> fetchPlayerBets(List<SportsDataPlayerRow> players, Integer marketId) {
@@ -116,7 +132,7 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
     private List<HistoricalStatDTO> buildHistoricalStats(Long playerId, Integer maxHistoricalDataCount) {
         List<IoPlayerGameStats> games = gameStatsRepo.findTopByPlayerIdLimit(playerId, maxHistoricalDataCount);
 
-        Map<Long, String> teamNames = ioTeamRepository.findAllByTeamIdIn(
+        Map<Integer, String> teamNames = ioTeamRepository.findAllByTeamIdIn(
                         games.stream().flatMap(g -> Stream.of(g.getTeamId(), g.getOpponentId())).collect(Collectors.toSet()))
                 .stream().collect(Collectors.toUnmodifiableMap(IoTeam::getTeamId, IoTeam::getName));
 
@@ -144,7 +160,7 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
                 Map.entry("Caught stealing", IoPlayerGameStats::getCaughtStealing)
         );
 
-        public static List<HistoricalStatDTO> buildStatsFromGames(List<IoPlayerGameStats> games, Map<Long, String> teamNames) {
+        public static List<HistoricalStatDTO> buildStatsFromGames(List<IoPlayerGameStats> games, Map<Integer, String> teamNames) {
             return GAME_EXTRACT.entrySet().stream()
                     .map(e -> buildStat(e.getKey(), e.getValue(), games, teamNames))
                     .filter(h -> h.getCount() > 0)
@@ -152,7 +168,7 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         }
 
         private static HistoricalStatDTO buildStat(String name, Function<IoPlayerGameStats, Number> getter,
-                                                   List<IoPlayerGameStats> games, Map<Long, String> teamNames) {
+                                                   List<IoPlayerGameStats> games, Map<Integer, String> teamNames) {
             List<EventStatisticDTO> ev = new ArrayList<>(games.size());
             DoubleSummaryStatistics stats = new DoubleSummaryStatistics();
 

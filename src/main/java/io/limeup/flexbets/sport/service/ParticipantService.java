@@ -11,5 +11,5 @@ public interface ParticipantService {
                                                        Integer marketId, Integer maxHistoricalDataCount,
                                                        RequestQueryDTO requestQuery);
 
-    ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount);
+    ParticipantDTO getParticipantById(Integer competitionId, Integer participantId, Integer marketId, Integer maxHistoricalDataCount);
 }
