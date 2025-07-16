@@ -50,9 +50,9 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         this.ioTeamRepository = ioTeamRepository;
     }
 
-    @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId, #positions," +
-            " #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize,   " +
-            "  #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
+//    @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId, #positions," +
+//            " #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize,   " +
+//            "  #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
     @Override
     public PaginatedResponse<SubParticipantDTO> listSubParticipants(Integer competitionId, List<String> positions,
                                                                     List<Integer> participantIds, Integer marketId,
@@ -75,7 +75,7 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         return PaginationUtils.buildPaginatedResponse(dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-    @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
+//    @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
         SportsDataPlayerRow player = playerRepository.getPlayerWithBetsById(subParticipantId)
