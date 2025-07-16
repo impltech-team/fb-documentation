@@ -50,7 +50,7 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         this.ioTeamRepository = ioTeamRepository;
     }
 
-//    @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId, #positions," +
+    //    @EventBasedCache(cacheName = "subParticipantsListCache", key = "T(java.util.Objects).hash(#competitionId, #positions," +
 //            " #participantIds, #marketId, #maxHistoricalDataCount, #requestQuery.page, #requestQuery.pageSize,   " +
 //            "  #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter,#odds)")
     @Override
@@ -61,11 +61,19 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
 
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         odds = Boolean.TRUE.equals(odds);
-
-        long count = playerRepository.countPlayersWithFilters(odds, requestQuery.getFilter(), marketId,
-                positions == null ? Collections.emptyList() : positions,
-                participantIds == null ? Collections.emptyList() : participantIds
-        );
+        long count;
+        if (marketId == null) {
+            count = playerRepository.countPlayersWithFilters(odds, requestQuery.getFilter(),
+                    positions == null ? Collections.emptyList() : positions,
+                    participantIds == null ? Collections.emptyList() : participantIds
+            );
+        }
+        else {
+            count = playerRepository.countPlayersWithFiltersWithMarkets(odds, requestQuery.getFilter(), marketId,
+                    positions == null ? Collections.emptyList() : positions,
+                    participantIds == null ? Collections.emptyList() : participantIds
+            );
+        }
 
         List<SportsDataPlayerRow> players = fetchFilteredPlayers(requestQuery, marketId, positions, participantIds, odds);
         Map<Long, List<SportsDataBetRow>> playerBets = fetchPlayerBets(players, marketId);
@@ -75,7 +83,7 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         return PaginationUtils.buildPaginatedResponse(dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
-//    @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
+    //    @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public SubParticipantDTO getSubParticipantById(Integer subParticipantId, Integer marketId, Integer maxHistoricalDataCount) {
         SportsDataPlayerRow player = playerRepository.getPlayerWithBetsById(subParticipantId)
@@ -95,8 +103,12 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         int limit = requestQuery.getPageSize();
         int offset = (requestQuery.getPage() - 1) * limit;
 
-        return playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
-                marketId, positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
+        if (marketId != null) {
+            return playerRepository.listPlayersWithFiltersWithMarkets(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
+                    marketId, positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
+        } else
+            return playerRepository.listPlayersWithFilters(offset, limit, odds, requestQuery.getSortBy(), requestQuery.getSortOrder(), requestQuery.getFilter(),
+                    positions == null ? Collections.emptyList() : positions, participantIds == null ? Collections.emptyList() : participantIds);
     }
 
     private Map<Long, List<SportsDataBetRow>> fetchPlayerBets(List<SportsDataPlayerRow> players, Integer marketId) {
