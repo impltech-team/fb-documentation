@@ -169,8 +169,7 @@ public class SportsDataMlbImportService {
 
     private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
         return (PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) ||
-                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))
-                && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))                ;
     }
 
     private void fetchAndUpsertTeams() {
@@ -301,7 +300,7 @@ public class SportsDataMlbImportService {
 
 
     private void upsertGame(ScoreBasicDto dto) {
-         eventRepo.findByGameId(dto.gameId())
+        eventRepo.findByGameId(dto.gameId())
                 .map(ex -> {
                     eventMapper.merge(ex, dto);
                     return eventRepo.save(ex);
@@ -332,7 +331,10 @@ public class SportsDataMlbImportService {
                 .bodyToFlux(IoPlayerGameStatsDto.class)
                 .publishOn(Schedulers.boundedElastic())
                 .map(dto -> playerGameStatsRepo.findByStatId(dto.getStatId())
-                        .map(ex -> { playerGameStatsMapper.merge(ex, dto); return ex; })
+                        .map(ex -> {
+                            playerGameStatsMapper.merge(ex, dto);
+                            return ex;
+                        })
                         .orElseGet(() -> playerGameStatsMapper.toEntity(dto))
                 );
     }

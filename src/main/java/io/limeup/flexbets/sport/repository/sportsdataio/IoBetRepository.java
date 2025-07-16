@@ -95,6 +95,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                          e.home_team_id IN (:teamIds)
                          OR e.away_team_id IN (:teamIds)
                   )
+                  AND  o.updated_at > NOW() - INTERVAL '1 day'
             """, nativeQuery = true)
     List<OddsRow> getBetsForTeam(@Param("teamIds") Set<Integer> teamIds,
                                  @Param("betType") String betType);
@@ -123,6 +124,7 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                        e.home_team_id IN (:teamIds)
                        OR e.away_team_id IN (:teamIds)
                        )
+                   AND o.updated_at > NOW() - INTERVAL '1 day'  
             """, nativeQuery = true)
     List<OddsRow> getBetsForTeamWithMarketId(@Param("teamIds") Set<Integer> teamIds,
                                              @Param("betType") String betType,
