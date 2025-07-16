@@ -1,4 +1,4 @@
-package io.limeup.flexbets.sport.dto.statscore.prams;
+package io.limeup.flexbets.sport.dto.statscore.params;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -9,13 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AreaQueryParams {
-    private String lang;
+public class SportQueryParams {
     @Min(1)
     private Integer page = 1;
-    @Min(1)
     @Max(500)
-    private Integer limit = 500;
-    private Integer parentAreaId;
+    @Min(1)
+    private Integer limit = 100;
     private Long timestamp;
 }

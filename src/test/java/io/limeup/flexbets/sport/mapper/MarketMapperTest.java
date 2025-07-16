@@ -49,7 +49,6 @@ class MarketMapperTest {
         assertThat(market.getMarketName()).isEqualTo(ConstantUtils.TestConstants.PLAYER_ASSISTS_MARKET);
         assertThat(market.getMarketType()).isEqualTo(MarketType.SUB_PARTICIPANT);
         assertThat(market.isEnabled()).isTrue();
-        assertThat(market.getLinkedStats()).containsExactly(ConstantUtils.TestConstants.ASSISTS);
         assertThat(market.getCompetition()).isSameAs(competition);
     }
 
@@ -64,7 +63,6 @@ class MarketMapperTest {
         market.setMarketType(MarketType.SUB_PARTICIPANT);
         market.setEnabled(false);
         market.setCompetition(competition);
-        market.setLinkedStats(List.of(ConstantUtils.TestConstants.ASSISTS, ConstantUtils.TestConstants.REBOUNDS));
 
         MarketDTO dto = MarketMapper.toDTO(market);
 
@@ -98,7 +96,6 @@ class MarketMapperTest {
         assertThat(market.getMarketType()).isEqualTo(MarketType.SUB_PARTICIPANT);
         assertThat(market.isEnabled()).isTrue();
         assertThat(market.getCompetition()).isSameAs(competition);
-        assertThat(market.getLinkedStats()).containsExactly(ConstantUtils.TestConstants.ASSISTS);
     }
 }
 

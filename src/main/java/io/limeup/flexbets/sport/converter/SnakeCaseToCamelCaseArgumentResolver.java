@@ -1,16 +1,16 @@
 package io.limeup.flexbets.sport.converter;
 
 import io.limeup.flexbets.sport.dto.RequestQueryDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.AreaQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.GroupQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.ParticipantQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StandingByIdQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StandingQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.SeasonQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.StageQueryParams;
-import io.limeup.flexbets.sport.dto.statscore.prams.VenueQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.AreaQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.GroupQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.ParticipantQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.StandingByIdQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.StandingQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.SeasonQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.StageQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.VenueQueryParams;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.WebDataBinder;

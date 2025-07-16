@@ -5,18 +5,14 @@ import io.limeup.flexbets.sport.dto.statscore.StatScoreEventDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreGroupDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSeasonDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreStageDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.EventQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.EventQueryParams;
 import io.limeup.flexbets.sport.service.statscore.StatScoreDataService;
 import io.limeup.flexbets.sport.service.statscore.StatScoreProxyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.naming.event.EventContext;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service

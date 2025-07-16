@@ -5,7 +5,7 @@ import io.limeup.flexbets.sport.dto.RequestQueryDTO;
 import io.limeup.flexbets.sport.dto.SportDTO;
 import io.limeup.flexbets.sport.dto.SportLiteDTO;
 import io.limeup.flexbets.sport.dto.statscore.StatScoreSportLiteDTO;
-import io.limeup.flexbets.sport.dto.statscore.prams.SportQueryParams;
+import io.limeup.flexbets.sport.dto.statscore.params.SportQueryParams;
 import io.limeup.flexbets.sport.mapper.SportMapper;
 import io.limeup.flexbets.sport.model.Sport;
 import io.limeup.flexbets.sport.repository.SportRepository;

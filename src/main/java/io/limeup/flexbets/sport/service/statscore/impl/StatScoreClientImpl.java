@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.limeup.flexbets.sport.dto.statscore.*;
-import io.limeup.flexbets.sport.dto.statscore.prams.*;
+import io.limeup.flexbets.sport.dto.statscore.params.*;
 import io.limeup.flexbets.sport.service.statscore.StatScoreClient;
 import io.limeup.flexbets.sport.utils.ConstantUtils;
 import io.limeup.flexbets.sport.utils.StatScoreDateTimeUtils;

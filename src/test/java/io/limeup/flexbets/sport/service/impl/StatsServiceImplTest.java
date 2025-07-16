@@ -145,10 +145,10 @@ class StatsServiceImplTest {
                 .thenReturn(new Event(1L, 1, "Event", LocalDateTime.now().plusDays(1), null, null, List.of(), 1, "Season 1", SCHEDULED, null));
 
         when(participantMapper.toEntity(any(), any()))
-                .thenReturn(new Participant(1L, 1, "Team A", "TA", new Competition(), List.of(), List.of(), ""));
+                .thenReturn(new Participant(1L, 1, "Team A", "TA", new Competition(), List.of(), List.of(), "", "A"));
 
         when(subParticipantMapper.toEntity(any(), any(), any()))
-                .thenReturn(new SubParticipant(1L, 1, "Player A", "Forward", 1, null, "male",
+                .thenReturn(new SubParticipant(1L, 1, "Player A", "A", "Forward", 1, null, "male",
                         "95", "195", LocalDate.of(1995, 10, 10), null, null, null, null));
 
         when(statScoreProxyService.listSquadSubParticipants(any(), anyInt(), eq(true)))
@@ -234,7 +234,7 @@ class StatsServiceImplTest {
         sub.setTeamConnection("current");
         sub.setStats(List.of(new StatScoreStatDTO(1, "Possession", "Possession", "60", StatDataType.DECIMAL.toString().toUpperCase())));
 
-        SubParticipant existingSub = new SubParticipant(10L, 300, "Player A", "Midfield", 1, null, "male", "75", "175", LocalDate.of(1995, 5, 5), null, null, null, null);
+        SubParticipant existingSub = new SubParticipant(10L, 300, "Player A", "A", "Midfield", 1, null, "male", "75", "175", LocalDate.of(1995, 5, 5), null, null, null, null);
 
         when(statScoreProxyService.listSquadSubParticipants(anyInt(), anyInt(), eq(true)))
                 .thenReturn(PaginatedResponse.<StatScoreSubParticipantDTO>builder().items(List.of(sub)).build());
