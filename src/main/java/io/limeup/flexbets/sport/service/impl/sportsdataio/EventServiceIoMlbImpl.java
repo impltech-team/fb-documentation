@@ -117,8 +117,9 @@ public class EventServiceIoMlbImpl implements EventService {
         dto.setId(event.getGameId() != null ? event.getGameId().intValue() : 0);
         IoTeam home = teamRepository.findByTeamId((event.getHomeTeamId())).get();
         IoTeam away = teamRepository.findByTeamId((event.getAwayTeamId())).get();
-        dto.setEventName(home.getCity() + " " + home.getName()
-                + " vs " + away.getCity() + " " + away.getName());
+
+        dto.setEventName(filterNull(home.getCity(), home.getName())
+                + " vs " + filterNull(away.getCity(), away.getName()));
         dto.setEventDate(event.getDatetimeUtc());
         dto.setStatus(event.getStatus());
         dto.setCompetitionId(COMPETITION_ID);
@@ -166,5 +167,11 @@ public class EventServiceIoMlbImpl implements EventService {
             ));
         }
         return dto;
+    }
+
+    String filterNull(String cityName, String teamName) {
+        if (cityName == null) {
+            return teamName;
+        } else return cityName + " " + teamName;
     }
 }

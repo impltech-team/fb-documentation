@@ -62,12 +62,17 @@ public class SubParticipantServiceIoMlbImpl implements SubParticipantService {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         odds = Boolean.TRUE.equals(odds);
 
+        long count = playerRepository.countPlayersWithFilters(odds, requestQuery.getFilter(), marketId,
+                positions == null ? Collections.emptyList() : positions,
+                participantIds == null ? Collections.emptyList() : participantIds
+        );
+
         List<SportsDataPlayerRow> players = fetchFilteredPlayers(requestQuery, marketId, positions, participantIds, odds);
         Map<Long, List<SportsDataBetRow>> playerBets = fetchPlayerBets(players, marketId);
 
         List<SubParticipantDTO> dtoList = mapPlayersToDTOs(players, playerBets, maxHistoricalDataCount);
 
-        return PaginationUtils.buildPaginatedResponse(dtoList, (long) players.size(), requestQuery.getPage(), requestQuery.getPageSize());
+        return PaginationUtils.buildPaginatedResponse(dtoList, count, requestQuery.getPage(), requestQuery.getPageSize());
     }
 
     @EventBasedCache(cacheName = "subParticipantDetailsCache", key = "T(java.util.Objects).hash(#subParticipantId, #marketId, #maxHistoricalDataCount)")

@@ -80,7 +80,7 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
 
 
     @Query(value = """ 
-
+            
             WITH base_teams AS (
                             SELECT
                                 t.team_id,
@@ -95,7 +95,7 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                                   t.key ILIKE CONCAT('%', :filter, '%')
                               )
                         ),
-                        
+            
                         future_events AS (
                             SELECT DISTINCT ON (t.team_id)
                                 t.team_id,
@@ -115,10 +115,8 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                             FROM io_bet b
                             JOIN base_teams  sp  ON sp.team_id    = b.team_id                     
                             WHERE b.bet_type_id = :marketId AND b.any_bets_available = true
-                          
+            
                         )
-                        
-                        
                         SELECT
                             t.team_id AS id,
                             t.team_name AS team_name,
@@ -138,7 +136,7 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
                             CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'asc' THEN t.team_name END ASC,
                             CASE WHEN :sortBy = 'team_name' AND :sortOrder = 'desc' THEN t.team_name END DESC,
                             f.future_event_start_date
-                    
+            
             """, nativeQuery = true)
     List<ParticipantStatRow> listParticipantStatByTeamIdAndMarketId(
             @Param("marketId") Integer marketId,
@@ -146,6 +144,65 @@ public interface IoTeamRepository extends JpaRepository<IoTeam, Long> {
             @Param("filter") String filter,
             @Param("sortBy") String sortBy,
             @Param("sortOrder") String sortOrder
-
     );
+
+    @Query(value = """
+    WITH base_teams AS (
+        SELECT t.team_id
+        FROM io_team t
+        WHERE (
+           (:participantIds IS NULL OR t.team_id IN (:participantIds))
+        )
+        AND (
+            :filter IS NULL OR
+            t.name ILIKE CONCAT('%', :filter, '%') OR
+            t.key ILIKE CONCAT('%', :filter, '%')
+        )
+    ),
+    bets AS (
+        SELECT DISTINCT b.team_id
+        FROM io_bet b
+        JOIN base_teams t ON t.team_id = b.team_id
+        WHERE b.any_bets_available = true
+    )
+    SELECT COUNT(*)
+    FROM base_teams t
+    LEFT JOIN bets b ON b.team_id = t.team_id
+    """, nativeQuery = true)
+    long countTeamsWithAnyBetAvailable(
+            @Param("participantIds") Collection<Integer> participantIds,
+            @Param("filter") String filter
+    );
+
+
+    @Query(value = """
+    WITH base_teams AS (
+        SELECT t.team_id
+        FROM io_team t
+        WHERE (
+            (:participantIds IS NULL OR t.team_id IN (:participantIds))
+        )
+        AND (
+            :filter IS NULL OR
+            t.name ILIKE CONCAT('%', :filter, '%') OR
+            t.key ILIKE CONCAT('%', :filter, '%')
+        )
+    ),
+    bets AS (
+        SELECT DISTINCT b.team_id
+        FROM io_bet b
+        JOIN base_teams t ON t.team_id = b.team_id
+        WHERE b.any_bets_available = true
+          AND b.bet_type_id = :marketId
+    )
+    SELECT COUNT(*)
+    FROM base_teams t
+    JOIN bets b ON b.team_id = t.team_id
+    """, nativeQuery = true)
+    long countTeamsWithMarketId(
+            @Param("marketId") Integer marketId,
+            @Param("participantIds") Collection<Integer> participantIds,
+            @Param("filter") String filter
+    );
+
 }
