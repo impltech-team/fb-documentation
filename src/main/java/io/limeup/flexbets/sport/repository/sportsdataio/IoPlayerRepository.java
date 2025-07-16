@@ -174,4 +174,69 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 WHERE p.player_id = :playerId
             """, nativeQuery = true)
     Optional<SportsDataPlayerRow> getPlayerWithBetsById(@Param("playerId") Integer playerId);
+
+
+    @Query(value = """
+            WITH selected_players AS (
+                SELECT
+                    p.player_id AS id,
+                    p.team_id AS player_team_id,
+                    e.id AS event_id
+                FROM io_player p
+                JOIN io_team t ON t.team_id = p.team_id
+                JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
+                WHERE e.datetime > NOW()
+                  AND (:positions IS NULL OR p.position IN (:positions)) 
+                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
+                  AND (
+                    :filter IS NULL OR NOT EXISTS (
+                        SELECT token
+                        FROM unnest(string_to_array(:filter, ' ')) AS token
+                        EXCEPT
+                        SELECT token
+                        FROM unnest(string_to_array(:filter, ' ')) AS token
+                        WHERE
+                            p.first_name ILIKE CONCAT('%', token, '%')
+                            OR p.last_name ILIKE CONCAT('%', token, '%')
+                            OR t.name ILIKE CONCAT('%', token, '%')
+                            OR p.position ILIKE CONCAT('%', token, '%')
+                    )
+                )
+            ),
+            player_has_bet AS (
+                SELECT DISTINCT bo.player_id
+                FROM sport.io_bet b
+                JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
+                JOIN selected_players sp ON sp.id = bo.player_id AND sp.event_id = b.io_event_id
+                WHERE b.any_bets_available = true
+                  AND (:marketId IS NULL OR b.bet_type_id = :marketId)
+            ),
+            paged_players AS (
+                SELECT id
+                FROM selected_players
+                WHERE (
+                    :marketId IS NOT NULL AND id IN (
+                        SELECT bo.player_id
+                        FROM sport.io_bet b
+                        JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
+                        JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
+                        WHERE b.bet_type_id = :marketId
+                    )
+                ) OR (
+                    :marketId IS NULL AND (
+                        (:onlyWithOdds = TRUE AND id IN (SELECT player_id FROM player_has_bet))
+                        OR :onlyWithOdds = FALSE
+                    )
+                )
+            )
+            SELECT COUNT(*) FROM paged_players
+            """, nativeQuery = true)
+    long countPlayersWithFilters(
+            @Param("onlyWithOdds") Boolean onlyWithOdds,
+            @Param("filter") String filter,
+            @Param("marketId") Integer marketId,
+            @Param("positions") Collection<String> positions,
+            @Param("participantIds") Collection<Integer> participantIds
+    );
+
 }

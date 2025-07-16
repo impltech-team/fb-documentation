@@ -54,6 +54,10 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         ValidationUtils.validateSortFieldsInRequest(requestQuery, SUPPORTED_SORT_FIELDS);
         int page = requestQuery.getPage();
         int pageSize = requestQuery.getPageSize();
+        long count = (marketId == null)
+                ? teamRepository.countTeamsWithAnyBetAvailable(participantIds == null ? Collections.emptyList() : participantIds, requestQuery.getFilter())
+                : teamRepository.countTeamsWithMarketId(marketId, participantIds == null ? Collections.emptyList() : participantIds, requestQuery.getFilter());
+
 
         List<ParticipantStatRow> teams = (marketId == null)
                 ? teamRepository.listParticipantStats(participantIds == null ? Collections.emptyList() : participantIds,
@@ -89,7 +93,6 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
                 })
                 .toList();
 
-        long count = paged.size();
         return PaginationUtils.buildPaginatedResponse(dtoList, count, page, pageSize);
     }
 
