@@ -40,11 +40,11 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                        bo.payout_decimal AS price,
                        bo.updated_at AS lastUpdated
                FROM    io_bet b
-               JOIN    io_bet_outcome bo ON bo.io_bet_id = b.id
-               JOIN    io_event e ON b.io_event_id = e.id
+                JOIN    io_bet_outcome bo ON bo.io_bet_id = b.id
+                JOIN    io_event e ON b.io_event_id = e.id
                WHERE   b.any_bets_available = true
                  AND   bo.updated_at > NOW() - INTERVAL '1 day'
-                 AND   bo.player_id    = ANY(:playerIds) or bo.player_id = ANY(:playerIds)
+                 AND   bo.player_id  = ANY(:playerIds)
                  AND   b.market_type = :marketType
             """, nativeQuery = true)
     List<SportsDataBetRow> findAvailablePlayerBets(
@@ -63,10 +63,10 @@ public interface IoBetRepository extends JpaRepository<IoBet, Long> {
                     bo.updated_at       AS lastUpdated
             FROM    io_bet b
             JOIN    io_bet_outcome bo ON bo.io_bet_id = b.id
-            WHERE    b.any_bets_available
-              AND   bo.player_id        = ANY(:playerIds) or bo.player_id        = ANY(:playerIds)
+            WHERE   b.any_bets_available= true
+              AND   bo.player_id  = ANY(:playerIds)
               AND   b.bet_type_id       = :marketId
-              AND    bo.updated_at > NOW() - INTERVAL '1 day'
+              AND   bo.updated_at > NOW() - INTERVAL '1 day'
               AND   b.market_type = :marketType
             """,
             nativeQuery = true)
