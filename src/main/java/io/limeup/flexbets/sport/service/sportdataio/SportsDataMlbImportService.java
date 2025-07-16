@@ -176,8 +176,7 @@ public class SportsDataMlbImportService {
 
     private boolean isPlayerMarketWithBets(SportsDataBettingMarketDTO dto) {
         return (PLAYER_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()) ||
-                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))
-                && Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+                TEAM_MARKET_NAME.equalsIgnoreCase(dto.getBettingMarketType()))                ;
     }
 
     private void fetchAndUpsertTeams() {
