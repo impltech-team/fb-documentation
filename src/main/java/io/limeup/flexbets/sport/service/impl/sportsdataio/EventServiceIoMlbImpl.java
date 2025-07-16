@@ -137,7 +137,7 @@ public class EventServiceIoMlbImpl implements EventService {
                     eventMarketDTO.setMarketId(String.valueOf(bet.getBetTypeId()));
                     eventMarketDTO.setMarketName(bet.getBetType());
                     List<BetDTO> betDtos = ioBetOutcomeRepository.findAllByBetAndAvailableTrue(bet).stream()
-                            .filter(s -> s.getValue() != null)
+//                            .filter(s -> s.getValue() != null)
                             .map(outcome -> {
                                 BetDTO betDTO = new BetDTO();
                                 betDTO.setId(outcome.getOutcomeId());

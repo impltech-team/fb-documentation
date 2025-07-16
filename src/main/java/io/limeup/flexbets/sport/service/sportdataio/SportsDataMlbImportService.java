@@ -183,7 +183,7 @@ public class SportsDataMlbImportService {
     private void fetchAndUpsertTeams() {
         var log = fetchLogService.start(FetchIoType.TEAMS, SportIoType.MLB);
         try {
-            String url = URL + SPORT_URL + "scores/json/teams?key=" + apiKey;
+            String url = URL + SPORT_URL + "scores/json/Allteams?key=" + apiKey;
             List<SportsDataTeamDTO> dtos = sportsDataWebClient.get()
                     .uri(url)
                     .retrieve()

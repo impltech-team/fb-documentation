@@ -11,9 +11,10 @@ import java.util.Optional;
 
 public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
 
-    Optional <IoEvent> findByGameId(Long aLong);
+    Optional<IoEvent> findByGameId(Long aLong);
 
     List<IoEvent> findAllByDatetimeUtcBetween(LocalDateTime from, LocalDateTime to);
+
     @Query(value = """
             WITH sorted AS (
                 SELECT e.id
@@ -60,18 +61,18 @@ public interface IoEventRepository extends JpaRepository<IoEvent, Long> {
     );
 
     @Query(value = """
-    SELECT COUNT(*)
-    FROM sport.io_event e
-    WHERE e.datetime_utc >= COALESCE(:dateFrom, e.datetime_utc)
-      AND e.datetime_utc <= COALESCE(:dateTo, e.datetime_utc)
-      AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
-      AND (:venueIds IS NULL OR e.stadium_id IN (:venueIds))
-      AND (
-            :participantIds IS NULL OR
-            e.home_team_id IN (:participantIds) OR
-            e.away_team_id IN (:participantIds)
-      )
-    """, nativeQuery = true)
+            SELECT COUNT(*)
+            FROM sport.io_event e
+            WHERE e.datetime_utc >= COALESCE(:dateFrom, e.datetime_utc)
+              AND e.datetime_utc <= COALESCE(:dateTo, e.datetime_utc)
+              AND (:status IS NULL OR LOWER(e.status) = LOWER(:status))
+              AND (:venueIds IS NULL OR e.stadium_id IN (:venueIds))
+              AND (
+                    :participantIds IS NULL OR
+                    e.home_team_id IN (:participantIds) OR
+                    e.away_team_id IN (:participantIds)
+              )
+            """, nativeQuery = true)
     long countEvents(
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
