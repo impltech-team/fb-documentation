@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Service("sportsDataIoParticipantService")
+@Service("sportsDataIoParticipantServiceMlb")
 @Transactional
 public class ParticipantServiceIoMlbImpl implements ParticipantService {
 
@@ -99,7 +99,7 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
     //    @EventBasedCache(cacheName = "participantDetailsCache",
 //            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
-    public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
+    public ParticipantDTO getParticipantById(Integer competitionId,Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
         IoTeam team = teamRepository.findByTeamId(participantId)
                 .orElseThrow(() -> new FlexBetsSportNotFoundException(
                         String.format("Participant %s Not Found", participantId)));

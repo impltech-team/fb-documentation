@@ -1,8 +1,9 @@
 package io.limeup.flexbets.sport.service.resolver;
 
 import io.limeup.flexbets.sport.service.ParticipantService;
-import io.limeup.flexbets.sport.service.impl.statscore.ParticipantServiceImpl;
 import io.limeup.flexbets.sport.service.impl.sportsdataio.ParticipantServiceIoMlbImpl;
+import io.limeup.flexbets.sport.service.impl.sportsdataio.ParticipantServiceIoNflImpl;
+import io.limeup.flexbets.sport.service.impl.statscore.ParticipantServiceImpl;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class ParticipantServiceResolver {
     public ParticipantServiceResolver(List<ParticipantService> services) {
         this.serviceMap = Map.of(
                 "5466", findService(services, ParticipantServiceIoMlbImpl.class),
+                "5611", findService(services, ParticipantServiceIoNflImpl.class),
                 "DEFAULT", findService(services, ParticipantServiceImpl.class)
         );
     }
