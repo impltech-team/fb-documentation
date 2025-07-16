@@ -47,8 +47,8 @@ public class EventServiceIoMlbImpl implements EventService {
         this.betRepository = betRepository;
         this.ioBetOutcomeRepository = ioBetOutcomeRepository;
     }
-//    @EventBasedCache(cacheName = "eventsListCache",
-//            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
+    @EventBasedCache(cacheName = "eventsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #dateFrom, #dateTo, #venueIds, #participantIds, #status, #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
 
     @Override
     public PaginatedResponse<EventDTO> listEvents(Integer competitionId, LocalDateTime dateFrom, LocalDateTime dateTo,

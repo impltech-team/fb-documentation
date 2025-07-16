@@ -1,5 +1,6 @@
 package io.limeup.flexbets.sport.service.impl.sportsdataio;
 
+import io.limeup.flexbets.sport.cache.EventBasedCache;
 import io.limeup.flexbets.sport.dto.*;
 import io.limeup.flexbets.sport.error.FlexBetsSportNotFoundException;
 import io.limeup.flexbets.sport.model.IoPlayerGameStats;
@@ -42,9 +43,9 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
     }
 
 
-    //    @EventBasedCache(cacheName = "participantsListCache",
-//            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount," +
-//                    " #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
+        @EventBasedCache(cacheName = "participantsListCache",
+            key = "T(java.util.Objects).hash(#competitionId, #participantIds, #marketId, #maxHistoricalDataCount," +
+                    " #requestQuery.page, #requestQuery.pageSize, #requestQuery.sortOrder, #requestQuery.sortBy, #requestQuery.filter)")
     @Override
     public PaginatedResponse<ParticipantDTO> listParticipants(Integer competitionId,
                                                               List<Integer> participantIds,
@@ -96,8 +97,8 @@ public class ParticipantServiceIoMlbImpl implements ParticipantService {
         return PaginationUtils.buildPaginatedResponse(dtoList, count, page, pageSize);
     }
 
-    //    @EventBasedCache(cacheName = "participantDetailsCache",
-//            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
+        @EventBasedCache(cacheName = "participantDetailsCache",
+            key = "T(java.util.Objects).hash(#participantId, #marketId, #maxHistoricalDataCount)")
     @Override
     public ParticipantDTO getParticipantById(Integer participantId, Integer marketId, Integer maxHistoricalDataCount) {
         IoTeam team = teamRepository.findByTeamId(participantId)
