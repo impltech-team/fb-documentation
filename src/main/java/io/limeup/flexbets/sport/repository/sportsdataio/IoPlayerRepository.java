@@ -30,7 +30,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                     p.team_id                                            AS player_team_id,
                     TRIM(COALESCE(t.city || ' ', '') || t.name)          AS player_team_name,
                     e.id                                                 AS event_id,
-                    e.datetime                                           AS event_datetime,
+                    e.datetime_utc                                       AS event_datetime,
                     TRIM(COALESCE(ht.city || ' ', '') || ht.name)
                     || ' - ' ||
                     TRIM(COALESCE(at.city || ' ', '') || at.name)        AS event_name,
@@ -40,10 +40,10 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                     END                                                  AS opponent_team_key
                 FROM   io_player  p
                 JOIN   io_team    t   ON t.team_id  = p.team_id
-                JOIN   io_event   e   ON e.game_id  = CAST(p.upcoming_game_id AS BIGINT)
-                JOIN   io_team    ht  ON ht.team_id = e.home_team_id
-                JOIN   io_team    at  ON at.team_id = e.away_team_id
-                WHERE  e.datetime > NOW()
+                LEFT JOIN   io_event   e   ON e.game_id  = CAST(p.upcoming_game_id AS BIGINT)
+                LEFT JOIN   io_team    ht  ON ht.team_id = e.home_team_id
+                LEFT JOIN   io_team    at  ON at.team_id = e.away_team_id
+                WHERE  e.datetime_utc > NOW()
 
                  AND (:positions IS NULL OR p.position IN (:positions)) 
                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
@@ -66,7 +66,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM sport.io_bet          b
                 JOIN sport.io_bet_outcome  bo  ON bo.io_bet_id = b.id
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
-                                                AND sp.event_id  = b.io_event_id
+                                               
                 WHERE b.any_bets_available = true
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
             ),  
@@ -119,7 +119,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 sp.event_name,
                 sp.opponent_team_key
             FROM   selected_players sp
-            JOIN   paged_players    pp ON pp.id = sp.id
+            JOIN   paged_players  pp ON pp.id = sp.id
                 
                 ORDER BY
                           CASE WHEN :sortBy = 'player_name' AND :sortOrder = 'asc' THEN sp.player_name END ASC,
@@ -160,7 +160,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                         p.photo_url  AS avatar_url,                    
                                                                          
                         e.game_id AS event_id,
-                        e.datetime AS event_datetime,
+                        e.datetime_utc AS event_datetime,
                         TRIM(COALESCE(home_team.city || ' ', '') || home_team.name) || ' - ' || TRIM(COALESCE(away_team.city || ' ', '') || away_team.name) AS eventName,                                              
                         CASE
                             WHEN p.team_id = e.home_team_id THEN away_team.key
@@ -184,7 +184,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                     e.id AS event_id
                 FROM io_player p
                 JOIN io_team t ON t.team_id = p.team_id
-                JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
+                LEFT JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
                 WHERE e.datetime > NOW()
                   AND (:positions IS NULL OR p.position IN (:positions)) 
                   AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
