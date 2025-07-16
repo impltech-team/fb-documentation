@@ -1,7 +1,7 @@
 SET search_path TO sport;
 
 -- Table for NFL bets
-CREATE TABLE sport.io_bet_nfl (
+CREATE TABLE IF NOT EXISTS sport.io_bet_nfl (
     id BIGSERIAL PRIMARY KEY,
     io_event_nfl_id BIGINT,
     market_id BIGINT,
@@ -25,7 +25,7 @@ CREATE TABLE sport.io_bet_nfl (
 );
 
 -- Table for NFL bet outcomes
-CREATE TABLE sport.io_bet_outcome_nfl (
+CREATE TABLE IF NOT EXISTS sport.io_bet_outcome_nfl (
     id BIGSERIAL PRIMARY KEY,
     outcome_id BIGINT,
     io_bet_nfl_id BIGINT,
@@ -40,7 +40,7 @@ CREATE TABLE sport.io_bet_outcome_nfl (
 );
 
 -- Create index for better performance on foreign key
-CREATE INDEX idx_bet_outcome_bet_id ON sport.io_bet_outcome_nfl(io_bet_nfl_id);
+CREATE INDEX IF NOT EXISTS idx_bet_outcome_bet_id ON sport.io_bet_outcome_nfl(io_bet_nfl_id);
 
 
 

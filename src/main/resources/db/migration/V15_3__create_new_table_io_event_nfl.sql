@@ -1,6 +1,6 @@
 SET search_path TO sport;
 
-CREATE TABLE sport.io_event_nfl (
+CREATE TABLE IF NOT EXISTS sport.io_event_nfl (
     id BIGSERIAL PRIMARY KEY,
     global_game_id BIGINT,
     game_key VARCHAR(20),
@@ -36,9 +36,9 @@ CREATE TABLE sport.io_event_nfl (
     CONSTRAINT uq_game_key UNIQUE (game_key)
 );
 
-CREATE INDEX idx_event_nfl_datetime_utc ON sport.io_event_nfl(datetime_utc);
-CREATE INDEX idx_event_nfl_teams ON sport.io_event_nfl(home_team_id, away_team_id);
-CREATE INDEX idx_event_nfl_status ON sport.io_event_nfl(status);
+CREATE INDEX IF NOT EXISTS idx_event_nfl_datetime_utc ON sport.io_event_nfl(datetime_utc);
+CREATE INDEX IF NOT EXISTS idx_event_nfl_teams ON sport.io_event_nfl(home_team_id, away_team_id);
+CREATE INDEX IF NOT EXISTS idx_event_nfl_status ON sport.io_event_nfl(status);
 
 
 

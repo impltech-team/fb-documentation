@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -33,9 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -331,8 +328,7 @@ public class SportsDataNflImportService {
     }
 
     private void fetchAndProcessNflMarketsForGame(IoEventNFL event) {
-        String url = String.format("nfl/odds/json/BettingMarketsByGameID/%d?key=%s",
-                event.getGlobalGameId(), apiKey);
+        String url = URL + SPORT_URL + "odds/json/BettingMarketsByGameID/" + event.getGlobalGameId() + "/G1000?key=" + apiKey;
 
         sportsDataWebClient.get()
                 .uri(url)
@@ -357,7 +353,7 @@ public class SportsDataNflImportService {
     private boolean isRelevantNflMarket(SportsDataBettingMarketDTO dto) {
         return (NflMarketTypes.PLAYER_MARKETS.contains(dto.getBettingMarketType()) ||
                 NflMarketTypes.TEAM_MARKETS.contains(dto.getBettingMarketType())) &&
-                Boolean.TRUE.equals(dto.getAnyBetsAvailable());
+                Boolean.FALSE.equals(dto.getAnyBetsAvailable());
     }
 
     public Set<IoBetNFL> reconcileNflMarkets(IoEventNFL event,

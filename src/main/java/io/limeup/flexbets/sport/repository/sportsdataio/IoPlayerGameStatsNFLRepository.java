@@ -1,9 +1,11 @@
 package io.limeup.flexbets.sport.repository.sportsdataio;
 
 import io.limeup.flexbets.sport.model.IoPlayerGameStatsNFL;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -46,4 +48,24 @@ public interface IoPlayerGameStatsNFLRepository extends JpaRepository<IoPlayerGa
             @Param("minFantasyPoints") BigDecimal minFantasyPoints,
             @Param("limit") int limit
     );
+
+    @Query("SELECT g FROM IoPlayerGameStatsNFL g WHERE g.playerId = :playerId ORDER BY g.gameDate DESC")
+    List<IoPlayerGameStatsNFL> findTopByPlayerIdOrderByGameDateDesc(
+            @Param("playerId") Long playerId,
+            @Param("limit") int limit
+    );
+
+    @Query(value = """
+    SELECT g
+    FROM IoPlayerGameStatsNFL g
+    WHERE g.playerId = :playerId
+    ORDER BY g.gameDate DESC
+""")
+    List<IoPlayerGameStatsNFL> findTopByPlayerIdLimit(
+            @Param("playerId") Long playerId,
+            Pageable pageable
+    );
+
+    List<IoPlayerGameStatsNFL> findByPlayerIdOrderByGameDateDesc(Long playerId, Pageable pageable);
+
 }

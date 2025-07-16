@@ -1,6 +1,6 @@
 SET search_path TO sport;
 
-CREATE TABLE sport.io_player_stats_nfl (
+CREATE TABLE IF NOT EXISTS sport.io_player_stats_nfl (
     id BIGSERIAL PRIMARY KEY,
     player_id TEXT,
     season_type TEXT,
@@ -145,11 +145,11 @@ CREATE TABLE sport.io_player_stats_nfl (
     game_id TEXT
 );
 
-CREATE INDEX idx_io_player_game_stats_nfl_player_id ON sport.io_player_game_stats_nfl(player_id);
-CREATE INDEX idx_io_player_game_stats_nfl_team ON sport.io_player_game_stats_nfl(team);
-CREATE INDEX idx_io_player_game_stats_nfl_season ON sport.io_player_game_stats_nfl(season);
+CREATE INDEX idx_io_player_stats_nfl_player_id ON sport.io_player_stats_nfl(player_id);
+CREATE INDEX idx_io_player_stats_nfl_team ON sport.io_player_stats_nfl(team);
+CREATE INDEX idx_io_player_stats_nfl_season ON sport.io_player_stats_nfl(season);
 
-CREATE TABLE sport.io_player_scoring_detail_nfl (
+CREATE TABLE IF NOT EXISTS sport.io_player_scoring_detail_nfl (
     id BIGSERIAL PRIMARY KEY,
     game_key TEXT,
     season_type TEXT,
@@ -162,7 +162,7 @@ CREATE TABLE sport.io_player_scoring_detail_nfl (
     scoring_detail_id TEXT,
     player_game_id TEXT,
     scoring_play_id TEXT,
-    player_game_stats_id BIGINT REFERENCES sport.io_player_game_stats_nfl(id)
+    player_game_stats_id BIGINT REFERENCES sport.io_player_stats_nfl(id)
 );
 
 CREATE INDEX idx_io_player_scoring_detail_nfl_player_id ON sport.io_player_scoring_detail_nfl(player_id);

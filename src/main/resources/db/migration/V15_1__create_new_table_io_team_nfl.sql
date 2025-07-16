@@ -1,6 +1,6 @@
 SET search_path TO sport;
 
-CREATE TABLE io_stadium_nfl (
+CREATE TABLE IF NOT EXISTS io_stadium_nfl (
     id BIGSERIAL PRIMARY KEY,
     stadium_id INT NOT NULL UNIQUE,
     name TEXT,
@@ -14,7 +14,7 @@ CREATE TABLE io_stadium_nfl (
     type TEXT
 );
 
-CREATE TABLE io_team_nfl (
+CREATE TABLE IF NOT EXISTS io_team_nfl (
     id BIGSERIAL PRIMARY KEY,
 
     team_id BIGINT NOT NULL,

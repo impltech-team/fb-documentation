@@ -1,6 +1,6 @@
 SET search_path TO sport;
 
-CREATE TABLE sport.io_player_game_stats_nfl (
+CREATE TABLE IF NOT EXISTS sport.io_player_game_stats_nfl (
     id BIGSERIAL PRIMARY KEY,
     player_id BIGINT NOT NULL,
     game_key VARCHAR(20) NOT NULL,

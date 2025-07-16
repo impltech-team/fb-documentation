@@ -1,11 +1,17 @@
 package io.limeup.flexbets.sport.mapper;
 
+import io.limeup.flexbets.sport.dto.OddsDTO;
 import io.limeup.flexbets.sport.dto.sportsdata.SportsDataBettingMarketDTO;
 import io.limeup.flexbets.sport.model.IoBetNFL;
 import io.limeup.flexbets.sport.model.IoBetOutcomeNFL;
 import io.limeup.flexbets.sport.model.IoEventNFL;
+import io.limeup.flexbets.sport.model.enums.BetStatus;
+import io.limeup.flexbets.sport.repository.projection.sportsdataio.SportsDataBetRow;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +46,8 @@ public class IoBetNFLMapper {
     }
 
     public void updateEntity(IoBetNFL existing, SportsDataBettingMarketDTO dto) {
+        if (existing == null || dto == null) return;
+
         existing.setBettingMarketTypeId(dto.getBettingMarketTypeId());
         existing.setBettingMarketType(dto.getBettingMarketType());
         existing.setBettingBetTypeId(dto.getBettingBetTypeId());
@@ -55,7 +63,6 @@ public class IoBetNFLMapper {
         existing.setArchived(Boolean.TRUE.equals(dto.getArchived()));
         existing.setUpdatedAt(dto.getUpdated());
 
-        // Update outcomes
         Map<Long, IoBetOutcomeNFL> existingOutcomes = existing.getBettingOutcomes().stream()
                 .collect(Collectors.toMap(IoBetOutcomeNFL::getOutcomeId, o -> o));
 
@@ -71,13 +78,20 @@ public class IoBetNFLMapper {
                 .map(dto -> {
                     IoBetOutcomeNFL outcome = (existingOutcomes != null && existingOutcomes.containsKey(dto.getBettingOutcomeId()))
                             ? existingOutcomes.get(dto.getBettingOutcomeId())
-                            : new IoBetOutcomeNFL();
+                            : IoBetOutcomeNFL.builder().build();
 
                     outcome.setOutcomeId(dto.getBettingOutcomeId());
-                    /*outcome.setName(dto.getName());
-                    outcome.setOdds(dto.getOdds());
-                    outcome.setHandicap(dto.getHandicap());
-                    outcome.setTotal(dto.getTotal());*/
+                    outcome.setName(dto.getParticipant());
+
+                    // Convert payout decimal to integer odds (1.85 -> 185)
+                    try {
+                        if (dto.getPayoutDecimal() != null) {
+                            outcome.setOdds((int)(Double.parseDouble(dto.getPayoutDecimal()) * 100));
+                        }
+                    } catch (NumberFormatException e) {
+                        outcome.setOdds(null);
+                    }
+
                     outcome.setAvailable(Boolean.TRUE.equals(dto.getIsAvailable()));
                     outcome.setCreatedAt(dto.getCreated());
                     outcome.setUpdatedAt(dto.getUpdated());
@@ -85,5 +99,37 @@ public class IoBetNFLMapper {
                     return outcome;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public List<OddsDTO> toOddsDTOList(List<SportsDataBetRow> bets) {
+        if (bets == null) return Collections.emptyList();
+
+        return bets.stream()
+                .map(this::toOddsDTO)
+                .collect(Collectors.toList());
+    }
+
+    public OddsDTO toOddsDTO(SportsDataBetRow bet) {
+        if (bet == null) return null;
+
+        String roundedPrice;
+        try {
+            roundedPrice = new BigDecimal(bet.getPrice())
+                    .setScale(3, RoundingMode.HALF_UP)
+                    .toPlainString();
+        } catch (Exception e) {
+            roundedPrice = bet.getPrice(); // Fallback to original if conversion fails
+        }
+
+        return OddsDTO.builder()
+                .id(bet.getId())
+                .marketName(bet.getMarketType())
+                .marketId(bet.getMarketTypeId())
+                .betType(bet.getBetType())
+                .line(bet.getBetLine())
+                .price(roundedPrice)
+                .status(BetStatus.OPEN.name())
+                .lastUpdatedDate(bet.getLastUpdated())
+                .build();
     }
 }
