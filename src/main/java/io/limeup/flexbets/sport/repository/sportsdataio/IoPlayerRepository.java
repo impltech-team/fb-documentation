@@ -66,9 +66,10 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM sport.io_bet          b
                 JOIN sport.io_bet_outcome  bo  ON bo.io_bet_id = b.id
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
-                                               
-                WHERE b.any_bets_available = true
+                                                                                       
+                WHERE b.any_bets_available = true AND b.updated_at > NOW()
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
+    
             ),  
           paged_players AS ( 
                 SELECT id
@@ -207,8 +208,8 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 SELECT DISTINCT bo.player_id
                 FROM sport.io_bet b
                 JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
-                JOIN selected_players sp ON sp.id = bo.player_id AND sp.event_id = b.io_event_id
-                WHERE b.any_bets_available = true
+                JOIN selected_players sp ON sp.id = bo.player_id 
+                WHERE b.any_bets_available = true AND b.updated_at > NOW()
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
             ),
             paged_players AS (
@@ -219,7 +220,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                         SELECT bo.player_id
                         FROM sport.io_bet b
                         JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
-                        JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
+                         JOIN selected_players sp2 ON sp2.id = bo.player_id AND sp2.event_id = b.io_event_id
                         WHERE b.bet_type_id = :marketId
                     )
                 ) OR (
