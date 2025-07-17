@@ -43,9 +43,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 LEFT JOIN   io_event   e   ON e.game_id  = CAST(p.upcoming_game_id AS BIGINT)
                 LEFT JOIN   io_team    ht  ON ht.team_id = e.home_team_id
                 LEFT JOIN   io_team    at  ON at.team_id = e.away_team_id
-                WHERE  e.datetime_utc > NOW()
-
-                 AND (:positions IS NULL OR p.position IN (:positions)) 
+                WHERE (:positions IS NULL OR p.position IN (:positions)) 
                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                  AND (
                    :filter IS NULL OR NOT EXISTS (
@@ -66,8 +64,9 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM sport.io_bet          b
                 JOIN sport.io_bet_outcome  bo  ON bo.io_bet_id = b.id
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
+                JOIN sport.io_event e ON e.id= b.io_event_id
                                                                                        
-                WHERE b.any_bets_available = true AND b.updated_at > NOW()
+                WHERE b.any_bets_available = true  and e.datetime_utc > NOW()
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
     
             ),  
@@ -164,7 +163,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 LEFT JOIN   io_event   e   ON e.game_id  = CAST(p.upcoming_game_id AS BIGINT)
                 LEFT JOIN   io_team    ht  ON ht.team_id = e.home_team_id
                 LEFT JOIN   io_team    at  ON at.team_id = e.away_team_id
-                WHERE  e.datetime_utc > NOW()
+       
 
                  AND (:positions IS NULL OR p.position IN (:positions)) 
                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
@@ -187,8 +186,9 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM sport.io_bet          b
                 JOIN sport.io_bet_outcome  bo  ON bo.io_bet_id = b.id
                 JOIN selected_players      sp  ON sp.id        = bo.player_id
+                JOIN sport.io_event e ON e.id= b.io_event_id
                                                                                        
-                WHERE b.any_bets_available = true AND b.updated_at > NOW()
+                WHERE b.any_bets_available = true and e.datetime_utc > NOW()
     
             ),  
           paged_players AS (
@@ -297,7 +297,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM io_player p
                 JOIN io_team t ON t.team_id = p.team_id
                 LEFT JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
-                WHERE e.datetime > NOW()
+              
                   AND (:positions IS NULL OR p.position IN (:positions)) 
                   AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                   AND (
@@ -320,7 +320,8 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM sport.io_bet b
                 JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
                 JOIN selected_players sp ON sp.id = bo.player_id 
-                WHERE b.any_bets_available = true AND b.updated_at > NOW()
+                 JOIN sport.io_event e ON e.id= b.io_event_id
+                WHERE b.any_bets_available = true and e.datetime_utc > NOW()
             ),
            paged_players AS (
                         SELECT id
@@ -373,7 +374,8 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM sport.io_bet b
                 JOIN sport.io_bet_outcome bo ON bo.io_bet_id = b.id
                 JOIN selected_players sp ON sp.id = bo.player_id 
-                WHERE b.any_bets_available = true AND b.updated_at > NOW()
+               JOIN sport.io_event e ON e.id= b.io_event_id         
+                WHERE b.any_bets_available = true and e.datetime_utc > NOW()
                   AND (:marketId IS NULL OR b.bet_type_id = :marketId)
             ),
            paged_players AS (
