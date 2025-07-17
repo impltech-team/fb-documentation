@@ -44,6 +44,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 LEFT JOIN   io_team    ht  ON ht.team_id = e.home_team_id
                 LEFT JOIN   io_team    at  ON at.team_id = e.away_team_id
                 WHERE (:positions IS NULL OR p.position IN (:positions)) 
+                 AND p.status = 'Active'   
                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                  AND (
                    :filter IS NULL OR NOT EXISTS (
@@ -164,8 +165,8 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 LEFT JOIN   io_team    ht  ON ht.team_id = e.home_team_id
                 LEFT JOIN   io_team    at  ON at.team_id = e.away_team_id
        
-
-                 AND (:positions IS NULL OR p.position IN (:positions)) 
+                WHERE     (:positions IS NULL OR p.position IN (:positions)) 
+                AND p.status = 'Active'   
                  AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                  AND (
                    :filter IS NULL OR NOT EXISTS (
@@ -254,9 +255,6 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
             @Param("participantIds") Collection<Integer> participantIds
     );
 
-
-
-
     @Query(value = """
                   SELECT
                         p.player_id AS id,
@@ -278,7 +276,7 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                             WHEN p.team_id = e.home_team_id THEN away_team.key
                             WHEN p.team_id = e.away_team_id THEN home_team.key
                         END AS opponentTeamKey
-                FROM io_player p
+                        FROM io_player p
                         LEFT JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
                         LEFT JOIN io_team t ON t.team_id = p.team_id
                         LEFT JOIN io_team home_team ON home_team.team_id = e.home_team_id
@@ -297,8 +295,8 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM io_player p
                 JOIN io_team t ON t.team_id = p.team_id
                 LEFT JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
-              
-                  AND (:positions IS NULL OR p.position IN (:positions)) 
+              WHERE (:positions IS NULL OR p.position IN (:positions)) 
+                AND p.status = 'Active'            
                   AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                   AND (
                     :filter IS NULL OR NOT EXISTS (
@@ -351,8 +349,8 @@ public interface IoPlayerRepository extends JpaRepository<IoPlayer, Long> {
                 FROM io_player p
                 JOIN io_team t ON t.team_id = p.team_id
                 LEFT JOIN io_event e ON e.game_id = CAST(p.upcoming_game_id AS BIGINT)
-                WHERE e.datetime > NOW()
-                  AND (:positions IS NULL OR p.position IN (:positions)) 
+                WHERE  (:positions IS NULL OR p.position IN (:positions)) 
+                  AND p.status = 'Active'              
                   AND (:participantIds IS NULL OR p.team_id IN (:participantIds))
                   AND (
                     :filter IS NULL OR NOT EXISTS (
